@@ -1,0 +1,28 @@
+version: "3.3"
+
+services:
+#  nginx:
+#    image: nginx
+#    depends_on:
+#      - app:app
+#    ports:
+#      - "80:80"
+  app:
+    image: absolute
+    depends_on:
+      - redis
+      - db
+    ports:
+      - "8080:8080"
+  db:
+    image: postgres
+    ports:
+     - "5432:5432"
+    environment:
+     - POSTGRES_PASSWORD=pluto
+     - POSTGRES_USER=pluto
+     - POSTGRES_DB=pluto
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
