@@ -7,14 +7,12 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath("se.transmode.gradle:gradle-docker:1.2")
     }
 }
 
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
-apply plugin: 'docker'
 
 jar {
     baseName = 'absolute'
@@ -44,15 +42,4 @@ dependencies {
     runtime('org.postgresql:postgresql')
     compileOnly('org.projectlombok:lombok')
     testCompile('org.springframework.boot:spring-boot-starter-test')
-}
-
-task buildDocker(type: Docker, dependsOn: build) {
-    applicationName = jar.baseName
-    dockerfile = file('Dockerfile')
-    doFirst {
-        copy {
-            from jar
-            into '${stageDir}/target'
-        }
-    }
 }
