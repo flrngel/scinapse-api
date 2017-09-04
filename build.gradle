@@ -7,6 +7,7 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("se.transmode.gradle:gradle-docker:1.2")
     }
 }
 
@@ -14,6 +15,7 @@ group = 'pluto'
 
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'docker'
 apply plugin: 'org.springframework.boot'
 
 jar {
