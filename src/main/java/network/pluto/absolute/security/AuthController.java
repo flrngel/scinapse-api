@@ -1,5 +1,6 @@
 package network.pluto.absolute.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import network.pluto.absolute.user.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 public class AuthController {
@@ -32,5 +36,17 @@ public class AuthController {
 
         String jws = tokenHelper.generateToken(user.getUsername());
         return new TokenState(jws, System.currentTimeMillis() + expireIn * 1000);
+    }
+
+    @RequestMapping(value = "/auth/refresh", method = RequestMethod.GET)
+    public TokenState refreshAuthenticationToken(HttpServletRequest request, HttpServletResponse response) {
+        String authToken = tokenHelper.getToken(request);
+
+        if (authToken != null && tokenHelper.canTokenBeRefreshed(authToken)) {
+            String refreshedToken = tokenHelper.refreshToken(authToken);
+            return new TokenState(refreshedToken, System.currentTimeMillis() + expireIn * 1000);
+        } else {
+            throw new RuntimeException("token expired.");
+        }
     }
 }
