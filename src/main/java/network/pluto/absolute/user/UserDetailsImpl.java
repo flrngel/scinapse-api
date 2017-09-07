@@ -1,6 +1,7 @@
 package network.pluto.absolute.user;
 
 import lombok.Getter;
+import network.pluto.bibliotheca.models.Member;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

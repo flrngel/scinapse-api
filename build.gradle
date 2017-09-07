@@ -45,6 +45,8 @@ dependencies {
     compile('org.springframework.security:spring-security-jwt')
     compile('io.jsonwebtoken:jjwt:0.7.0')
 
+    compile project(':bibliotheca')
+
     runtime('org.springframework.boot:spring-boot-devtools')
     runtime('com.h2database:h2')
     runtime('org.postgresql:postgresql')

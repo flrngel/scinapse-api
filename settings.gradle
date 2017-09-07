@@ -1,0 +1,4 @@
+rootProject.name = 'absolute'
+
+include 'absolute'
+include 'bibliotheca'
