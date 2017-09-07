@@ -9,6 +9,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -22,8 +23,11 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Value("${jwt.cookie}")
+    private String cookie;
+
     @Value("${jwt.expires-in}")
-    private long expireIn;
+    private int expireIn;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -32,6 +36,12 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
         UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
 
         String jws = tokenHelper.generateToken(user.getUsername());
+
+        Cookie authCookie = new Cookie(cookie, jws);
+        authCookie.setPath("/");
+        authCookie.setHttpOnly(true);
+        authCookie.setMaxAge(expireIn);
+        response.addCookie(authCookie);
 
         TokenState tokenState = new TokenState(jws, System.currentTimeMillis() + expireIn * 1000);
         String jwtResponse = objectMapper.writeValueAsString(tokenState);

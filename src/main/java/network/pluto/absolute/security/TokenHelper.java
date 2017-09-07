@@ -3,11 +3,10 @@ package network.pluto.absolute.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.Map;
@@ -25,11 +24,11 @@ public class TokenHelper {
     @Value("${jwt.header}")
     private String authHeader;
 
-    @Value("${jwt.expires-in}")
-    private long expireIn;
+    @Value("${jwt.cookie}")
+    private String cookie;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    @Value("${jwt.expires-in}")
+    private int expireIn;
 
     private SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
 
@@ -93,6 +92,13 @@ public class TokenHelper {
     }
 
     public String getToken(HttpServletRequest request) {
+        // get token from cookie
+        Cookie authCookie = getCookieValueByName(request, cookie);
+        if (authCookie != null) {
+            return authCookie.getValue();
+        }
+
+        // get token from header
         String authHeader = request.getHeader(this.authHeader);
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             return authHeader.substring(7);
@@ -100,4 +106,15 @@ public class TokenHelper {
         return null;
     }
 
+    public Cookie getCookieValueByName(HttpServletRequest request, String name) {
+        if (request.getCookies() == null) {
+            return null;
+        }
+        for (int i = 0; i < request.getCookies().length; i++) {
+            if (request.getCookies()[i].getName().equals(name)) {
+                return request.getCookies()[i];
+            }
+        }
+        return null;
+    }
 }
