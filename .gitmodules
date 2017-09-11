@@ -1,0 +1,3 @@
+[submodule "bibliotheca"]
+	path = bibliotheca
+	url = https://github.com/pluto-net/bibliotheca.git

@@ -1,8 +1,10 @@
 package network.pluto.absolute.user;
 
-import network.pluto.absolute.security.Authority;
-import network.pluto.absolute.security.AuthorityName;
-import network.pluto.absolute.security.AuthorityRepository;
+import network.pluto.bibliotheca.enums.AuthorityName;
+import network.pluto.bibliotheca.models.Authority;
+import network.pluto.bibliotheca.models.Member;
+import network.pluto.bibliotheca.repositories.AuthorityRepository;
+import network.pluto.bibliotheca.repositories.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;

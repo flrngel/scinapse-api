@@ -1,5 +1,7 @@
 package network.pluto.absolute.user;
 
+import network.pluto.bibliotheca.models.Member;
+import network.pluto.bibliotheca.repositories.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
