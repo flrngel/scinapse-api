@@ -2,12 +2,20 @@ version: "3.3"
 
 services:
   nginx:
-    image: nginx
+#    image: nginx
+    build: ./nginx
     depends_on:
-      - app
+      - absolute
     ports:
       - "80:80"
-  app:
+      - "443:443"
+    networks:
+      - absnet
+  absolute:
     image: pluto/absolute
     ports:
       - "8080:8080"
+    networks:
+      - absnet
+networks:
+  absnet:

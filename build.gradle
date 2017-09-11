@@ -11,7 +11,7 @@ buildscript {
     }
 }
 
-group = 'pluto'
+group = 'plutonet'
 
 apply plugin: 'java'
 apply plugin: 'idea'
