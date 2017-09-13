@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class MemberController {
@@ -22,12 +23,15 @@ public class MemberController {
     }
 
     @RequestMapping(value = "/members", method = RequestMethod.GET)
-    public List<Member> getMembers() {
-        return memberService.getAll();
+    public List<MemberDto> getMembers() {
+        return memberService.getAll().stream()
+                .map(MemberDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @RequestMapping(value = "/members/{id}", method = RequestMethod.GET)
-    public Member getMember(@PathVariable long id) {
-        return memberService.getMember(id);
+    public MemberDto getMember(@PathVariable long id) {
+        Member member = memberService.getMember(id);
+        return MemberDto.fromEntity(member);
     }
 }
