@@ -1,6 +1,9 @@
-package network.pluto.absolute.security;
+package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.MemberDto;
+import network.pluto.absolute.security.AuthRequest;
+import network.pluto.absolute.security.TokenHelper;
+import network.pluto.absolute.security.TokenState;
 import network.pluto.absolute.service.LoginUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,7 +44,7 @@ public class AuthController {
 
         LoginUserDetails user = (LoginUserDetails) authentication.getPrincipal();
 
-        String jws = tokenHelper.generateToken(user.getUsername());
+        String jws = tokenHelper.generateToken(user.getMember());
 
         Cookie authCookie = new Cookie(cookie, jws);
         authCookie.setPath("/");

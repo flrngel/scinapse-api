@@ -21,9 +21,6 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${jwt.cookie}")
-    private String cookie;
-
     private final UserDetailsService userDetailsService;
     private final TokenHelper tokenHelper;
     private final AuthenticationSuccessHandler authenticationSuccessHandler;
@@ -42,6 +39,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         this.restLogoutSuccessHandler = restLogoutSuccessHandler;
         this.passwordEncoder = passwordEncoder;
     }
+
+    @Value("${jwt.cookie}")
+    private String cookie;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
