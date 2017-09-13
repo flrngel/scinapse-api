@@ -1,6 +1,7 @@
 package network.pluto.absolute.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,6 +29,9 @@ import java.util.Collections;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Value("${jwt.cookie}")
+    private String cookie;
+
     @Autowired
     private UserDetailsService userDetailsService;
 
@@ -36,6 +40,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private AuthenticationSuccessHandler authenticationSuccessHandler;
+
+    @Autowired
+    private RestLogoutSuccessHandler restLogoutSuccessHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -72,13 +79,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .csrf().disable()
                 .cors().and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                .addFilterBefore(new TokenAuthenticationFilter(tokenHelper, userDetailsService), BasicAuthenticationFilter.class);
 
         http
-                .addFilterBefore(new TokenAuthenticationFilter(tokenHelper, userDetailsService), BasicAuthenticationFilter.class)
                 .authorizeRequests()
-                .antMatchers("/admin/**").hasRole("USER")
+                .antMatchers("/auth/refresh").hasAnyRole("USER", "ADMIN")
                 .anyRequest().permitAll();
+
+        http
+                .logout()
+                .logoutUrl("/auth/logout")
+                .logoutSuccessHandler(restLogoutSuccessHandler)
+                .deleteCookies(cookie);
+
+//        http
 //                .formLogin()
 //                .loginPage("/auth/token")
 //                .successHandler(authenticationSuccessHandler);
