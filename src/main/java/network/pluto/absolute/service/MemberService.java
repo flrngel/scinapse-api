@@ -15,14 +15,18 @@ import java.util.List;
 @Service
 public class MemberService {
 
-    @Autowired
-    private MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
+    private final AuthorityRepository authorityRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private AuthorityRepository authorityRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public MemberService(MemberRepository memberRepository,
+                         AuthorityRepository authorityRepository,
+                         PasswordEncoder passwordEncoder) {
+        this.memberRepository = memberRepository;
+        this.authorityRepository = authorityRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public Member save(Member member) {
         member.setPassword(passwordEncoder.encode(member.getPassword()));

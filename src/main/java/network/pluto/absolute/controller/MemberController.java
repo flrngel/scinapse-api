@@ -14,8 +14,12 @@ import java.util.stream.Collectors;
 @RestController
 public class MemberController {
 
+    private final MemberService memberService;
+
     @Autowired
-    private MemberService memberService;
+    public MemberController(MemberService memberService) {
+        this.memberService = memberService;
+    }
 
     @RequestMapping(value = "/members", method = RequestMethod.POST)
     public MemberDto create(@RequestBody MemberDto memberDto) {

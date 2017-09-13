@@ -19,11 +19,14 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 public class AuthController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    private final TokenHelper tokenHelper;
 
     @Autowired
-    private TokenHelper tokenHelper;
+    public AuthController(AuthenticationManager authenticationManager, TokenHelper tokenHelper) {
+        this.authenticationManager = authenticationManager;
+        this.tokenHelper = tokenHelper;
+    }
 
     @Value("${jwt.cookie}")
     private String cookie;

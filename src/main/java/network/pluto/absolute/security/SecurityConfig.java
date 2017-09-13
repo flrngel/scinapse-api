@@ -32,17 +32,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${jwt.cookie}")
     private String cookie;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
+    private final TokenHelper tokenHelper;
+    private final AuthenticationSuccessHandler authenticationSuccessHandler;
+    private final RestLogoutSuccessHandler restLogoutSuccessHandler;
 
     @Autowired
-    private TokenHelper tokenHelper;
-
-    @Autowired
-    private AuthenticationSuccessHandler authenticationSuccessHandler;
-
-    @Autowired
-    private RestLogoutSuccessHandler restLogoutSuccessHandler;
+    public SecurityConfig(UserDetailsService userDetailsService, TokenHelper tokenHelper, AuthenticationSuccessHandler authenticationSuccessHandler, RestLogoutSuccessHandler restLogoutSuccessHandler) {
+        this.userDetailsService = userDetailsService;
+        this.tokenHelper = tokenHelper;
+        this.authenticationSuccessHandler = authenticationSuccessHandler;
+        this.restLogoutSuccessHandler = restLogoutSuccessHandler;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
