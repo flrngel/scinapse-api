@@ -3,14 +3,18 @@ package network.pluto.absolute.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import network.pluto.bibliotheca.models.Authority;
+import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class TokenHelper {
@@ -47,10 +51,14 @@ public class TokenHelper {
         return generateToken(claims);
     }
 
-    public String generateToken(String username) {
+    public String generateToken(Member member) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", member.getAuthorities().stream().map(Authority::getName).collect(Collectors.toList()));
+
         return Jwts.builder()
+                .setClaims(claims)
                 .setIssuer(appName)
-                .setSubject(username)
+                .setSubject(member.getEmail())
                 .setIssuedAt(generateCurrentDate())
                 .setExpiration(generateExpirationDate())
                 .signWith(SIGNATURE_ALGORITHM, secret)
