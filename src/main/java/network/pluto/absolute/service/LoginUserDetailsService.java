@@ -1,7 +1,6 @@
-package network.pluto.absolute.user;
+package network.pluto.absolute.service;
 
 import network.pluto.bibliotheca.models.Member;
-import network.pluto.bibliotheca.repositories.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -9,17 +8,17 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class LoginUserDetailsService implements UserDetailsService {
 
     @Autowired
-    private MemberRepository memberRepository;
+    private MemberService memberService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Member member = memberRepository.findByEmail(username);
+        Member member = memberService.findByEmail(username);
         if (member == null) {
             throw new UsernameNotFoundException("The requested user is not found: " + username);
         }
-        return new UserDetailsImpl(member);
+        return new LoginUserDetails(member);
     }
 }

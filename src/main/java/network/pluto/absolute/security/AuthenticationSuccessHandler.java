@@ -1,7 +1,7 @@
 package network.pluto.absolute.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import network.pluto.absolute.user.UserDetailsImpl;
+import network.pluto.absolute.service.LoginUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -33,7 +33,7 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
         clearAuthenticationAttributes(request);
-        UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+        LoginUserDetails user = (LoginUserDetails) authentication.getPrincipal();
 
         String jws = tokenHelper.generateToken(user.getUsername());
 

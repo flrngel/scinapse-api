@@ -1,6 +1,6 @@
 package network.pluto.absolute.security;
 
-import network.pluto.absolute.user.UserDetailsImpl;
+import network.pluto.absolute.service.LoginUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,7 +35,7 @@ public class AuthController {
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword());
         Authentication authentication = authenticationManager.authenticate(token);
 
-        UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+        LoginUserDetails user = (LoginUserDetails) authentication.getPrincipal();
 
         String jws = tokenHelper.generateToken(user.getUsername());
 

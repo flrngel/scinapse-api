@@ -1,4 +1,4 @@
-package network.pluto.absolute.user;
+package network.pluto.absolute.service;
 
 import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Authority;
@@ -7,13 +7,13 @@ import network.pluto.bibliotheca.repositories.AuthorityRepository;
 import network.pluto.bibliotheca.repositories.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 
-@RestController
-public class MemberController {
+@Service
+public class MemberService {
 
     @Autowired
     private MemberRepository memberRepository;
@@ -24,8 +24,7 @@ public class MemberController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @RequestMapping(value = "/members", method = RequestMethod.POST)
-    public Member create(@RequestBody Member member) {
+    public Member save(Member member) {
         member.setPassword(passwordEncoder.encode(member.getPassword()));
 
         Authority authority = authorityRepository.findByName(AuthorityName.ROLE_USER);
@@ -34,13 +33,15 @@ public class MemberController {
         return memberRepository.save(member);
     }
 
-    @RequestMapping(value = "/members", method = RequestMethod.GET)
-    public List<Member> readMembers() {
+    public List<Member> getAll() {
         return memberRepository.findAll();
     }
 
-    @RequestMapping(value = "/members/{id}", method = RequestMethod.GET)
-    public Member readMember(@PathVariable long id) {
+    public Member getMember(long id) {
         return memberRepository.findOne(id);
+    }
+
+    public Member findByEmail(String username) {
+        return memberRepository.findByEmail(username);
     }
 }
