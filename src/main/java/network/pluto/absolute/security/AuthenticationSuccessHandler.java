@@ -1,7 +1,7 @@
 package network.pluto.absolute.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import network.pluto.absolute.user.UserDetailsImpl;
+import network.pluto.absolute.service.LoginUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -17,23 +17,26 @@ import java.io.IOException;
 @Component
 public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    @Autowired
-    private TokenHelper tokenHelper;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Value("${jwt.cookie}")
     private String cookie;
 
     @Value("${jwt.expires-in}")
     private int expireIn;
 
+    private final TokenHelper tokenHelper;
+    private final ObjectMapper objectMapper;
+
+    @Autowired
+    public AuthenticationSuccessHandler(TokenHelper tokenHelper, ObjectMapper objectMapper) {
+        this.tokenHelper = tokenHelper;
+        this.objectMapper = objectMapper;
+    }
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
         clearAuthenticationAttributes(request);
-        UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+        LoginUserDetails user = (LoginUserDetails) authentication.getPrincipal();
 
         String jws = tokenHelper.generateToken(user.getUsername());
 

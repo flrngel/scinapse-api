@@ -1,6 +1,7 @@
 package network.pluto.absolute.security;
 
-import network.pluto.absolute.user.UserDetailsImpl;
+import network.pluto.absolute.dto.MemberDto;
+import network.pluto.absolute.service.LoginUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,11 +19,14 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 public class AuthController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    private final TokenHelper tokenHelper;
 
     @Autowired
-    private TokenHelper tokenHelper;
+    public AuthController(AuthenticationManager authenticationManager, TokenHelper tokenHelper) {
+        this.authenticationManager = authenticationManager;
+        this.tokenHelper = tokenHelper;
+    }
 
     @Value("${jwt.cookie}")
     private String cookie;
@@ -30,12 +34,12 @@ public class AuthController {
     @Value("${jwt.expires-in}")
     private int expireIn;
 
-    @RequestMapping(value = "/auth/token", method = RequestMethod.POST)
-    public TokenState generate(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
+    @RequestMapping(value = "/auth/login", method = RequestMethod.POST)
+    public MemberDto generate(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword());
         Authentication authentication = authenticationManager.authenticate(token);
 
-        UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+        LoginUserDetails user = (LoginUserDetails) authentication.getPrincipal();
 
         String jws = tokenHelper.generateToken(user.getUsername());
 
@@ -45,7 +49,7 @@ public class AuthController {
         authCookie.setMaxAge(expireIn);
         response.addCookie(authCookie);
 
-        return new TokenState(jws, System.currentTimeMillis() + expireIn * 1000);
+        return MemberDto.fromEntity(user.getMember());
     }
 
     @RequestMapping(value = "/auth/refresh", method = RequestMethod.GET)
