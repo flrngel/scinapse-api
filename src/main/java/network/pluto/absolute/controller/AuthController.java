@@ -1,8 +1,10 @@
 package network.pluto.absolute.controller;
 
+import com.google.common.base.Strings;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.security.AuthRequest;
 import network.pluto.absolute.security.TokenHelper;
+import network.pluto.absolute.security.TokenInvalidException;
 import network.pluto.absolute.security.TokenState;
 import network.pluto.absolute.service.LoginUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,11 +27,13 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final TokenHelper tokenHelper;
+    private final UserDetailsService userDetailsService;
 
     @Autowired
-    public AuthController(AuthenticationManager authenticationManager, TokenHelper tokenHelper) {
+    public AuthController(AuthenticationManager authenticationManager, TokenHelper tokenHelper, UserDetailsService userDetailsService) {
         this.authenticationManager = authenticationManager;
         this.tokenHelper = tokenHelper;
+        this.userDetailsService = userDetailsService;
     }
 
     @Value("${jwt.cookie}")
@@ -72,5 +77,22 @@ public class AuthController {
         } else {
             throw new RuntimeException("token expired.");
         }
+    }
+
+    @RequestMapping(value = "/auth/check", method = RequestMethod.GET)
+    public MemberDto check(HttpServletRequest request) {
+        String authToken = tokenHelper.getToken(request);
+
+        if (authToken == null) {
+            throw new TokenInvalidException("invalid token", "token not exists");
+        }
+
+        String username = tokenHelper.getUsernameFromToken(authToken);
+        if (Strings.isNullOrEmpty(username)) {
+            throw new TokenInvalidException("invalid token", "username not exists");
+        }
+
+        LoginUserDetails user = (LoginUserDetails) userDetailsService.loadUserByUsername(username);
+        return MemberDto.fromEntity(user.getMember());
     }
 }

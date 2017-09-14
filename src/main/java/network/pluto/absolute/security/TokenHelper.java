@@ -40,9 +40,12 @@ public class TokenHelper {
         return getClaimsFromToken(token, Claims::getSubject);
     }
 
+    public Date getExpirationDateFromToken(String token) {
+        return getClaimsFromToken(token, Claims::getExpiration);
+    }
+
     public Boolean canTokenBeRefreshed(String token) {
-        final Date expirationDate = getClaimsFromToken(token, Claims::getExpiration);
-        return expirationDate.compareTo(generateCurrentDate()) > 0;
+        return getExpirationDateFromToken(token).compareTo(generateCurrentDate()) > 0;
     }
 
     public String refreshToken(String token) {

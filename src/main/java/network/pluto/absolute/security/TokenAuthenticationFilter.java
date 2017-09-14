@@ -1,5 +1,6 @@
 package network.pluto.absolute.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,7 +32,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         if (authToken != null) {
             try {
                 username = tokenHelper.getUsernameFromToken(authToken);
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | ExpiredJwtException e) {
                 log.error("an error occured during getting username from token", e);
             }
 
