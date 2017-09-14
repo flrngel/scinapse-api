@@ -30,6 +30,10 @@ jar {
     version = '0.0.1'
 }
 
+springBoot {
+    executable = true
+}
+
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
