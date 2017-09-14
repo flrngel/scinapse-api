@@ -73,18 +73,16 @@ public class MemberController {
     }
 
     @RequestMapping(value = "/members/checkDuplication", method = RequestMethod.GET)
-    public MemberDuplicationCheckDto checkDuplication(@RequestParam String email, HttpServletResponse response) {
+    public MemberDuplicationCheckDto checkDuplication(@RequestParam String email) {
         MemberDuplicationCheckDto dto = new MemberDuplicationCheckDto();
         dto.setEmail(email);
 
         Member member = memberService.findByEmail(email);
         if (member == null) {
             dto.setDuplicated(false);
-            response.setStatus(HttpServletResponse.SC_OK);
         } else {
             dto.setDuplicated(true);
             dto.setMessage("duplicated email.");
-            response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
         }
 
         return dto;

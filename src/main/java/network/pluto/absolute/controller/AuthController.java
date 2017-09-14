@@ -1,6 +1,7 @@
 package network.pluto.absolute.controller;
 
 import com.google.common.base.Strings;
+import network.pluto.absolute.dto.LoginDto;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.security.AuthRequest;
 import network.pluto.absolute.security.TokenHelper;
@@ -43,7 +44,7 @@ public class AuthController {
     private int expireIn;
 
     @RequestMapping(value = "/auth/login", method = RequestMethod.POST)
-    public MemberDto generate(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
+    public LoginDto login(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword());
         Authentication authentication = authenticationManager.authenticate(token);
 
@@ -57,11 +58,30 @@ public class AuthController {
         authCookie.setMaxAge(expireIn);
         response.addCookie(authCookie);
 
-        return MemberDto.fromEntity(user.getMember());
+        MemberDto memberDto = MemberDto.fromEntity(user.getMember());
+        return LoginDto.of(true, memberDto);
+    }
+
+    @RequestMapping(value = "/auth/login", method = RequestMethod.GET)
+    public LoginDto login(HttpServletRequest request) {
+        String authToken = tokenHelper.getToken(request);
+
+        if (authToken == null) {
+            return LoginDto.of(false, null);
+        }
+
+        String username = tokenHelper.getUsernameFromToken(authToken);
+        if (Strings.isNullOrEmpty(username)) {
+            throw new TokenInvalidException("invalid token", "username not exists");
+        }
+
+        LoginUserDetails user = (LoginUserDetails) userDetailsService.loadUserByUsername(username);
+        MemberDto memberDto = MemberDto.fromEntity(user.getMember());
+        return LoginDto.of(true, memberDto);
     }
 
     @RequestMapping(value = "/auth/refresh", method = RequestMethod.GET)
-    public TokenState refreshAuthenticationToken(HttpServletRequest request, HttpServletResponse response) {
+    public TokenState refresh(HttpServletRequest request, HttpServletResponse response) {
         String authToken = tokenHelper.getToken(request);
 
         if (authToken != null && tokenHelper.canTokenBeRefreshed(authToken)) {
@@ -77,22 +97,5 @@ public class AuthController {
         } else {
             throw new RuntimeException("token expired.");
         }
-    }
-
-    @RequestMapping(value = "/auth/check", method = RequestMethod.GET)
-    public MemberDto check(HttpServletRequest request) {
-        String authToken = tokenHelper.getToken(request);
-
-        if (authToken == null) {
-            throw new TokenInvalidException("invalid token", "token not exists");
-        }
-
-        String username = tokenHelper.getUsernameFromToken(authToken);
-        if (Strings.isNullOrEmpty(username)) {
-            throw new TokenInvalidException("invalid token", "username not exists");
-        }
-
-        LoginUserDetails user = (LoginUserDetails) userDetailsService.loadUserByUsername(username);
-        return MemberDto.fromEntity(user.getMember());
     }
 }
