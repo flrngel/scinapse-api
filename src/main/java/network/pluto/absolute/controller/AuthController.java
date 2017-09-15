@@ -81,7 +81,7 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/auth/refresh", method = RequestMethod.GET)
-    public TokenState refresh(HttpServletRequest request, HttpServletResponse response) {
+    public LoginDto refresh(HttpServletRequest request, HttpServletResponse response) {
         String authToken = tokenHelper.getToken(request);
 
         if (authToken != null && tokenHelper.canTokenBeRefreshed(authToken)) {
@@ -93,7 +93,14 @@ public class AuthController {
             authCookie.setMaxAge(expireIn);
             response.addCookie(authCookie);
 
-            return new TokenState(refreshedToken, System.currentTimeMillis() + expireIn * 1000);
+            String username = tokenHelper.getUsernameFromToken(authToken);
+            if (Strings.isNullOrEmpty(username)) {
+                throw new TokenInvalidException("invalid token", "username not exists");
+            }
+
+            LoginUserDetails user = (LoginUserDetails) userDetailsService.loadUserByUsername(username);
+            MemberDto memberDto = MemberDto.fromEntity(user.getMember());
+            return LoginDto.of(true, memberDto);
         } else {
             throw new RuntimeException("token expired.");
         }
