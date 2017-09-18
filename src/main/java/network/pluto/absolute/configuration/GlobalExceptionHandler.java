@@ -18,7 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@ControllerAdvice
+@ControllerAdvice(basePackages = "network.pluto.absolute")
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ExpiredJwtException.class)
