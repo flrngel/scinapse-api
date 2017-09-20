@@ -1,9 +1,13 @@
 package network.pluto.absolute.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import network.pluto.absolute.service.LoginUserDetails;
+import network.pluto.absolute.dto.LoginDto;
+import network.pluto.absolute.dto.MemberDto;
+import network.pluto.absolute.model.LoginUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -15,13 +19,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
-public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+public class RestAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final TokenHelper tokenHelper;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public AuthenticationSuccessHandler(TokenHelper tokenHelper, ObjectMapper objectMapper) {
+    public RestAuthenticationSuccessHandler(TokenHelper tokenHelper, ObjectMapper objectMapper) {
         this.tokenHelper = tokenHelper;
         this.objectMapper = objectMapper;
     }
@@ -35,7 +39,6 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-        clearAuthenticationAttributes(request);
         LoginUserDetails user = (LoginUserDetails) authentication.getPrincipal();
 
         String jws = tokenHelper.generateToken(user.getMember());
@@ -46,10 +49,14 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
         authCookie.setMaxAge(expireIn);
         response.addCookie(authCookie);
 
-        TokenState tokenState = new TokenState(jws, System.currentTimeMillis() + expireIn * 1000);
-        String jwtResponse = objectMapper.writeValueAsString(tokenState);
+        MemberDto memberDto = MemberDto.fromEntity(user.getMember());
+        LoginDto loginDto = LoginDto.of(true, jws, memberDto);
 
-        response.setContentType("application/json");
-        response.getWriter().write(jwtResponse);
+        response.setStatus(HttpStatus.OK.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+        objectMapper.writeValue(response.getWriter(), loginDto);
+
+        clearAuthenticationAttributes(request);
     }
 }

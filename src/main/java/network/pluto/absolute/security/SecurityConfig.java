@@ -1,51 +1,80 @@
 package network.pluto.absolute.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-@Configuration
+import java.util.Collections;
+
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final UserDetailsService userDetailsService;
-    private final TokenHelper tokenHelper;
-    private final AuthenticationSuccessHandler authenticationSuccessHandler;
-    private final RestLogoutSuccessHandler restLogoutSuccessHandler;
-    private final PasswordEncoder passwordEncoder;
+    private static final String AUTH_LOGIN_URL = "/auth/login";
+    private static final String AUTH_REFRESH_URL = "/auth/refresh";
+    private static final String AUTH_LOGOUT_URL = "/auth/logout";
 
     @Autowired
-    public SecurityConfig(UserDetailsService userDetailsService,
-                          TokenHelper tokenHelper,
-                          AuthenticationSuccessHandler authenticationSuccessHandler,
-                          RestLogoutSuccessHandler restLogoutSuccessHandler,
-                          PasswordEncoder passwordEncoder) {
-        this.userDetailsService = userDetailsService;
-        this.tokenHelper = tokenHelper;
-        this.authenticationSuccessHandler = authenticationSuccessHandler;
-        this.restLogoutSuccessHandler = restLogoutSuccessHandler;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private AuthenticationSuccessHandler successHandler;
+    @Autowired
+    private AuthenticationFailureHandler failureHandler;
+    @Autowired
+    private RestAuthenticationProvider restAuthenticationProvider;
+    @Autowired
+    private LogoutSuccessHandler logoutHandler;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private TokenHelper tokenHelper;
 
     @Value("${jwt.cookie}")
     private String cookie;
 
+    private RestAuthenticationProcessingFilter buildProcessingFilter() {
+        AntPathRequestMatcher matcher = new AntPathRequestMatcher(AUTH_LOGIN_URL, HttpMethod.POST.name());
+        RestAuthenticationProcessingFilter filter = new RestAuthenticationProcessingFilter(matcher, objectMapper);
+        filter.setAuthenticationManager(authenticationManager);
+        filter.setAuthenticationSuccessHandler(successHandler);
+        filter.setAuthenticationFailureHandler(failureHandler);
+        return filter;
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Collections.singletonList("*"));
+        configuration.setAllowedMethods(Collections.singletonList("*"));
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
+        auth.authenticationProvider(restAuthenticationProvider);
     }
 
     @Override
@@ -56,35 +85,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .cors().and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-                .addFilterBefore(new TokenAuthenticationFilter(tokenHelper, userDetailsService), BasicAuthenticationFilter.class);
+                .addFilterBefore(buildProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new TokenAuthenticationFilter(tokenHelper), BasicAuthenticationFilter.class);
 
         http
                 .authorizeRequests()
-                .antMatchers("/auth/refresh").hasAnyRole("USER", "ADMIN")
+                .antMatchers(AUTH_REFRESH_URL).hasAnyRole("USER", "ADMIN")
                 .anyRequest().permitAll();
 
         http
                 .logout()
-                .logoutUrl("/auth/logout")
-                .logoutSuccessHandler(restLogoutSuccessHandler)
+                .logoutUrl(AUTH_LOGOUT_URL)
+                .logoutSuccessHandler(logoutHandler)
                 .deleteCookies(cookie);
-
-//        http
-//                .formLogin()
-//                .loginPage("/auth/token")
-//                .successHandler(authenticationSuccessHandler);
-    }
-
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers(
-                HttpMethod.GET,
-                "/",
-                "/*.html",
-                "/favicon.ico",
-                "/**/*.html",
-                "/**/*.css",
-                "/**/*.js"
-        );
     }
 }

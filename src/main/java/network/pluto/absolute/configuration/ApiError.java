@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import java.time.LocalDateTime;
 
 @Data
-class ApiError {
+public class ApiError {
 
     private HttpStatus status;
     private LocalDateTime timestamp;
@@ -17,20 +17,20 @@ class ApiError {
         timestamp = LocalDateTime.now();
     }
 
-    ApiError(HttpStatus status, String message) {
+    public ApiError(HttpStatus status, String message) {
         this();
         this.status = status;
         this.message = message;
     }
 
-    ApiError(HttpStatus status, Throwable ex) {
+    public ApiError(HttpStatus status, Throwable ex) {
         this();
         this.status = status;
         this.message = "Unexpected error";
         this.debugMessage = ex.getLocalizedMessage();
     }
 
-    ApiError(HttpStatus status, String message, Throwable ex) {
+    public ApiError(HttpStatus status, String message, Throwable ex) {
         this();
         this.status = status;
         this.message = message;

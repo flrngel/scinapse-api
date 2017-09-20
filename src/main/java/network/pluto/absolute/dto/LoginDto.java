@@ -7,5 +7,6 @@ import lombok.Data;
 @Data
 public class LoginDto {
     private boolean loggedIn;
+    private String token;
     private MemberDto member;
 }

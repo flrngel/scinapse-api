@@ -2,9 +2,6 @@ package network.pluto.absolute.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -16,12 +13,10 @@ import java.io.IOException;
 @Slf4j
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
-    private TokenHelper tokenHelper;
-    private UserDetailsService userDetailsService;
+    private final TokenHelper tokenHelper;
 
-    public TokenAuthenticationFilter(TokenHelper tokenHelper, UserDetailsService userDetailsService) {
+    public TokenAuthenticationFilter(TokenHelper tokenHelper) {
         this.tokenHelper = tokenHelper;
-        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -37,11 +32,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             }
 
             if (username != null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-                TokenBasedAuthentication authentication = new TokenBasedAuthentication(userDetails);
-                authentication.setToken(authToken);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+//                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+//
+//                TokenBasedAuthentication authentication = new TokenBasedAuthentication(userDetails);
+//                authentication.setToken(authToken);
+//                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }
 
