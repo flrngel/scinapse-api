@@ -33,42 +33,46 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String AUTH_REFRESH_URL = "/auth/refresh";
     private static final String AUTH_LOGOUT_URL = "/auth/logout";
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private AuthenticationSuccessHandler successHandler;
-    @Autowired
-    private AuthenticationFailureHandler failureHandler;
-    @Autowired
-    private LogoutSuccessHandler logoutHandler;
-    @Autowired
-    private RestAuthenticationEntryPoint restAuthenticationEntryPoint;
-    @Autowired
-    private RestAuthenticationProvider restAuthenticationProvider;
-    @Autowired
-    private JwtAuthenticationProvider jwtAuthenticationProvider;
-    @Autowired
-    private ObjectMapper objectMapper;
-    @Autowired
-    private TokenHelper tokenHelper;
+    private final AuthenticationSuccessHandler successHandler;
+    private final AuthenticationFailureHandler failureHandler;
+    private final LogoutSuccessHandler logoutHandler;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final RestAuthenticationProvider restAuthenticationProvider;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
+    private final ObjectMapper objectMapper;
+    private final TokenHelper tokenHelper;
 
-    @Value("${jwt.cookie}")
-    private String cookie;
+    @Autowired
+    public SecurityConfig(AuthenticationSuccessHandler successHandler, AuthenticationFailureHandler failureHandler, LogoutSuccessHandler logoutHandler, RestAuthenticationEntryPoint restAuthenticationEntryPoint, RestAuthenticationProvider restAuthenticationProvider, JwtAuthenticationProvider jwtAuthenticationProvider, ObjectMapper objectMapper, TokenHelper tokenHelper) {
+        this.successHandler = successHandler;
+        this.failureHandler = failureHandler;
+        this.logoutHandler = logoutHandler;
+        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
+        this.restAuthenticationProvider = restAuthenticationProvider;
+        this.jwtAuthenticationProvider = jwtAuthenticationProvider;
+        this.objectMapper = objectMapper;
+        this.tokenHelper = tokenHelper;
+    }
 
-    private RestAuthenticationProcessingFilter buildProcessingFilter() {
+    private RestAuthenticationProcessingFilter buildProcessingFilter() throws Exception {
         AntPathRequestMatcher matcher = new AntPathRequestMatcher(AUTH_LOGIN_URL, HttpMethod.POST.name());
         RestAuthenticationProcessingFilter filter = new RestAuthenticationProcessingFilter(matcher, objectMapper);
-        filter.setAuthenticationManager(authenticationManager);
+        filter.setAuthenticationManager(authenticationManagerBean());
         filter.setAuthenticationSuccessHandler(successHandler);
         filter.setAuthenticationFailureHandler(failureHandler);
         return filter;
     }
 
-    private JwtAuthenticationProcessingFilter buildJwtProcessingFilter() {
-        List<String> skipPaths = Arrays.asList("/", "/auth/**", "/members", "/hello");
+    private JwtAuthenticationProcessingFilter buildJwtProcessingFilter() throws Exception {
+        List<String> skipPaths = Arrays.asList(
+                "/",
+                "/auth/**",
+                "/members",
+                "/hello"
+        );
         SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, "/**");
         JwtAuthenticationProcessingFilter filter = new JwtAuthenticationProcessingFilter(matcher, tokenHelper);
-        filter.setAuthenticationManager(authenticationManager);
+        filter.setAuthenticationManager(authenticationManagerBean());
         filter.setAuthenticationFailureHandler(failureHandler);
         return filter;
     }
@@ -114,13 +118,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .authorizeRequests()
+                .antMatchers(
+                        "/",
+                        "/auth/**",
+                        "/members",
+                        "/hello"
+                ).permitAll()
                 .antMatchers("/admin").hasAnyRole("ADMIN")
-                .anyRequest().permitAll();
+                .anyRequest().authenticated();
 
         http
                 .logout()
                 .logoutUrl(AUTH_LOGOUT_URL)
                 .logoutSuccessHandler(logoutHandler)
-                .deleteCookies(cookie);
+                .deleteCookies(TokenHelper.cookie);
     }
 }

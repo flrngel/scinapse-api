@@ -20,19 +20,19 @@ import java.util.stream.Collectors;
 public class TokenHelper {
 
     @Value("${jwt.issuer}")
-    private String issuer;
+    public static String issuer;
 
     @Value("${jwt.secret}")
-    private String secret;
+    public static String secret;
 
     @Value("${jwt.header}")
-    private String authHeader;
+    public static String authHeader;
 
     @Value("${jwt.cookie}")
-    private String cookie;
+    public static String cookie;
 
     @Value("${jwt.expires-in}")
-    private int expireIn;
+    public static int expireIn;
 
     private SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
 

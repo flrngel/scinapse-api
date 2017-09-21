@@ -22,12 +22,6 @@ public class MemberController {
         this.memberService = memberService;
     }
 
-    @Value("${jwt.cookie}")
-    private String cookie;
-
-    @Value("${jwt.expires-in}")
-    private int expireIn;
-
     @RequestMapping(value = "/members", method = RequestMethod.POST)
     public MemberDto create(@RequestBody MemberDto memberDto, HttpServletResponse response) {
         Member member = MemberDto.toEntity(memberDto);

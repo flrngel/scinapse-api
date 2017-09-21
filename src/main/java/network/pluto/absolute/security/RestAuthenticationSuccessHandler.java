@@ -30,12 +30,6 @@ public class RestAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
         this.objectMapper = objectMapper;
     }
 
-    @Value("${jwt.cookie}")
-    private String cookie;
-
-    @Value("${jwt.expires-in}")
-    private int expireIn;
-
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
@@ -43,10 +37,10 @@ public class RestAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
 
         String jws = tokenHelper.generateToken(user.getMember());
 
-        Cookie authCookie = new Cookie(cookie, jws);
+        Cookie authCookie = new Cookie(tokenHelper.cookie, jws);
         authCookie.setPath("/");
         authCookie.setHttpOnly(true);
-        authCookie.setMaxAge(expireIn);
+        authCookie.setMaxAge(tokenHelper.expireIn);
         response.addCookie(authCookie);
 
         MemberDto memberDto = MemberDto.fromEntity(user.getMember());
