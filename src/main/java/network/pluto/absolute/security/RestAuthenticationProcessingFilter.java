@@ -42,7 +42,6 @@ public class RestAuthenticationProcessingFilter extends AbstractAuthenticationPr
         }
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
-
-        return this.getAuthenticationManager().authenticate(token);
+        return getAuthenticationManager().authenticate(token);
     }
 }

@@ -16,13 +16,14 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -40,6 +41,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private AuthenticationFailureHandler failureHandler;
     @Autowired
     private RestAuthenticationProvider restAuthenticationProvider;
+    @Autowired
+    private JwtAuthenticationProvider jwtAuthenticationProvider;
     @Autowired
     private LogoutSuccessHandler logoutHandler;
     @Autowired
@@ -59,6 +62,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return filter;
     }
 
+    private JwtAuthenticationProcessingFilter buildJwtProcessingFilter() {
+        List<String> skipPaths = Arrays.asList("/", "/auth/**", "/members");
+        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, "/**");
+        JwtAuthenticationProcessingFilter filter = new JwtAuthenticationProcessingFilter(matcher, tokenHelper);
+        filter.setAuthenticationManager(authenticationManager);
+        filter.setAuthenticationFailureHandler(failureHandler);
+        return filter;
+    }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -72,9 +84,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return source;
     }
 
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(restAuthenticationProvider);
+        auth.authenticationProvider(jwtAuthenticationProvider);
     }
 
     @Override
@@ -86,11 +105,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .cors().and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .addFilterBefore(buildProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new TokenAuthenticationFilter(tokenHelper), BasicAuthenticationFilter.class);
+                .addFilterBefore(buildJwtProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
 
         http
                 .authorizeRequests()
-                .antMatchers(AUTH_REFRESH_URL).hasAnyRole("USER", "ADMIN")
                 .anyRequest().permitAll();
 
         http

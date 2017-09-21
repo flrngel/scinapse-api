@@ -1,8 +1,7 @@
 package network.pluto.absolute.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
+import lombok.extern.slf4j.Slf4j;
 import network.pluto.bibliotheca.models.Authority;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,11 +15,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class TokenHelper {
 
-    @Value("${app.name}")
-    private String appName;
+    @Value("${jwt.issuer}")
+    private String issuer;
 
     @Value("${jwt.secret}")
     private String secret;
@@ -60,7 +60,7 @@ public class TokenHelper {
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setIssuer(appName)
+                .setIssuer(issuer)
                 .setSubject(member.getEmail())
                 .setIssuedAt(generateCurrentDate())
                 .setExpiration(generateExpirationDate())
@@ -74,11 +74,19 @@ public class TokenHelper {
         return claimsResolver.apply(claims);
     }
 
-    private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody();
+    public Claims getAllClaimsFromToken(String token) {
+        try {
+            return Jwts.parser()
+                    .setSigningKey(secret)
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            log.info("JWT Token is expired", e);
+            throw new TokenExpiredException("JWT Token expired", token, e.getLocalizedMessage());
+        } catch (UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
+            log.error("Invalid JWT Token", e);
+            throw new TokenInvalidException("Invalid JWT token: ", token, e.getLocalizedMessage());
+        }
     }
 
     String generateToken(Map<String, Object> claims) {

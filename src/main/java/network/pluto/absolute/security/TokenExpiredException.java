@@ -4,12 +4,12 @@ import lombok.Getter;
 import org.springframework.security.core.AuthenticationException;
 
 @Getter
-public class TokenInvalidException extends AuthenticationException {
+public class TokenExpiredException extends AuthenticationException {
 
     private final String token;
     private final String reason;
 
-    public TokenInvalidException(String message, String token, String reason) {
+    public TokenExpiredException(String message, String token, String reason) {
         super(message);
         this.token = token;
         this.reason = reason;

@@ -1,25 +1,25 @@
 package network.pluto.absolute.security;
 
 import lombok.Getter;
-import lombok.Setter;
+import network.pluto.bibliotheca.models.Member;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 
 @Getter
-@Setter
-public class TokenBasedAuthentication extends AbstractAuthenticationToken {
+public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     private String token;
-    private final UserDetails principle;
+    private Member principle;
 
-    public TokenBasedAuthentication(UserDetails principle) {
-        super(principle.getAuthorities());
-        this.principle = principle;
+    public JwtAuthenticationToken(String token) {
+        super(null);
+        this.token = token;
+        setAuthenticated(false);
     }
 
-    @Override
-    public boolean isAuthenticated() {
-        return true;
+    public JwtAuthenticationToken(Member principle) {
+        super(principle.getAuthorities());
+        this.principle = principle;
+        setAuthenticated(true);
     }
 
     @Override
