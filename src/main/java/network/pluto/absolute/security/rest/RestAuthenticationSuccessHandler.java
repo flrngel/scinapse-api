@@ -1,11 +1,11 @@
-package network.pluto.absolute.security;
+package network.pluto.absolute.security.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import network.pluto.absolute.dto.LoginDto;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.model.LoginUserDetails;
+import network.pluto.absolute.security.TokenHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -31,8 +31,7 @@ public class RestAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         LoginUserDetails user = (LoginUserDetails) authentication.getPrincipal();
 
         String jws = tokenHelper.generateToken(user.getMember());

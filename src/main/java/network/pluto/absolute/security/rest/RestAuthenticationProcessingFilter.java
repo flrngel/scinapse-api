@@ -1,8 +1,9 @@
-package network.pluto.absolute.security;
+package network.pluto.absolute.security.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
+import network.pluto.absolute.security.LoginRequest;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,7 +36,7 @@ public class RestAuthenticationProcessingFilter extends AbstractAuthenticationPr
             throw new AuthenticationServiceException("Authentication method not supported");
         }
 
-        AuthRequest loginRequest = objectMapper.readValue(request.getReader(), AuthRequest.class);
+        LoginRequest loginRequest = objectMapper.readValue(request.getReader(), LoginRequest.class);
 
         if (Strings.isNullOrEmpty(loginRequest.getEmail()) || Strings.isNullOrEmpty(loginRequest.getPassword())) {
             throw new AuthenticationServiceException("Username or Password not provided");

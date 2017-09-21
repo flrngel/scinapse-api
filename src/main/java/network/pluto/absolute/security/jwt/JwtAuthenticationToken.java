@@ -1,4 +1,4 @@
-package network.pluto.absolute.security;
+package network.pluto.absolute.security.jwt;
 
 import lombok.Getter;
 import network.pluto.bibliotheca.models.Member;

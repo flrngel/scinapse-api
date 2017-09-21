@@ -1,4 +1,4 @@
-package network.pluto.absolute.security;
+package network.pluto.absolute.security.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import network.pluto.absolute.configuration.ApiError;

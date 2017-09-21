@@ -1,4 +1,4 @@
-package network.pluto.absolute.security;
+package network.pluto.absolute.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package network.pluto.absolute.security;
+package network.pluto.absolute.security.rest;
 
 import network.pluto.absolute.model.LoginUserDetails;
 import network.pluto.absolute.service.MemberService;

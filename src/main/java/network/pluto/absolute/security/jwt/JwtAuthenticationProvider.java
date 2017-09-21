@@ -1,6 +1,7 @@
-package network.pluto.absolute.security;
+package network.pluto.absolute.security.jwt;
 
 import io.jsonwebtoken.Claims;
+import network.pluto.absolute.security.TokenHelper;
 import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Authority;
 import network.pluto.bibliotheca.models.Member;
