@@ -40,11 +40,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private AuthenticationFailureHandler failureHandler;
     @Autowired
+    private LogoutSuccessHandler logoutHandler;
+    @Autowired
+    private RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    @Autowired
     private RestAuthenticationProvider restAuthenticationProvider;
     @Autowired
     private JwtAuthenticationProvider jwtAuthenticationProvider;
-    @Autowired
-    private LogoutSuccessHandler logoutHandler;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -63,7 +65,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private JwtAuthenticationProcessingFilter buildJwtProcessingFilter() {
-        List<String> skipPaths = Arrays.asList("/", "/auth/**", "/members");
+        List<String> skipPaths = Arrays.asList("/", "/auth/**", "/members", "/hello");
         SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, "/**");
         JwtAuthenticationProcessingFilter filter = new JwtAuthenticationProcessingFilter(matcher, tokenHelper);
         filter.setAuthenticationManager(authenticationManager);
@@ -104,11 +106,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .cors().and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                .exceptionHandling().authenticationEntryPoint(restAuthenticationEntryPoint);
+
+        http
                 .addFilterBefore(buildProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(buildJwtProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
 
         http
                 .authorizeRequests()
+                .antMatchers("/admin").hasAnyRole("ADMIN")
                 .anyRequest().permitAll();
 
         http

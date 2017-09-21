@@ -79,4 +79,14 @@ public class AuthController {
             throw new TokenExpiredException("expired token", authToken, "token has expired");
         }
     }
+
+    @RequestMapping("/hello")
+    public String hello() {
+        return "hello, world.";
+    }
+
+    @RequestMapping("/admin")
+    public String admin() {
+        return "hello, admin.";
+    }
 }
