@@ -46,7 +46,7 @@ public class AuthController {
 
         String username = tokenHelper.getUsernameFromToken(authToken);
         if (Strings.isNullOrEmpty(username)) {
-            throw new TokenInvalidException("invalid token", authToken, "username not exists");
+            throw new TokenInvalidException("invalid token", authToken, "username not found");
         }
 
         Member member = memberService.findByEmail(username);
@@ -58,26 +58,26 @@ public class AuthController {
     public LoginDto refresh(HttpServletRequest request, HttpServletResponse response) {
         String authToken = tokenHelper.getToken(request);
 
-        if (authToken != null && tokenHelper.canTokenBeRefreshed(authToken)) {
-            String refreshedToken = tokenHelper.refreshToken(authToken);
-
-            Cookie authCookie = new Cookie(cookie, refreshedToken);
-            authCookie.setPath("/");
-            authCookie.setHttpOnly(true);
-            authCookie.setMaxAge(expireIn);
-            response.addCookie(authCookie);
-
-            String username = tokenHelper.getUsernameFromToken(authToken);
-            if (Strings.isNullOrEmpty(username)) {
-                throw new TokenInvalidException("invalid token", authToken, "username not exists");
-            }
-
-            Member member = memberService.findByEmail(username);
-            MemberDto memberDto = MemberDto.fromEntity(member);
-            return LoginDto.of(true, refreshedToken, memberDto);
-        } else {
+        if (authToken == null || !tokenHelper.canTokenBeRefreshed(authToken)) {
             throw new TokenExpiredException("expired token", authToken, "token has expired");
         }
+
+        String username = tokenHelper.getUsernameFromToken(authToken);
+        if (Strings.isNullOrEmpty(username)) {
+            throw new TokenInvalidException("invalid token", authToken, "username not found");
+        }
+
+        String refreshedToken = tokenHelper.refreshToken(authToken);
+
+        Cookie authCookie = new Cookie(cookie, refreshedToken);
+        authCookie.setPath("/");
+        authCookie.setHttpOnly(true);
+        authCookie.setMaxAge(expireIn);
+        response.addCookie(authCookie);
+
+        Member member = memberService.findByEmail(username);
+        MemberDto memberDto = MemberDto.fromEntity(member);
+        return LoginDto.of(true, refreshedToken, memberDto);
     }
 
     @RequestMapping("/hello")
