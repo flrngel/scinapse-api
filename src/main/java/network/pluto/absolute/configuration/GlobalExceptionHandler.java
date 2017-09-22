@@ -1,7 +1,7 @@
 package network.pluto.absolute.configuration;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
+import network.pluto.absolute.security.TokenExpiredException;
 import network.pluto.absolute.security.TokenInvalidException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.core.Ordered;
@@ -21,14 +21,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice(basePackages = "network.pluto.absolute")
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(ExpiredJwtException.class)
-    protected ResponseEntity<Object> handleTokenExpiredException(ExpiredJwtException ex) {
-        return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage()));
+    @ExceptionHandler(TokenExpiredException.class)
+    protected ResponseEntity<Object> handleTokenExpiredException(TokenExpiredException ex) {
+        return buildResponseEntity(new ApiError(HttpStatus.UNAUTHORIZED, ex.getLocalizedMessage() + ": " + ex.getReason()));
     }
 
     @ExceptionHandler(TokenInvalidException.class)
     protected ResponseEntity<Object> handleTokenInvalidException(TokenInvalidException ex) {
-        return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage() + ": " + ex.getReason()));
+        return buildResponseEntity(new ApiError(HttpStatus.UNAUTHORIZED, ex.getLocalizedMessage() + ": " + ex.getReason()));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

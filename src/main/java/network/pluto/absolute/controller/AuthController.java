@@ -3,18 +3,13 @@ package network.pluto.absolute.controller;
 import com.google.common.base.Strings;
 import network.pluto.absolute.dto.LoginDto;
 import network.pluto.absolute.dto.MemberDto;
-import network.pluto.absolute.security.AuthRequest;
+import network.pluto.absolute.security.TokenExpiredException;
 import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.security.TokenInvalidException;
-import network.pluto.absolute.security.TokenState;
-import network.pluto.absolute.service.LoginUserDetails;
+import network.pluto.absolute.service.MemberService;
+import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,40 +21,19 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final TokenHelper tokenHelper;
-    private final UserDetailsService userDetailsService;
-
-    @Autowired
-    public AuthController(AuthenticationManager authenticationManager, TokenHelper tokenHelper, UserDetailsService userDetailsService) {
-        this.authenticationManager = authenticationManager;
-        this.tokenHelper = tokenHelper;
-        this.userDetailsService = userDetailsService;
-    }
-
     @Value("${jwt.cookie}")
     private String cookie;
 
     @Value("${jwt.expires-in}")
     private int expireIn;
 
-    @RequestMapping(value = "/auth/login", method = RequestMethod.POST)
-    public LoginDto login(@RequestBody AuthRequest authRequest, HttpServletResponse response) {
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword());
-        Authentication authentication = authenticationManager.authenticate(token);
+    private final TokenHelper tokenHelper;
+    private final MemberService memberService;
 
-        LoginUserDetails user = (LoginUserDetails) authentication.getPrincipal();
-
-        String jws = tokenHelper.generateToken(user.getMember());
-
-        Cookie authCookie = new Cookie(cookie, jws);
-        authCookie.setPath("/");
-        authCookie.setHttpOnly(true);
-        authCookie.setMaxAge(expireIn);
-        response.addCookie(authCookie);
-
-        MemberDto memberDto = MemberDto.fromEntity(user.getMember());
-        return LoginDto.of(true, memberDto);
+    @Autowired
+    public AuthController(TokenHelper tokenHelper, MemberService memberService) {
+        this.tokenHelper = tokenHelper;
+        this.memberService = memberService;
     }
 
     @RequestMapping(value = "/auth/login", method = RequestMethod.GET)
@@ -67,42 +41,52 @@ public class AuthController {
         String authToken = tokenHelper.getToken(request);
 
         if (authToken == null) {
-            return LoginDto.of(false, null);
+            return LoginDto.of(false, null, null);
         }
 
         String username = tokenHelper.getUsernameFromToken(authToken);
         if (Strings.isNullOrEmpty(username)) {
-            throw new TokenInvalidException("invalid token", "username not exists");
+            throw new TokenInvalidException("invalid token", authToken, "username not found");
         }
 
-        LoginUserDetails user = (LoginUserDetails) userDetailsService.loadUserByUsername(username);
-        MemberDto memberDto = MemberDto.fromEntity(user.getMember());
-        return LoginDto.of(true, memberDto);
+        Member member = memberService.findByEmail(username);
+        MemberDto memberDto = MemberDto.fromEntity(member);
+        return LoginDto.of(true, authToken, memberDto);
     }
 
-    @RequestMapping(value = "/auth/refresh", method = RequestMethod.GET)
+    @RequestMapping(value = "/auth/refresh", method = RequestMethod.POST)
     public LoginDto refresh(HttpServletRequest request, HttpServletResponse response) {
         String authToken = tokenHelper.getToken(request);
 
-        if (authToken != null && tokenHelper.canTokenBeRefreshed(authToken)) {
-            String refreshedToken = tokenHelper.refreshToken(authToken);
-
-            Cookie authCookie = new Cookie(cookie, refreshedToken);
-            authCookie.setPath("/");
-            authCookie.setHttpOnly(true);
-            authCookie.setMaxAge(expireIn);
-            response.addCookie(authCookie);
-
-            String username = tokenHelper.getUsernameFromToken(authToken);
-            if (Strings.isNullOrEmpty(username)) {
-                throw new TokenInvalidException("invalid token", "username not exists");
-            }
-
-            LoginUserDetails user = (LoginUserDetails) userDetailsService.loadUserByUsername(username);
-            MemberDto memberDto = MemberDto.fromEntity(user.getMember());
-            return LoginDto.of(true, memberDto);
-        } else {
-            throw new RuntimeException("token expired.");
+        if (authToken == null || !tokenHelper.canTokenBeRefreshed(authToken)) {
+            throw new TokenExpiredException("expired token", authToken, "token has expired");
         }
+
+        String username = tokenHelper.getUsernameFromToken(authToken);
+        if (Strings.isNullOrEmpty(username)) {
+            throw new TokenInvalidException("invalid token", authToken, "username not found");
+        }
+
+        String refreshedToken = tokenHelper.refreshToken(authToken);
+
+        Cookie authCookie = new Cookie(cookie, refreshedToken);
+        authCookie.setPath("/");
+        authCookie.setHttpOnly(true);
+        authCookie.setMaxAge(expireIn);
+        response.addCookie(authCookie);
+
+        Member member = memberService.findByEmail(username);
+        MemberDto memberDto = MemberDto.fromEntity(member);
+        return LoginDto.of(true, refreshedToken, memberDto);
+    }
+
+    @RequestMapping("/hello")
+    public String hello() {
+        return "hello, world.";
+    }
+
+    @RequestMapping("/admin")
+    public String admin() {
+        return "hello, admin.";
     }
 }

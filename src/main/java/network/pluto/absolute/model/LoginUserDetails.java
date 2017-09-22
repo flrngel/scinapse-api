@@ -1,4 +1,4 @@
-package network.pluto.absolute.service;
+package network.pluto.absolute.model;
 
 import lombok.Getter;
 import network.pluto.bibliotheca.models.Member;
