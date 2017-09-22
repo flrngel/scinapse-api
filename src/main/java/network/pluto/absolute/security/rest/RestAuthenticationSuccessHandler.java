@@ -6,6 +6,7 @@ import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.model.LoginUserDetails;
 import network.pluto.absolute.security.TokenHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,12 @@ import java.io.IOException;
 
 @Component
 public class RestAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+    @Value("${jwt.cookie}")
+    private String cookie;
+
+    @Value("${jwt.expires-in}")
+    private int expireIn;
 
     private final TokenHelper tokenHelper;
     private final ObjectMapper objectMapper;
@@ -36,10 +43,10 @@ public class RestAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
 
         String jws = tokenHelper.generateToken(user.getMember());
 
-        Cookie authCookie = new Cookie(tokenHelper.cookie, jws);
+        Cookie authCookie = new Cookie(cookie, jws);
         authCookie.setPath("/");
         authCookie.setHttpOnly(true);
-        authCookie.setMaxAge(tokenHelper.expireIn);
+        authCookie.setMaxAge(expireIn);
         response.addCookie(authCookie);
 
         MemberDto memberDto = MemberDto.fromEntity(user.getMember());

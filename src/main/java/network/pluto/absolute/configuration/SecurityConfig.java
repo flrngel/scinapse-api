@@ -9,6 +9,7 @@ import network.pluto.absolute.security.rest.RestAuthenticationEntryPoint;
 import network.pluto.absolute.security.rest.RestAuthenticationProcessingFilter;
 import network.pluto.absolute.security.rest.RestAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -38,6 +39,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String AUTH_LOGIN_URL = "/auth/login";
     private static final String AUTH_REFRESH_URL = "/auth/refresh";
     private static final String AUTH_LOGOUT_URL = "/auth/logout";
+
+    @Value("${jwt.cookie}")
+    private String cookie;
 
     private final AuthenticationSuccessHandler successHandler;
     private final AuthenticationFailureHandler failureHandler;
@@ -74,6 +78,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 "/",
                 "/auth/**",
                 "/members",
+                "/h2-console/**",
                 "/hello"
         );
         SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, "/**");
@@ -128,6 +133,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/",
                         "/auth/**",
                         "/members",
+                        "/h2-console/**",
                         "/hello"
                 ).permitAll()
                 .antMatchers("/admin").hasAnyRole("ADMIN")
@@ -137,6 +143,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout()
                 .logoutUrl(AUTH_LOGOUT_URL)
                 .logoutSuccessHandler(logoutHandler)
-                .deleteCookies(TokenHelper.cookie);
+                .deleteCookies(cookie);
     }
 }

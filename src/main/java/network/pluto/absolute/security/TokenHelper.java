@@ -20,19 +20,16 @@ import java.util.stream.Collectors;
 public class TokenHelper {
 
     @Value("${jwt.issuer}")
-    public static String issuer;
+    private String issuer;
 
     @Value("${jwt.secret}")
-    public static String secret;
-
-    @Value("${jwt.header}")
-    public static String authHeader;
+    private String secret;
 
     @Value("${jwt.cookie}")
-    public static String cookie;
+    private String cookie;
 
     @Value("${jwt.expires-in}")
-    public static int expireIn;
+    private int expireIn;
 
     private SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
 
@@ -118,7 +115,7 @@ public class TokenHelper {
         }
 
         // get token from header
-        String authHeader = request.getHeader(this.authHeader);
+        String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             return authHeader.substring(7);
         }

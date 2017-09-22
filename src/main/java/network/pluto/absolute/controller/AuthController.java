@@ -21,6 +21,12 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 public class AuthController {
 
+    @Value("${jwt.cookie}")
+    private String cookie;
+
+    @Value("${jwt.expires-in}")
+    private int expireIn;
+
     private final TokenHelper tokenHelper;
     private final MemberService memberService;
 
@@ -55,10 +61,10 @@ public class AuthController {
         if (authToken != null && tokenHelper.canTokenBeRefreshed(authToken)) {
             String refreshedToken = tokenHelper.refreshToken(authToken);
 
-            Cookie authCookie = new Cookie(TokenHelper.cookie, refreshedToken);
+            Cookie authCookie = new Cookie(cookie, refreshedToken);
             authCookie.setPath("/");
             authCookie.setHttpOnly(true);
-            authCookie.setMaxAge(tokenHelper.expireIn);
+            authCookie.setMaxAge(expireIn);
             response.addCookie(authCookie);
 
             String username = tokenHelper.getUsernameFromToken(authToken);
