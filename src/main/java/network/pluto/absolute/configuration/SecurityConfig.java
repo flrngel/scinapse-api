@@ -78,6 +78,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 "/",
                 "/auth/**",
                 "/members",
+                "/articles/*",
                 "/h2-console/**",
                 "/hello"
         );
@@ -133,6 +134,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/",
                         "/auth/**",
                         "/members",
+                        "/articles/*",
                         "/h2-console/**",
                         "/hello"
                 ).permitAll()

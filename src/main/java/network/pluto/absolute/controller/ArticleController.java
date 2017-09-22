@@ -79,6 +79,11 @@ public class ArticleController {
 
         List<Object> evaluations = new ArrayList<>();
         Map<String, Object> evaluation = new HashMap<>();
+        evaluation.put("evaluationId", 1);
+        evaluation.put("createdBy", member1);
+        evaluation.put("createdAt", LocalDateTime.now());
+        evaluation.put("like", 9);
+
         Map<String, Object> pointMap2 = new HashMap<>();
         pointMap2.put("total", 7.5);
         pointMap2.put("originality", 6);
@@ -88,14 +93,12 @@ public class ArticleController {
         pointMap2.put("originalityComment", "Please specify as the mechanism of loss of function of the mutation in patients with mutations at position p.335-339 is reduced protein stability due to rapid protein degradation at the proteasome, rather than reduced catalysis.");
         pointMap2.put("contributionComment", "I would begin the words aldosterone, amlodipine, metoprolol with lower case letters when in the midst of a sentence.");
         pointMap2.put("analysisComment", "I think you should correct the following sentence - p.R337 loci of 11HSDB2 to- “The p.R337 residue of 11-β-dehydrogenase isozyme 2 enzyme is a recognised mutation site. The mutation p.R337C has been previously identified in a family from Iran with three affected children.”");
-        pointMap2.put("expressiveness", "Syndrome of apparent mineralocorticoid excess (MIM#218030) is a rare cause of juvenile hypertension occuring due to homozygous or compound heterozygous mutations in HSD11B2 gene (MIM*614232).");
+        pointMap2.put("expressivenessComment", "Syndrome of apparent mineralocorticoid excess (MIM#218030) is a rare cause of juvenile hypertension occuring due to homozygous or compound heterozygous mutations in HSD11B2 gene (MIM*614232).");
         evaluation.put("point", pointMap2);
 
-        evaluation.put("like", 9);
-        evaluation.put("createdBy", member1);
-        evaluation.put("createdAt", LocalDateTime.now());
         List<Object> comments = new ArrayList<>();
         Map<String, Object> commentMap = new HashMap<>();
+        commentMap.put("commentId", 1);
         commentMap.put("createdBy", member2);
         commentMap.put("createdAt", LocalDateTime.now());
         commentMap.put("comment", "Trying to figure out the potential impact of Blockchain implementations in the setting of clinical trials will shed new light on how modern clinical trial methods could evolve and benefit from Blockchain technologies in order to tackle the aforementioned challenges.");
