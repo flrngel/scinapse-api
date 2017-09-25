@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -78,11 +79,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 "/",
                 "/auth/**",
                 "/members",
+                "/members/checkDuplication",
                 "/articles/*",
                 "/h2-console/**",
                 "/hello"
         );
-        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, "/**");
+        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, "/admin");
         JwtAuthenticationProcessingFilter filter = new JwtAuthenticationProcessingFilter(matcher, tokenHelper);
         filter.setAuthenticationManager(authenticationManagerBean());
         filter.setAuthenticationFailureHandler(failureHandler);
@@ -134,17 +136,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/",
                         "/auth/**",
                         "/members",
+                        "/members/checkDuplication",
                         "/articles/*",
                         "/h2-console/**",
                         "/hello"
                 ).permitAll()
                 .antMatchers("/admin").hasAnyRole("ADMIN")
-                .anyRequest().authenticated();
+                .anyRequest().permitAll();
 
         http
                 .logout()
                 .logoutUrl(AUTH_LOGOUT_URL)
                 .logoutSuccessHandler(logoutHandler)
                 .deleteCookies(cookie);
+    }
+
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers(
+                HttpMethod.GET,
+                "/",
+                "/*.html",
+                "/favicon.ico",
+                "/**/*.html",
+                "/**/*.css",
+                "/**/*.js"
+        );
     }
 }
