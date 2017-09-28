@@ -20,7 +20,7 @@ public class ArticleController {
         this.articleService = articleService;
     }
 
-    @RequestMapping(value = "article/{articleId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/article/{articleId}", method = RequestMethod.GET)
     public ArticleDto getArticle(@PathVariable long articleId) {
         Article article = this.articleService.getArticle(articleId);
         if (article == null) {
@@ -31,16 +31,13 @@ public class ArticleController {
 
     @RequestMapping(value = "/articles", method = RequestMethod.POST)
     public ArticleDto createArticle(@RequestBody ArticleDto articleDto) {
-        /**
-         * TODO: Retrieve current logged-in user and set it into articleDTO
-         */
         Article article = this.articleService.saveArticle(articleDto.toEntity());
 
         return new ArticleDto(article);
     }
 
     @RequestMapping(value = "/articles", method = RequestMethod.GET)
-    public List<ArticleDto> getArticlees() {
+    public List<ArticleDto> getArticles() {
         return this.articleService.getArticles().stream().map(ArticleDto::new).collect(Collectors.toList());
     }
 }

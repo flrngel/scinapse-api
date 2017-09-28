@@ -1,5 +1,6 @@
 package network.pluto.absolute.service;
 
+import lombok.NonNull;
 import network.pluto.bibliotheca.models.Article;
 import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.repositories.ArticleRepository;
@@ -29,10 +30,10 @@ public class ArticleService {
     }
 
     @Transactional
-    public Article saveArticle(Article article) {
+    public Article saveArticle(@NonNull Article article) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String memberName = authentication.getName();
-        Member member = this.memberRepository.findByEmail(memberName);
+        String memberEmail = ((Member)authentication.getPrincipal()).getEmail();
+        Member member = this.memberRepository.findByEmail(memberEmail);
         article.setMember(member);
         return this.articleRepository.save(article);
     }

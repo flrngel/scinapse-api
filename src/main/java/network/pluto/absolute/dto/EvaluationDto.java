@@ -28,9 +28,14 @@ public class EvaluationDto {
 
     public Evaluation toEntity() {
         Evaluation evaluation = new Evaluation();
-        evaluation.setMember(this.createdBy.toEntity());
+        if (this.createdBy != null) {
+            evaluation.setMember(this.createdBy.toEntity());
+        }
         this.writePointValuesOn(evaluation);
-        evaluation.setComments(this.comments.stream().map(CommentDto::toEntity).collect(Collectors.toList()));
+
+        if (this.comments != null) {
+            evaluation.setComments(this.comments.stream().map(CommentDto::toEntity).collect(Collectors.toList()));
+        }
 
         return evaluation;
     }
@@ -53,7 +58,13 @@ public class EvaluationDto {
     }
 
     private void writePointValuesOn(Evaluation evaluation) {
+        if (this.point == null) {
+            return;
+        }
+
+        // TODO: calculate total score
         evaluation.setTotal(this.point.total);
+
         evaluation.setOriginality(this.point.originality);
         evaluation.setContribution(this.point.contribution);
         evaluation.setAnalysis(this.point.analysis);

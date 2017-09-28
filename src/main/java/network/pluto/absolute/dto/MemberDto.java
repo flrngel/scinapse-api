@@ -9,6 +9,7 @@ public class MemberDto {
     private String password;
     private String fullName;
     private String profileImage;
+    private String organization;
     private WalletDto wallet;
 
     public Member toEntity() {
@@ -16,6 +17,7 @@ public class MemberDto {
         member.setEmail(this.email);
         member.setPassword(this.password);
         member.setFullName(this.fullName);
+        member.setOrganization(this.organization);
 
         return member;
     }
@@ -29,6 +31,7 @@ public class MemberDto {
         dto.setEmail(member.getEmail());
         dto.setFullName(member.getFullName());
         dto.setProfileImage(member.getProfileImage());
+        dto.setOrganization(member.getOrganization());
 
         WalletDto walletDto = WalletDto.fromEntity(member.getWallet());
         dto.setWallet(walletDto);
