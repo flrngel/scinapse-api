@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
 
+@Transactional
 @Service
 public class MemberService {
 
@@ -47,5 +49,13 @@ public class MemberService {
 
     public Member findByEmail(String username) {
         return memberRepository.findByEmail(username);
+    }
+
+    public Member getByEmail(String email, boolean initAuthority) {
+        Member member = memberRepository.findByEmail(email);
+        if (initAuthority) {
+            member.getAuthorities().iterator();
+        }
+        return member;
     }
 }

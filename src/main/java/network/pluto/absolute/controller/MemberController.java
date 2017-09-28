@@ -5,10 +5,8 @@ import network.pluto.absolute.dto.MemberDuplicationCheckDto;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,8 +21,8 @@ public class MemberController {
     }
 
     @RequestMapping(value = "/members", method = RequestMethod.POST)
-    public MemberDto create(@RequestBody MemberDto memberDto, HttpServletResponse response) {
-        Member member = MemberDto.toEntity(memberDto);
+    public MemberDto create(@RequestBody MemberDto memberDto) {
+        Member member = memberDto.toEntity();
         Member saved = memberService.save(member);
 
         return MemberDto.fromEntity(saved);

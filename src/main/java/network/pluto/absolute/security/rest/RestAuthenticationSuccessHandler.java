@@ -41,7 +41,7 @@ public class RestAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         LoginUserDetails user = (LoginUserDetails) authentication.getPrincipal();
 
-        String jws = tokenHelper.generateToken(user.getMember());
+        String jws = tokenHelper.generateToken(user);
 
         Cookie authCookie = new Cookie(cookie, jws);
         authCookie.setPath("/");

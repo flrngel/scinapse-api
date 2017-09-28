@@ -8,17 +8,15 @@ public class MemberDto {
     private String email;
     private String password;
     private String fullName;
+    private String profileImage;
     private WalletDto wallet;
 
-    public static Member toEntity(MemberDto dto) {
-        if (dto == null) {
-            return null;
-        }
-
+    public Member toEntity() {
         Member member = new Member();
-        member.setEmail(dto.getEmail());
-        member.setPassword(dto.getPassword());
-        member.setFullName(dto.getFullName());
+        member.setEmail(this.email);
+        member.setPassword(this.password);
+        member.setFullName(this.fullName);
+
         return member;
     }
 
@@ -30,6 +28,7 @@ public class MemberDto {
         MemberDto dto = new MemberDto();
         dto.setEmail(member.getEmail());
         dto.setFullName(member.getFullName());
+        dto.setProfileImage(member.getProfileImage());
 
         WalletDto walletDto = WalletDto.fromEntity(member.getWallet());
         dto.setWallet(walletDto);

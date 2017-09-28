@@ -2,9 +2,9 @@ package network.pluto.absolute.security;
 
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
-import network.pluto.bibliotheca.models.Authority;
-import network.pluto.bibliotheca.models.Member;
+import network.pluto.absolute.model.LoginUserDetails;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.Cookie;
@@ -51,14 +51,14 @@ public class TokenHelper {
         return generateToken(claims);
     }
 
-    public String generateToken(Member member) {
+    public String generateToken(LoginUserDetails details) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", member.getAuthorities().stream().map(Authority::getName).collect(Collectors.toList()));
+        claims.put("role", details.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
 
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuer(issuer)
-                .setSubject(member.getEmail())
+                .setSubject(details.getMember().getEmail())
                 .setIssuedAt(generateCurrentDate())
                 .setExpiration(generateExpirationDate())
                 .signWith(SIGNATURE_ALGORITHM, secret)

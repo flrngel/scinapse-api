@@ -34,7 +34,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
         String username = (String) authentication.getPrincipal();
         String password = (String) authentication.getCredentials();
 
-        Member member = memberService.findByEmail(username);
+        Member member = memberService.getByEmail(username, true);
         if (member == null) {
             throw new UsernameNotFoundException("Member not found: " + username);
         }

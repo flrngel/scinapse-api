@@ -82,9 +82,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 "/members/checkDuplication",
                 "/articles/*",
                 "/h2-console/**",
-                "/hello"
+                "/hello",
+                "/swagger-ui.html",
+                "/webjars/springfox-swagger-ui/**",
+                "/swagger-resources/**",
+                "/swgr/**"
         );
-        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, "/admin");
+        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, "/**");
         JwtAuthenticationProcessingFilter filter = new JwtAuthenticationProcessingFilter(matcher, tokenHelper);
         filter.setAuthenticationManager(authenticationManagerBean());
         filter.setAuthenticationFailureHandler(failureHandler);
@@ -139,10 +143,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/members/checkDuplication",
                         "/articles/*",
                         "/h2-console/**",
-                        "/hello"
+                        "/hello",
+                        "/swagger-ui.html",
+                        "/webjars/springfox-swagger-ui/**",
+                        "/swagger-resources/**",
+                        "/swgr/**"
                 ).permitAll()
                 .antMatchers("/admin").hasAnyRole("ADMIN")
-                .anyRequest().permitAll();
+                .anyRequest().authenticated();
 
         http
                 .logout()
