@@ -24,7 +24,10 @@ public class CommentDto {
 
     public Comment toEntity() {
         Comment comment = new Comment();
-        comment.setMember(this.createdBy.toEntity());
+        comment.setCommentId(this.id);
+        if(this.createdBy != null) {
+            comment.setMember(this.createdBy.toEntity());
+        }
         comment.setComment(this.comment);
 
         return comment;

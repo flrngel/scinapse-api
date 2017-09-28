@@ -3,14 +3,11 @@ package network.pluto.absolute.service;
 import lombok.NonNull;
 import network.pluto.bibliotheca.models.Article;
 import network.pluto.bibliotheca.models.Evaluation;
-import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.repositories.ArticleRepository;
 import network.pluto.bibliotheca.repositories.EvaluationRepository;
 import network.pluto.bibliotheca.repositories.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -39,11 +36,6 @@ public class EvaluationService {
         }
         evaluation.setArticle(article);
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String memberEmail = ((Member) authentication.getPrincipal()).getEmail();
-        Member member = this.memberRepository.findByEmail(memberEmail);
-        evaluation.setMember(member);
-
         return this.evaluationRepository.save(evaluation);
     }
 
@@ -52,6 +44,10 @@ public class EvaluationService {
         if (article == null) {
             throw new ResourceNotFoundException("Article not found");
         }
-        return this.evaluationRepository.findByArticle(article);
+        return article.getEvaluations();
+    }
+
+    public Evaluation getEvaluation(long evaluationId) {
+        return this.evaluationRepository.getOne(evaluationId);
     }
 }
