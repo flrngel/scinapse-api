@@ -45,7 +45,7 @@ public class ArticleController {
         return this.articleService.getArticles().stream().map(ArticleDto::new).collect(Collectors.toList());
     }
 
-    @RequestMapping(value = "/article/{articleId}", method = RequestMethod.GET)
+    @RequestMapping(value = "/articles/{articleId}", method = RequestMethod.GET)
     public ArticleDto getArticle(@PathVariable long articleId) {
         Article article = this.articleService.getArticle(articleId);
         if (article == null) {

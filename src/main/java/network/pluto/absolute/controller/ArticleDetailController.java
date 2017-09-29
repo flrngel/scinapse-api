@@ -52,7 +52,7 @@ public class ArticleDetailController {
         return evaluations.stream().map(EvaluationDto::new).collect(Collectors.toList());
     }
 
-    @RequestMapping(value = "/evaluation/{evaluationId}/comments", method = RequestMethod.POST)
+    @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.POST)
     public EvaluationDto createComment(Principal principal,
                                        @PathVariable long evaluationId,
                                        @RequestBody CommentDto commentDto) {
@@ -66,7 +66,7 @@ public class ArticleDetailController {
         return new EvaluationDto(evaluation);
     }
 
-    @RequestMapping(value = "/evaluation/{evaluationId}/comments", method = RequestMethod.GET)
+    @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.GET)
     public List<CommentDto> getComments(@PathVariable long evaluationId) {
         return this.commentService.getComments(evaluationId).stream().map(CommentDto::new).collect(Collectors.toList());
     }
