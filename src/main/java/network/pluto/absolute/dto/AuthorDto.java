@@ -1,40 +1,45 @@
 package network.pluto.absolute.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import network.pluto.bibliotheca.enums.AuthorType;
 import network.pluto.bibliotheca.models.Author;
-import network.pluto.bibliotheca.models.Member;
 
+@NoArgsConstructor
 @Data
 public class AuthorDto {
+
+    @ApiModelProperty(readOnly = true)
     private Long id;
+
     private MemberDto member;
-    private String type;
+
+    @ApiModelProperty(required = true)
+    private AuthorType type;
+
+    @ApiModelProperty(required = true)
     private String name;
     private String organization;
 
-    public AuthorDto() {
-
-    }
-
     public AuthorDto(Author author) {
         this.id = author.getAuthorId();
-        Member member = author.getMember();
-        if (member != null) {
-            this.member = MemberDto.fromEntity(member);
+
+        if (author.getMember() != null) {
+            this.member = new MemberDto(author.getMember());
         }
 
-        this.type = author.getType().name();
+        this.type = author.getType();
         this.name = author.getName();
         this.organization = author.getOrganization();
     }
 
     public Author toEntity() {
         Author author = new Author();
-        if(this.member != null) {
+        if (this.member != null) {
             author.setMember(this.member.toEntity());
         }
-        author.setType(AuthorType.valueOf(this.type));
+        author.setType(this.type);
         author.setName(this.name);
         author.setOrganization(this.organization);
 

@@ -49,8 +49,8 @@ public class RestAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
         authCookie.setMaxAge(expireIn);
         response.addCookie(authCookie);
 
-        MemberDto memberDto = MemberDto.fromEntity(user.getMember());
-        LoginDto loginDto = LoginDto.of(true, jws, memberDto);
+        MemberDto memberDto = new MemberDto(user.getMember());
+        LoginDto loginDto = new LoginDto(true, jws, memberDto);
 
         response.setStatus(HttpStatus.OK.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

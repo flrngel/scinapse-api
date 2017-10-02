@@ -1,20 +1,28 @@
 package network.pluto.absolute.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import network.pluto.bibliotheca.models.Article;
+import lombok.NoArgsConstructor;
 import network.pluto.bibliotheca.models.ArticlePoint;
 
+@NoArgsConstructor
 @Data
 public class ArticlePointDto {
+
+    @ApiModelProperty(readOnly = true)
     private Double total;
+
+    @ApiModelProperty(readOnly = true)
     private Double originality;
+
+    @ApiModelProperty(readOnly = true)
     private Double contribution;
+
+    @ApiModelProperty(readOnly = true)
     private Double analysis;
+
+    @ApiModelProperty(readOnly = true)
     private Double expressiveness;
-
-    public ArticlePointDto() {
-
-    }
 
     public ArticlePointDto(ArticlePoint articlePoint) {
         this.total = articlePoint.getTotal();
