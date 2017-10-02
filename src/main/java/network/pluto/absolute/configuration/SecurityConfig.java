@@ -5,9 +5,8 @@ import network.pluto.absolute.security.SkipPathRequestMatcher;
 import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.security.jwt.JwtAuthenticationProcessingFilter;
 import network.pluto.absolute.security.jwt.JwtAuthenticationProvider;
-import network.pluto.absolute.security.rest.RestAuthenticationEntryPoint;
-import network.pluto.absolute.security.rest.RestAuthenticationProcessingFilter;
-import network.pluto.absolute.security.rest.RestAuthenticationProvider;
+import network.pluto.absolute.security.jwt.JwtAuthenticationSuccessHandler;
+import network.pluto.absolute.security.rest.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -20,8 +19,6 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -38,39 +35,41 @@ import java.util.List;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final String AUTH_LOGIN_URL = "/auth/login";
-    private static final String AUTH_REFRESH_URL = "/auth/refresh";
     private static final String AUTH_LOGOUT_URL = "/auth/logout";
 
     @Value("${jwt.cookie}")
     private String cookie;
 
-    private final AuthenticationSuccessHandler successHandler;
-    private final AuthenticationFailureHandler failureHandler;
     private final LogoutSuccessHandler logoutHandler;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final RestAuthenticationSuccessHandler restSuccessHandler;
+    private final RestAuthenticationFailureHandler restFailureHandler;
     private final RestAuthenticationProvider restAuthenticationProvider;
+    private final JwtAuthenticationSuccessHandler jwtSuccessHandler;
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final ObjectMapper objectMapper;
     private final TokenHelper tokenHelper;
 
     @Autowired
-    public SecurityConfig(AuthenticationSuccessHandler successHandler, AuthenticationFailureHandler failureHandler, LogoutSuccessHandler logoutHandler, RestAuthenticationEntryPoint restAuthenticationEntryPoint, RestAuthenticationProvider restAuthenticationProvider, JwtAuthenticationProvider jwtAuthenticationProvider, ObjectMapper objectMapper, TokenHelper tokenHelper) {
-        this.successHandler = successHandler;
-        this.failureHandler = failureHandler;
+    public SecurityConfig(LogoutSuccessHandler logoutHandler, RestAuthenticationEntryPoint restAuthenticationEntryPoint, RestAuthenticationSuccessHandler restSuccessHandler, RestAuthenticationFailureHandler restFailureHandler, RestAuthenticationProvider restAuthenticationProvider, JwtAuthenticationSuccessHandler jwtSuccessHandler, JwtAuthenticationProvider jwtAuthenticationProvider, ObjectMapper objectMapper, TokenHelper tokenHelper) {
         this.logoutHandler = logoutHandler;
         this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
+        this.restSuccessHandler = restSuccessHandler;
+        this.restFailureHandler = restFailureHandler;
         this.restAuthenticationProvider = restAuthenticationProvider;
+        this.jwtSuccessHandler = jwtSuccessHandler;
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
         this.objectMapper = objectMapper;
         this.tokenHelper = tokenHelper;
     }
 
+
     private RestAuthenticationProcessingFilter buildProcessingFilter() throws Exception {
         AntPathRequestMatcher matcher = new AntPathRequestMatcher(AUTH_LOGIN_URL, HttpMethod.POST.name());
         RestAuthenticationProcessingFilter filter = new RestAuthenticationProcessingFilter(matcher, objectMapper);
         filter.setAuthenticationManager(authenticationManagerBean());
-        filter.setAuthenticationSuccessHandler(successHandler);
-        filter.setAuthenticationFailureHandler(failureHandler);
+        filter.setAuthenticationSuccessHandler(restSuccessHandler);
+        filter.setAuthenticationFailureHandler(restFailureHandler);
         return filter;
     }
 
@@ -91,7 +90,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, "/**");
         JwtAuthenticationProcessingFilter filter = new JwtAuthenticationProcessingFilter(matcher, tokenHelper);
         filter.setAuthenticationManager(authenticationManagerBean());
-        filter.setAuthenticationFailureHandler(failureHandler);
+        filter.setAuthenticationSuccessHandler(jwtSuccessHandler);
+        filter.setAuthenticationFailureHandler(restFailureHandler);
         return filter;
     }
 

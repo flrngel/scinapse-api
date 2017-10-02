@@ -16,8 +16,9 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
         setAuthenticated(false);
     }
 
-    public JwtAuthenticationToken(Member principle) {
+    public JwtAuthenticationToken(String token, Member principle) {
         super(principle.getAuthorities());
+        this.token = token;
         this.principle = principle;
         setAuthenticated(true);
     }

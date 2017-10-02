@@ -103,7 +103,6 @@ public class TokenHelper {
     }
 
     private Date generateExpirationDate() {
-
         return new Date(getCurrentTimeMillis() + expireIn * 1000);
     }
 

@@ -37,7 +37,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         member.setEmail(email);
         member.setAuthorities(authorities);
 
-        return new JwtAuthenticationToken(member);
+        return new JwtAuthenticationToken(jwt, member);
     }
 
     @Override

@@ -54,7 +54,8 @@ public class AuthController {
         return new LoginDto(true, authToken, memberDto);
     }
 
-    @RequestMapping(value = "/auth/refresh", method = RequestMethod.POST)
+//    TODO generate separated refresh token
+//    @RequestMapping(value = "/auth/refresh", method = RequestMethod.POST)
     public LoginDto refresh(HttpServletRequest request, HttpServletResponse response) {
         String authToken = tokenHelper.getToken(request);
 
@@ -83,6 +84,11 @@ public class AuthController {
     @RequestMapping("/hello")
     public String hello() {
         return "hello, world.";
+    }
+
+    @RequestMapping("/user")
+    public String user() {
+        return "hello, user.";
     }
 
     @RequestMapping("/admin")
