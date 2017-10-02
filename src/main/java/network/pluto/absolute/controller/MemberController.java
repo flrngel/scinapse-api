@@ -25,20 +25,20 @@ public class MemberController {
         Member member = memberDto.toEntity();
         Member saved = memberService.save(member);
 
-        return MemberDto.fromEntity(saved);
+        return new MemberDto(saved);
     }
 
     @RequestMapping(value = "/members", method = RequestMethod.GET)
     public List<MemberDto> getMembers() {
         return memberService.getAll().stream()
-                .map(MemberDto::fromEntity)
+                .map(MemberDto::new)
                 .collect(Collectors.toList());
     }
 
     @RequestMapping(value = "/members/{id}", method = RequestMethod.GET)
     public MemberDto getMember(@PathVariable long id) {
         Member member = memberService.getMember(id);
-        return MemberDto.fromEntity(member);
+        return new MemberDto(member);
     }
 
     @RequestMapping(value = "/members/checkDuplication", method = RequestMethod.GET)

@@ -1,26 +1,36 @@
 package network.pluto.absolute.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import network.pluto.bibliotheca.models.Evaluation;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@NoArgsConstructor
 @Data
 public class EvaluationDto {
-    private long id;
-    private MemberDto createdBy;
-    private EvaluationPointDto point;
-    private LocalDateTime createdAt;
-    private List<CommentDto> comments;
 
-    public EvaluationDto() {
-    }
+    @ApiModelProperty(readOnly = true)
+    private long id;
+
+    @ApiModelProperty(readOnly = true)
+    private MemberDto createdBy;
+
+    @ApiModelProperty(required = true)
+    private EvaluationPointDto point;
+
+    @ApiModelProperty(readOnly = true)
+    private LocalDateTime createdAt;
+
+    @ApiModelProperty(readOnly = true)
+    private List<CommentDto> comments;
 
     public EvaluationDto(Evaluation evaluation) {
         this.id = evaluation.getEvaluationId();
-        this.createdBy = MemberDto.fromEntity(evaluation.getMember());
+        this.createdBy = new MemberDto(evaluation.getMember());
         this.point = this.generatePointDto(evaluation);
         this.createdAt = evaluation.getCreatedAt();
         this.comments = evaluation.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
@@ -78,10 +88,19 @@ public class EvaluationDto {
     @Data
     private class EvaluationPointDto {
         private Double total;
+
+        @ApiModelProperty(required = true)
         private Double originality;
+
+        @ApiModelProperty(required = true)
         private Double contribution;
+
+        @ApiModelProperty(required = true)
         private Double analysis;
+
+        @ApiModelProperty(required = true)
         private Double expressiveness;
+
         private String originalityComment;
         private String contributionComment;
         private String analysisComment;

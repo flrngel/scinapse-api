@@ -41,7 +41,7 @@ public class AuthController {
         String authToken = tokenHelper.getToken(request);
 
         if (authToken == null) {
-            return LoginDto.of(false, null, null);
+            return new LoginDto(false, null, null);
         }
 
         String username = tokenHelper.getUsernameFromToken(authToken);
@@ -50,8 +50,8 @@ public class AuthController {
         }
 
         Member member = memberService.findByEmail(username);
-        MemberDto memberDto = MemberDto.fromEntity(member);
-        return LoginDto.of(true, authToken, memberDto);
+        MemberDto memberDto = new MemberDto(member);
+        return new LoginDto(true, authToken, memberDto);
     }
 
     @RequestMapping(value = "/auth/refresh", method = RequestMethod.POST)
@@ -76,8 +76,8 @@ public class AuthController {
         response.addCookie(authCookie);
 
         Member member = memberService.findByEmail(username);
-        MemberDto memberDto = MemberDto.fromEntity(member);
-        return LoginDto.of(true, refreshedToken, memberDto);
+        MemberDto memberDto = new MemberDto(member);
+        return new LoginDto(true, refreshedToken, memberDto);
     }
 
     @RequestMapping("/hello")

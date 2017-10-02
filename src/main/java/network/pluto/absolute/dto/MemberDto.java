@@ -1,16 +1,44 @@
 package network.pluto.absolute.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import network.pluto.bibliotheca.models.Member;
 
+@NoArgsConstructor
 @Data
 public class MemberDto {
+
+    @ApiModelProperty(readOnly = true)
+    private Long id;
+
+    @ApiModelProperty(required = true)
     private String email;
+
+    @ApiModelProperty(required = true)
     private String password;
+
+    @ApiModelProperty(required = true)
     private String fullName;
+
     private String profileImage;
     private String organization;
+
+    @ApiModelProperty(readOnly = true)
     private WalletDto wallet;
+
+    public MemberDto(Member member) {
+        this.id = member.getMemberId();
+        this.email = member.getEmail();
+        this.fullName = member.getFullName();
+        this.profileImage = member.getProfileImage();
+        this.organization = member.getOrganization();
+
+        if (member.getWallet() != null) {
+            this.wallet = new WalletDto(member.getWallet());
+
+        }
+    }
 
     public Member toEntity() {
         Member member = new Member();
@@ -20,22 +48,5 @@ public class MemberDto {
         member.setOrganization(this.organization);
 
         return member;
-    }
-
-    public static MemberDto fromEntity(Member member) {
-        if (member == null) {
-            return null;
-        }
-
-        MemberDto dto = new MemberDto();
-        dto.setEmail(member.getEmail());
-        dto.setFullName(member.getFullName());
-        dto.setProfileImage(member.getProfileImage());
-        dto.setOrganization(member.getOrganization());
-
-        WalletDto walletDto = WalletDto.fromEntity(member.getWallet());
-        dto.setWallet(walletDto);
-
-        return dto;
     }
 }
