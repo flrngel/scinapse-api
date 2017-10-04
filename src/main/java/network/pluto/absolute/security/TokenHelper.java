@@ -53,7 +53,8 @@ public class TokenHelper {
 
     public String generateToken(LoginUserDetails details) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", details.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+        claims.put("roles", details.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+        claims.put("name", details.getMember().getFullName());
 
         return Jwts.builder()
                 .setClaims(claims)
