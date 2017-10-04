@@ -74,19 +74,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private JwtAuthenticationProcessingFilter buildJwtProcessingFilter() throws Exception {
-        List<String> skipPaths = Arrays.asList(
-                "/",
-                "/auth/**",
-                "/members",
-                "/members/checkDuplication",
-                "/articles/*",
-                "/h2-console/**",
-                "/hello",
-                "/swagger-ui.html",
-                "/webjars/springfox-swagger-ui/**",
-                "/swagger-resources/**",
-                "/swgr/**"
-        );
+        List<String> skipPaths = Arrays.asList(AUTH_LOGIN_URL, AUTH_LOGOUT_URL);
         SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, "/**");
         JwtAuthenticationProcessingFilter filter = new JwtAuthenticationProcessingFilter(matcher, tokenHelper);
         filter.setAuthenticationManager(authenticationManagerBean());
@@ -122,7 +110,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.headers().frameOptions().disable();
+        http
+                .headers()
+                .frameOptions().sameOrigin();
 
         http
                 .csrf().disable()
@@ -136,20 +126,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .authorizeRequests()
-                .antMatchers(
-                        "/",
-                        "/auth/**",
-                        "/members",
-                        "/members/checkDuplication",
-                        "/articles/*",
-                        "/h2-console/**",
-                        "/hello",
-                        "/swagger-ui.html",
-                        "/webjars/springfox-swagger-ui/**",
-                        "/swagger-resources/**",
-                        "/swgr/**"
-                ).permitAll()
-                .antMatchers("/admin").hasAnyRole("ADMIN")
+                .antMatchers(AUTH_LOGIN_URL, AUTH_LOGOUT_URL).permitAll()
+                .antMatchers("/user").hasAnyRole("ADMIN", "USER")
+                .antMatchers("/admin").hasRole("ADMIN")
                 .anyRequest().authenticated();
 
         http
@@ -161,14 +140,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers(
-                HttpMethod.GET,
-                "/",
-                "/*.html",
-                "/favicon.ico",
-                "/**/*.html",
-                "/**/*.css",
-                "/**/*.js"
-        );
+        web.ignoring()
+                .antMatchers(
+                        HttpMethod.GET,
+                        "/",
+                        "/favicon.ico",
+                        "/**/*.html",
+                        "/**/*.css",
+                        "/**/*.js"
+                )
+                .antMatchers(
+                        "/h2-console/**",
+                        "/webjars/springfox-swagger-ui/**",
+                        "/swagger-resources/**",
+                        "/swgr/**"
+                )
+                .antMatchers(
+                        HttpMethod.GET,
+                        "/hello",
+                        "/articles/*"
+                )
+                .antMatchers(
+                        HttpMethod.POST,
+                        "/members",
+                        "/members/checkDuplication",
+                        "/articles"
+                );
     }
 }
