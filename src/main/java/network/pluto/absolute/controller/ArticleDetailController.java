@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/article/{articleId}")
+@RequestMapping("/articles/{articleId}")
 public class ArticleDetailController {
 
     private final MemberService memberService;

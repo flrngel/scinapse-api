@@ -8,7 +8,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     private String token;
-    private Member principle;
+    private Member member;
 
     public JwtAuthenticationToken(String token) {
         super(null);
@@ -16,9 +16,10 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
         setAuthenticated(false);
     }
 
-    public JwtAuthenticationToken(Member principle) {
-        super(principle.getAuthorities());
-        this.principle = principle;
+    public JwtAuthenticationToken(String token, Member member) {
+        super(member.getAuthorities());
+        this.token = token;
+        this.member = member;
         setAuthenticated(true);
     }
 
@@ -29,6 +30,6 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return principle;
+        return member;
     }
 }

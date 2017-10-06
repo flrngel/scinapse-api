@@ -72,13 +72,13 @@ public class EvaluationDto {
             return;
         }
 
-        // TODO: calculate total score
-        evaluation.setTotal(this.point.total);
-
         evaluation.setOriginality(this.point.originality);
         evaluation.setContribution(this.point.contribution);
         evaluation.setAnalysis(this.point.analysis);
         evaluation.setExpressiveness(this.point.expressiveness);
+
+        evaluation.setTotal(this.point.getAverage());
+
         evaluation.setOriginalityComment(this.point.originalityComment);
         evaluation.setContributionComment(this.point.contributionComment);
         evaluation.setAnalysisComment(this.point.analysisComment);
@@ -105,5 +105,10 @@ public class EvaluationDto {
         private String contributionComment;
         private String analysisComment;
         private String expressivenessComment;
+
+        double getAverage() {
+            double total = originality + contribution + analysis + expressiveness;
+            return total / 4;
+        }
     }
 }

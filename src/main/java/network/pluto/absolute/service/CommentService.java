@@ -26,7 +26,7 @@ public class CommentService {
 
     public Comment saveComment(long evaluationId, @NonNull Comment comment) {
         Evaluation evaluation = this.evaluationRepository.getOne(evaluationId);
-        if(evaluation == null) {
+        if (evaluation == null) {
             throw new ResourceNotFoundException("Evaluation not found");
         }
         comment.setEvaluation(evaluation);
@@ -35,7 +35,7 @@ public class CommentService {
 
     public List<Comment> getComments(long evaluationId) {
         Evaluation evaluation = this.evaluationRepository.getOne(evaluationId);
-        if(evaluation == null) {
+        if (evaluation == null) {
             throw new ResourceNotFoundException("Evaluation not found");
         }
 
