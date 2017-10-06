@@ -27,7 +27,7 @@ public class ArticleDto {
     private String articleAbstract;
     private String summary;
     private String link;
-    private String source;
+    private ArticleSource source;
     private LocalDateTime articlePublishedAt;
     private LocalDateTime articleUpdatedAt;
 
@@ -36,6 +36,9 @@ public class ArticleDto {
 
     @ApiModelProperty(readOnly = true)
     private MemberDto createdBy;
+
+    @ApiModelProperty(readOnly = true)
+    private LocalDateTime createdAt;
 
     private List<AuthorDto> authors;
 
@@ -49,9 +52,10 @@ public class ArticleDto {
         this.articleAbstract = article.getArticleAbstract();
         this.summary = article.getSummary();
         this.link = article.getSummary();
-        this.source = article.getSource().name();
+        this.source = article.getSource();
         this.articlePublishedAt = article.getArticlePublishedAt();
         this.articleUpdatedAt = article.getArticleUpdatedAt();
+        this.createdAt = article.getCreatedAt();
 
         if (article.getPoint() != null) {
             this.articlePoint = new ArticlePointDto(article.getPoint());
@@ -77,14 +81,17 @@ public class ArticleDto {
         article.setArticleAbstract(this.articleAbstract);
         article.setSummary(this.summary);
         article.setLink(this.link);
-        article.setSource(ArticleSource.valueOf(this.source));
+        article.setSource(this.source);
         article.setArticlePublishedAt(this.articlePublishedAt);
         article.setArticleUpdatedAt(this.articleUpdatedAt);
 
         if (this.articlePoint != null) {
             article.setPoint(this.articlePoint.toEntity());
         }
-        article.setMember(this.createdBy.toEntity());
+
+        if (this.createdBy != null) {
+            article.setMember(this.createdBy.toEntity());
+        }
 
         if (this.authors != null) {
             article.setAuthors(this.authors.stream().map(AuthorDto::toEntity).collect(Collectors.toList()));

@@ -161,8 +161,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(
                         HttpMethod.POST,
                         "/members",
-                        "/members/checkDuplication",
-                        "/articles"
+                        "/members/checkDuplication"
                 );
     }
 }
