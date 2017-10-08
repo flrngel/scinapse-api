@@ -2,13 +2,13 @@ package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.MemberDuplicationCheckDto;
+import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.security.Principal;
 
 @RestController
 public class MemberController {
@@ -28,17 +28,11 @@ public class MemberController {
         return new MemberDto(saved);
     }
 
-    @RequestMapping(value = "/members", method = RequestMethod.GET)
-    public List<MemberDto> getMembers() {
-        return memberService.getAll().stream()
-                .map(MemberDto::new)
-                .collect(Collectors.toList());
-    }
-
-    @RequestMapping(value = "/members/{id}", method = RequestMethod.GET)
-    public MemberDto getMember(@PathVariable long id) {
-        Member member = memberService.getMember(id);
-        return new MemberDto(member);
+    @RequestMapping(value = "/members/info", method = RequestMethod.GET)
+    public MemberDto getMembers(Principal principal) {
+        Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();
+        Member one = memberService.getMember(member.getMemberId());
+        return new MemberDto(one);
     }
 
     @RequestMapping(value = "/members/checkDuplication", method = RequestMethod.GET)

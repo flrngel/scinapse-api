@@ -37,6 +37,9 @@ public class ArticleController {
 
         article = this.articleService.saveArticle(article);
 
+        // increase member reputation
+        this.memberService.increaseReputation(member.getMemberId(), 10);
+
         return new ArticleDto(article);
     }
 

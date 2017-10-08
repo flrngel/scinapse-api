@@ -44,6 +44,9 @@ public class ArticleDetailController {
         evaluation.setMember(member);
         evaluation = this.evaluationService.saveEvaluation(articleId, evaluation);
 
+        // increase member reputation
+        memberService.increaseReputation(member.getMemberId(), 5);
+
         return new EvaluationDto(evaluation);
     }
 
@@ -59,6 +62,10 @@ public class ArticleDetailController {
                                    @PathVariable long evaluationId) {
         Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();
         Evaluation evaluation = this.evaluationService.increaseVote(evaluationId, member);
+
+        // increase member reputation
+        memberService.increaseReputation(evaluation.getMember().getMemberId(), 1);
+
         return new EvaluationDto(evaluation);
     }
 

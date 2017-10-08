@@ -23,6 +23,7 @@ public class MemberDto {
 
     private String profileImage;
     private String organization;
+    private int reputation;
 
     @ApiModelProperty(readOnly = true)
     private WalletDto wallet;
@@ -33,10 +34,10 @@ public class MemberDto {
         this.fullName = member.getFullName();
         this.profileImage = member.getProfileImage();
         this.organization = member.getOrganization();
+        this.reputation = member.getReputation();
 
         if (member.getWallet() != null) {
             this.wallet = new WalletDto(member.getWallet());
-
         }
     }
 
