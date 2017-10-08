@@ -2,12 +2,14 @@ package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.EvaluationDto;
+import network.pluto.absolute.dto.EvaluationVoteDto;
 import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.Evaluation;
+import network.pluto.bibliotheca.models.EvaluationVote;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -50,6 +52,30 @@ public class ArticleDetailController {
         List<Evaluation> evaluations = this.evaluationService.getEvaluations(articleId);
 
         return evaluations.stream().map(EvaluationDto::new).collect(Collectors.toList());
+    }
+
+    @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.POST)
+    public EvaluationDto pressVote(Principal principal,
+                                   @PathVariable long evaluationId) {
+        Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();
+        Evaluation evaluation = this.evaluationService.increaseVote(evaluationId, member);
+        return new EvaluationDto(evaluation);
+    }
+
+    @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.GET)
+    public EvaluationVoteDto checkVote(Principal principal,
+                                       @PathVariable long evaluationId) {
+        Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();
+
+        EvaluationVoteDto dto = new EvaluationVoteDto();
+        dto.setEvaluationId(evaluationId);
+        dto.setMemberId(member.getMemberId());
+
+        EvaluationVote evaluationVote = this.evaluationService.checkVote(member, evaluationId);
+        if (evaluationVote != null) {
+            dto.setVote(true);
+        }
+        return dto;
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.POST)

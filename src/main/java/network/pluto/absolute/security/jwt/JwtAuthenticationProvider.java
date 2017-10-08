@@ -29,14 +29,16 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         String jwt = (String) authentication.getCredentials();
 
         Claims claims = tokenHelper.getAllClaimsFromToken(jwt);
+        Integer memberId = claims.get("id", Integer.class);
+        String fullName = claims.get("name", String.class);
         List<String> roles = claims.get("roles", List.class);
         List<Authority> authorities = roles.stream().map(auth -> new Authority(AuthorityName.find(auth))).collect(Collectors.toList());
-        String fullName = claims.get("name", String.class);
 
         Member member = new Member();
+        member.setMemberId(memberId);
         member.setEmail(claims.getSubject());
-        member.setAuthorities(authorities);
         member.setFullName(fullName);
+        member.setAuthorities(authorities);
 
         return new JwtAuthenticationToken(jwt, member);
     }
