@@ -3,8 +3,10 @@ package network.pluto.absolute.service;
 import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Authority;
 import network.pluto.bibliotheca.models.Member;
+import network.pluto.bibliotheca.models.MemberReputation;
 import network.pluto.bibliotheca.repositories.AuthorityRepository;
 import network.pluto.bibliotheca.repositories.MemberRepository;
+import network.pluto.bibliotheca.repositories.MemberReputationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,14 +20,17 @@ import java.util.List;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final MemberReputationRepository memberReputationRepository;
     private final AuthorityRepository authorityRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public MemberService(MemberRepository memberRepository,
+                         MemberReputationRepository memberReputationRepository,
                          AuthorityRepository authorityRepository,
                          PasswordEncoder passwordEncoder) {
         this.memberRepository = memberRepository;
+        this.memberReputationRepository = memberReputationRepository;
         this.authorityRepository = authorityRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -44,7 +49,7 @@ public class MemberService {
     }
 
     public Member getMember(long id) {
-        return memberRepository.findOne(id);
+        return memberRepository.getOne(id);
     }
 
     public Member findByEmail(String username) {
@@ -57,5 +62,16 @@ public class MemberService {
             member.getAuthorities().iterator();
         }
         return member;
+    }
+
+    public Member increaseReputation(long memberId, int point) {
+        Member one = memberRepository.getOne(memberId);
+
+        MemberReputation reputation = new MemberReputation();
+        reputation.setMember(one);
+        memberReputationRepository.save(reputation);
+
+        one.setReputation(one.getReputation() + point);
+        return one;
     }
 }
