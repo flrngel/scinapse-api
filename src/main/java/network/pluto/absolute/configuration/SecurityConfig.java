@@ -156,6 +156,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(
                         HttpMethod.GET,
                         "/hello",
+                        "/articles",
                         "/articles/*"
                 )
                 .antMatchers(
