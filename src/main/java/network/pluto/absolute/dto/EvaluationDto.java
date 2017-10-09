@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import network.pluto.bibliotheca.models.Evaluation;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,6 +19,8 @@ public class EvaluationDto {
     private long id;
 
     @ApiModelProperty(required = true)
+    @NotNull
+    @Valid
     private EvaluationPointDto point;
 
     @ApiModelProperty(readOnly = true)
@@ -42,15 +46,7 @@ public class EvaluationDto {
 
     public Evaluation toEntity() {
         Evaluation evaluation = new Evaluation();
-        if (this.createdBy != null) {
-            evaluation.setMember(this.createdBy.toEntity());
-        }
         this.writePointValuesOn(evaluation);
-
-        if (this.comments != null) {
-            evaluation.setComments(this.comments.stream().map(CommentDto::toEntity).collect(Collectors.toList()));
-        }
-
         return evaluation;
     }
 
@@ -91,18 +87,23 @@ public class EvaluationDto {
 
     @Data
     private class EvaluationPointDto {
+
         private Double total;
 
         @ApiModelProperty(required = true)
+        @NotNull
         private Double originality;
 
         @ApiModelProperty(required = true)
+        @NotNull
         private Double contribution;
 
         @ApiModelProperty(required = true)
+        @NotNull
         private Double analysis;
 
         @ApiModelProperty(required = true)
+        @NotNull
         private Double expressiveness;
 
         private String originalityComment;

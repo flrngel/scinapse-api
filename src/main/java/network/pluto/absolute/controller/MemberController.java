@@ -8,6 +8,7 @@ import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.security.Principal;
 
 @RestController
@@ -21,7 +22,7 @@ public class MemberController {
     }
 
     @RequestMapping(value = "/members", method = RequestMethod.POST)
-    public MemberDto create(@RequestBody MemberDto memberDto) {
+    public MemberDto create(@RequestBody @Valid MemberDto memberDto) {
         Member member = memberDto.toEntity();
         Member saved = memberService.save(member);
 

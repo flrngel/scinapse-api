@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import network.pluto.bibliotheca.enums.AuthorType;
 import network.pluto.bibliotheca.models.Author;
 
+import javax.validation.constraints.NotNull;
+
 @NoArgsConstructor
 @Data
 public class AuthorDto {
@@ -16,10 +18,13 @@ public class AuthorDto {
     private MemberDto member;
 
     @ApiModelProperty(required = true)
+    @NotNull
     private AuthorType type;
 
     @ApiModelProperty(required = true)
+    @NotNull
     private String name;
+
     private String organization;
 
     public AuthorDto(Author author) {
@@ -36,9 +41,11 @@ public class AuthorDto {
 
     public Author toEntity() {
         Author author = new Author();
+
         if (this.member != null) {
             author.setMember(this.member.toEntity());
         }
+
         author.setType(this.type);
         author.setName(this.name);
         author.setOrganization(this.organization);

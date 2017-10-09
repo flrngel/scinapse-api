@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import network.pluto.bibliotheca.models.Comment;
 
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -14,30 +15,26 @@ public class CommentDto {
     @ApiModelProperty(readOnly = true)
     private long id;
 
+    @ApiModelProperty(required = true)
+    @NotNull
+    private String comment;
+
     @ApiModelProperty(readOnly = true)
     private MemberDto createdBy;
-
-    @ApiModelProperty(required = true)
-    private String comment;
 
     @ApiModelProperty(readOnly = true)
     private LocalDateTime createdAt;
 
     public CommentDto(Comment comment) {
         this.id = comment.getCommentId();
-        this.createdBy = new MemberDto(comment.getMember());
         this.comment = comment.getComment();
+        this.createdBy = new MemberDto(comment.getMember());
         this.createdAt = comment.getCreatedAt();
     }
 
     public Comment toEntity() {
         Comment comment = new Comment();
-        comment.setCommentId(this.id);
-        if (this.createdBy != null) {
-            comment.setMember(this.createdBy.toEntity());
-        }
         comment.setComment(this.comment);
-
         return comment;
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,7 +29,7 @@ public class ArticleController {
 
     @RequestMapping(value = "/articles", method = RequestMethod.POST)
     public ArticleDto createArticle(Principal principal,
-                                    @RequestBody ArticleDto articleDto) {
+                                    @RequestBody @Valid ArticleDto articleDto) {
         Article article = articleDto.toEntity();
 
         Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();

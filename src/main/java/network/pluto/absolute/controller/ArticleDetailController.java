@@ -14,6 +14,7 @@ import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,7 +39,7 @@ public class ArticleDetailController {
     @RequestMapping(value = "/evaluations", method = RequestMethod.POST)
     public EvaluationDto createEvaluation(Principal principal,
                                           @PathVariable long articleId,
-                                          @RequestBody EvaluationDto evaluationDto) {
+                                          @RequestBody @Valid EvaluationDto evaluationDto) {
         Evaluation evaluation = evaluationDto.toEntity();
         Member member = this.getMemberFromPrincipal(principal);
         evaluation.setMember(member);
@@ -88,7 +89,7 @@ public class ArticleDetailController {
     @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.POST)
     public EvaluationDto createComment(Principal principal,
                                        @PathVariable long evaluationId,
-                                       @RequestBody CommentDto commentDto) {
+                                       @RequestBody @Valid CommentDto commentDto) {
         Comment comment = commentDto.toEntity();
         Member member = this.getMemberFromPrincipal(principal);
         comment.setMember(member);
