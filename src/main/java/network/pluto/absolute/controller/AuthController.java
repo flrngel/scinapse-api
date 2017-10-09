@@ -57,7 +57,7 @@ public class AuthController {
         return new LoginDto(true, authToken, memberDto);
     }
 
-    @RequestMapping("/hello")
+    @RequestMapping(value = "/hello", method = RequestMethod.GET)
     public Object hello() {
         Map<String, Object> result = new HashMap<>();
         result.put("message", "hello, world.");
@@ -65,13 +65,13 @@ public class AuthController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    @RequestMapping("/user")
+    @RequestMapping(value = "/user", method = RequestMethod.GET)
     public Object user(JwtAuthenticationToken token) {
         return getMessage(token);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @RequestMapping("/admin")
+    @RequestMapping(value = "/admin", method = RequestMethod.GET)
     public Object admin(JwtAuthenticationToken token) {
         return getMessage(token);
     }
