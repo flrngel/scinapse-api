@@ -62,13 +62,8 @@ public class EvaluationPointDto {
         point.setAnalysisComment(this.analysisComment);
         point.setExpressivenessComment(this.expressivenessComment);
 
-        point.setTotal(this.getAverage());
+        point.updateTotal();
 
         return point;
-    }
-
-    private double getAverage() {
-        int total = originality + contribution + analysis + expressiveness;
-        return total / 4;
     }
 }
