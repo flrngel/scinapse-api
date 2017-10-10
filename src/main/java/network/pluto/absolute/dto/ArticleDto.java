@@ -32,7 +32,7 @@ public class ArticleDto {
     private LocalDateTime articleUpdatedAt;
 
     @ApiModelProperty(readOnly = true)
-    private ArticlePointDto articlePoint;
+    private ArticlePointDto point;
 
     @ApiModelProperty(readOnly = true)
     private MemberDto createdBy;
@@ -58,7 +58,7 @@ public class ArticleDto {
         this.createdAt = article.getCreatedAt();
 
         if (article.getPoint() != null) {
-            this.articlePoint = new ArticlePointDto(article.getPoint());
+            this.point = new ArticlePointDto(article.getPoint());
         }
 
         if (article.getMember() != null) {
@@ -85,8 +85,8 @@ public class ArticleDto {
         article.setArticlePublishedAt(this.articlePublishedAt);
         article.setArticleUpdatedAt(this.articleUpdatedAt);
 
-        if (this.articlePoint != null) {
-            article.setPoint(this.articlePoint.toEntity());
+        if (this.point != null) {
+            article.setPoint(this.point.toEntity());
         }
 
         if (this.createdBy != null) {
