@@ -24,11 +24,11 @@ public class ArticlePointDto {
     @ApiModelProperty(readOnly = true)
     private Double expressiveness;
 
-    public ArticlePointDto(ArticlePoint articlePoint) {
-        this.total = articlePoint.getTotal();
-        this.originality = articlePoint.getOriginality();
-        this.contribution = articlePoint.getContribution();
-        this.analysis = articlePoint.getAnalysis();
-        this.expressiveness = articlePoint.getExpressiveness();
+    public ArticlePointDto(ArticlePoint point) {
+        this.total = point.getTotal();
+        this.originality = point.getOriginality();
+        this.contribution = point.getContribution();
+        this.analysis = point.getAnalysis();
+        this.expressiveness = point.getExpressiveness();
     }
 }
