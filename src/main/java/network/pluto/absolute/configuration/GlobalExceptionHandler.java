@@ -10,11 +10,15 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -38,6 +42,30 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             return buildResponseEntity(new ApiError(HttpStatus.CONFLICT, "Database error", ex.getCause()));
         }
         return buildResponseEntity(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex));
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        List<ApiFieldError> fieldErrors = ex.getBindingResult().getFieldErrors()
+                .stream()
+                .map(error -> {
+                    ApiFieldError fieldError = new ApiFieldError();
+                    fieldError.setField(error.getField());
+
+                    if (!"password".equals(error.getField())) {
+                        fieldError.setRejectedValue(error.getRejectedValue());
+                    }
+
+                    fieldError.setCode(error.getCode());
+                    fieldError.setMessage(error.getDefaultMessage());
+                    return fieldError;
+                })
+                .collect(Collectors.toList());
+
+        ApiError apiError = new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, "Validation failed");
+        apiError.setFieldErrors(fieldErrors);
+
+        return buildResponseEntity(apiError);
     }
 
     @Override

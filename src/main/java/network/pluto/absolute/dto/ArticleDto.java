@@ -7,6 +7,8 @@ import network.pluto.bibliotheca.enums.ArticleSource;
 import network.pluto.bibliotheca.enums.ArticleType;
 import network.pluto.bibliotheca.models.Article;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,9 +21,11 @@ public class ArticleDto {
     private Long id;
 
     @ApiModelProperty(required = true)
+    @NotNull
     private ArticleType type;
 
     @ApiModelProperty(required = true)
+    @NotNull
     private String title;
 
     private String articleAbstract;
@@ -40,6 +44,7 @@ public class ArticleDto {
     @ApiModelProperty(readOnly = true)
     private LocalDateTime createdAt;
 
+    @Valid
     private List<AuthorDto> authors;
 
     @ApiModelProperty(readOnly = true)
@@ -55,14 +60,11 @@ public class ArticleDto {
         this.source = article.getSource();
         this.articlePublishedAt = article.getArticlePublishedAt();
         this.articleUpdatedAt = article.getArticleUpdatedAt();
+        this.createdBy = new MemberDto(article.getMember());
         this.createdAt = article.getCreatedAt();
 
         if (article.getPoint() != null) {
             this.point = new ArticlePointDto(article.getPoint());
-        }
-
-        if (article.getMember() != null) {
-            this.createdBy = new MemberDto(article.getMember());
         }
 
         if (article.getAuthors() != null) {
@@ -84,10 +86,6 @@ public class ArticleDto {
         article.setSource(this.source);
         article.setArticlePublishedAt(this.articlePublishedAt);
         article.setArticleUpdatedAt(this.articleUpdatedAt);
-
-        if (this.point != null) {
-            article.setPoint(this.point.toEntity());
-        }
 
         if (this.createdBy != null) {
             article.setMember(this.createdBy.toEntity());
