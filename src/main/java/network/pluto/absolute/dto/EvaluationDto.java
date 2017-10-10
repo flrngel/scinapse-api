@@ -40,7 +40,7 @@ public class EvaluationDto {
         this.point = this.generatePointDto(evaluation);
         this.vote = evaluation.getVote();
         this.comments = evaluation.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
-        this.createdBy = new MemberDto(evaluation.getMember());
+        this.createdBy = new MemberDto(evaluation.getCreatedBy());
         this.createdAt = evaluation.getCreatedAt();
     }
 

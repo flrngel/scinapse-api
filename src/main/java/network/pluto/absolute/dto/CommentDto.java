@@ -28,7 +28,7 @@ public class CommentDto {
     public CommentDto(Comment comment) {
         this.id = comment.getCommentId();
         this.comment = comment.getComment();
-        this.createdBy = new MemberDto(comment.getMember());
+        this.createdBy = new MemberDto(comment.getCreatedBy());
         this.createdAt = comment.getCreatedAt();
     }
 

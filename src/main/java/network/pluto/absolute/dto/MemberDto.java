@@ -1,5 +1,6 @@
 package network.pluto.absolute.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,7 @@ public class MemberDto {
     @NotNull
     private String email;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @ApiModelProperty(required = true)
     @Size(min = 8, message = "password must be greater than or equal to 8")
     @NotNull
@@ -28,10 +30,13 @@ public class MemberDto {
 
     @ApiModelProperty(required = true)
     @NotNull
-    private String fullName;
+    private String name;
 
     private String profileImage;
-    private String organization;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String institution;
+
     private int reputation;
 
     @ApiModelProperty(readOnly = true)
@@ -40,9 +45,9 @@ public class MemberDto {
     public MemberDto(Member member) {
         this.id = member.getMemberId();
         this.email = member.getEmail();
-        this.fullName = member.getFullName();
+        this.name = member.getName();
         this.profileImage = member.getProfileImage();
-        this.organization = member.getOrganization();
+        this.institution = member.getInstitution();
         this.reputation = member.getReputation();
 
         if (member.getWallet() != null) {
@@ -54,9 +59,9 @@ public class MemberDto {
         Member member = new Member();
         member.setEmail(this.email);
         member.setPassword(this.password);
-        member.setFullName(this.fullName);
-        member.setOrganization(this.organization);
-
+        member.setName(this.name);
+        member.setProfileImage(this.profileImage);
+        member.setInstitution(this.institution);
         return member;
     }
 }

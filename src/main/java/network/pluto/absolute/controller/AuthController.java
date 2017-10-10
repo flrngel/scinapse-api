@@ -78,10 +78,10 @@ public class AuthController {
 
     private Object getMessage(JwtAuthenticationToken token) {
         Map<String, Object> result = new HashMap<>();
-        result.put("message", "hello, " + token.getMember().getFullName() + ".");
+        result.put("message", "hello, " + token.getMember().getName() + ".");
         result.put("email", token.getMember().getEmail());
         result.put("roles", token.getMember().getAuthorities().stream().map(Authority::getName).collect(Collectors.toList()));
-        result.put("fullName", token.getMember().getFullName());
+        result.put("name", token.getMember().getName());
         return result;
     }
 }

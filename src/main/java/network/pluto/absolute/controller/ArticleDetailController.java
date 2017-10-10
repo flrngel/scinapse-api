@@ -43,7 +43,7 @@ public class ArticleDetailController {
         Member member = memberService.getMember(principal);
 
         Evaluation evaluation = evaluationDto.toEntity();
-        evaluation.setMember(member);
+        evaluation.setCreatedBy(member);
         evaluation = this.evaluationService.saveEvaluation(articleId, evaluation);
 
         // increase member reputation
@@ -66,7 +66,7 @@ public class ArticleDetailController {
         Evaluation evaluation = this.evaluationService.increaseVote(evaluationId, member);
 
         // increase member reputation
-        memberService.increaseReputation(evaluation.getMember().getMemberId(), 1);
+        memberService.increaseReputation(evaluation.getCreatedBy().getMemberId(), 1);
 
         return new EvaluationDto(evaluation);
     }
@@ -94,7 +94,7 @@ public class ArticleDetailController {
         Member member = memberService.getMember(principal);
 
         Comment comment = commentDto.toEntity();
-        comment.setMember(member);
+        comment.setCreatedBy(member);
 
         this.commentService.saveComment(evaluationId, comment);
         Evaluation evaluation = this.evaluationService.getEvaluation(evaluationId);

@@ -1,11 +1,13 @@
 package network.pluto.absolute.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import network.pluto.bibliotheca.enums.ArticleSource;
 import network.pluto.bibliotheca.enums.ArticleType;
 import network.pluto.bibliotheca.models.Article;
+import org.hibernate.validator.constraints.URL;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -28,11 +30,19 @@ public class ArticleDto {
     @NotNull
     private String title;
 
-    private String articleAbstract;
     private String summary;
+
+    @URL
     private String link;
+
     private ArticleSource source;
+
+    private String note;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime articlePublishedAt;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime articleUpdatedAt;
 
     @ApiModelProperty(readOnly = true)
@@ -54,13 +64,11 @@ public class ArticleDto {
         this.id = article.getArticleId();
         this.type = article.getType();
         this.title = article.getTitle();
-        this.articleAbstract = article.getArticleAbstract();
         this.summary = article.getSummary();
-        this.link = article.getSummary();
+        this.link = article.getLink();
         this.source = article.getSource();
-        this.articlePublishedAt = article.getArticlePublishedAt();
-        this.articleUpdatedAt = article.getArticleUpdatedAt();
-        this.createdBy = new MemberDto(article.getMember());
+        this.note = article.getNote();
+        this.createdBy = new MemberDto(article.getCreatedBy());
         this.createdAt = article.getCreatedAt();
 
         if (article.getPoint() != null) {
@@ -80,16 +88,12 @@ public class ArticleDto {
         Article article = new Article();
         article.setType(this.type);
         article.setTitle(this.title);
-        article.setArticleAbstract(this.articleAbstract);
         article.setSummary(this.summary);
         article.setLink(this.link);
         article.setSource(this.source);
+        article.setNote(this.note);
         article.setArticlePublishedAt(this.articlePublishedAt);
         article.setArticleUpdatedAt(this.articleUpdatedAt);
-
-        if (this.createdBy != null) {
-            article.setMember(this.createdBy.toEntity());
-        }
 
         if (this.authors != null) {
             article.setAuthors(this.authors.stream().map(AuthorDto::toEntity).collect(Collectors.toList()));

@@ -1,7 +1,6 @@
 package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.ArticleDto;
-import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
 import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Article;
@@ -33,7 +32,7 @@ public class ArticleController {
         Member member = this.memberService.getMember(principal);
 
         Article article = articleDto.toEntity();
-        article.setMember(member);
+        article.setCreatedBy(member);
 
         article = this.articleService.saveArticle(article);
 
