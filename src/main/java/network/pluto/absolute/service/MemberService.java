@@ -1,5 +1,6 @@
 package network.pluto.absolute.service;
 
+import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
 import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Authority;
 import network.pluto.bibliotheca.models.Member;
@@ -12,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 
@@ -50,6 +52,11 @@ public class MemberService {
 
     public Member getMember(long id) {
         return memberRepository.getOne(id);
+    }
+
+    public Member getMember(Principal principal) {
+        Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();
+        return memberRepository.getOne(member.getMemberId());
     }
 
     public Member findByEmail(String username) {

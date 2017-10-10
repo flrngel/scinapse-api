@@ -30,10 +30,9 @@ public class ArticleController {
     @RequestMapping(value = "/articles", method = RequestMethod.POST)
     public ArticleDto createArticle(Principal principal,
                                     @RequestBody @Valid ArticleDto articleDto) {
-        Article article = articleDto.toEntity();
+        Member member = this.memberService.getMember(principal);
 
-        Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();
-        member = this.memberService.findByEmail(member.getEmail());
+        Article article = articleDto.toEntity();
         article.setMember(member);
 
         article = this.articleService.saveArticle(article);

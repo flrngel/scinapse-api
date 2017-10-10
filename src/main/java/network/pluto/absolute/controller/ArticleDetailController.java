@@ -40,8 +40,9 @@ public class ArticleDetailController {
     public EvaluationDto createEvaluation(Principal principal,
                                           @PathVariable long articleId,
                                           @RequestBody @Valid EvaluationDto evaluationDto) {
+        Member member = memberService.getMember(principal);
+
         Evaluation evaluation = evaluationDto.toEntity();
-        Member member = this.getMemberFromPrincipal(principal);
         evaluation.setMember(member);
         evaluation = this.evaluationService.saveEvaluation(articleId, evaluation);
 
@@ -61,7 +62,7 @@ public class ArticleDetailController {
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.POST)
     public EvaluationDto pressVote(Principal principal,
                                    @PathVariable long evaluationId) {
-        Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();
+        Member member = memberService.getMember(principal);
         Evaluation evaluation = this.evaluationService.increaseVote(evaluationId, member);
 
         // increase member reputation
@@ -90,8 +91,9 @@ public class ArticleDetailController {
     public EvaluationDto createComment(Principal principal,
                                        @PathVariable long evaluationId,
                                        @RequestBody @Valid CommentDto commentDto) {
+        Member member = memberService.getMember(principal);
+
         Comment comment = commentDto.toEntity();
-        Member member = this.getMemberFromPrincipal(principal);
         comment.setMember(member);
 
         this.commentService.saveComment(evaluationId, comment);
@@ -103,10 +105,5 @@ public class ArticleDetailController {
     @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.GET)
     public List<CommentDto> getComments(@PathVariable long evaluationId) {
         return this.commentService.getComments(evaluationId).stream().map(CommentDto::new).collect(Collectors.toList());
-    }
-
-    private Member getMemberFromPrincipal(Principal principal) {
-        Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();
-        return this.memberService.findByEmail(member.getEmail());
     }
 }
