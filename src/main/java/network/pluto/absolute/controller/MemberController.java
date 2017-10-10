@@ -4,8 +4,10 @@ import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.MemberDuplicationCheckDto;
 import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
 import network.pluto.absolute.service.MemberService;
+import network.pluto.absolute.validator.MemberDuplicationValidator;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -15,10 +17,18 @@ import java.security.Principal;
 public class MemberController {
 
     private final MemberService memberService;
+    private final MemberDuplicationValidator memberDuplicationValidator;
 
     @Autowired
-    public MemberController(MemberService memberService) {
+    public MemberController(MemberService memberService,
+                            MemberDuplicationValidator memberDuplicationValidator) {
         this.memberService = memberService;
+        this.memberDuplicationValidator = memberDuplicationValidator;
+    }
+
+    @InitBinder("memberDto")
+    public void initBinder(WebDataBinder binder) {
+        binder.addValidators(memberDuplicationValidator);
     }
 
     @RequestMapping(value = "/members", method = RequestMethod.POST)
