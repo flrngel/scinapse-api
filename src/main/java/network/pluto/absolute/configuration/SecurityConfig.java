@@ -22,6 +22,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -36,6 +37,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final String AUTH_LOGIN_URL = "/auth/login";
     private static final String AUTH_LOGOUT_URL = "/auth/logout";
+
+    private static final RequestMatcher[] skipPaths = {
+            new AntPathRequestMatcher(AUTH_LOGIN_URL),
+            new AntPathRequestMatcher(AUTH_LOGOUT_URL),
+
+            new AntPathRequestMatcher("/hello", "GET"),
+
+            new AntPathRequestMatcher("/articles", "GET"),
+            new AntPathRequestMatcher("/articles/*", "GET"),
+
+            new AntPathRequestMatcher("/members", "POST"),
+            new AntPathRequestMatcher("/members/checkDuplication", "POST")
+    };
 
     @Value("${jwt.cookie}")
     private String cookie;
@@ -74,8 +88,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private JwtAuthenticationProcessingFilter buildJwtProcessingFilter() throws Exception {
-        List<String> skipPaths = Arrays.asList(AUTH_LOGIN_URL, AUTH_LOGOUT_URL);
-        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, "/**");
+        List<RequestMatcher> skipPaths = Arrays.asList(SecurityConfig.skipPaths);
+        AntPathRequestMatcher processingPath = new AntPathRequestMatcher("/**");
+
+        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, processingPath);
+
         JwtAuthenticationProcessingFilter filter = new JwtAuthenticationProcessingFilter(matcher, tokenHelper);
         filter.setAuthenticationManager(authenticationManagerBean());
         filter.setAuthenticationSuccessHandler(jwtSuccessHandler);
@@ -126,7 +143,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .authorizeRequests()
-                .antMatchers(AUTH_LOGIN_URL, AUTH_LOGOUT_URL).permitAll()
+                .requestMatchers(skipPaths).permitAll()
                 .anyRequest().authenticated();
 
         http
@@ -152,17 +169,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/webjars/springfox-swagger-ui/**",
                         "/swagger-resources/**",
                         "/swgr/**"
-                )
-                .antMatchers(
-                        HttpMethod.GET,
-                        "/hello",
-                        "/articles",
-                        "/articles/*"
-                )
-                .antMatchers(
-                        HttpMethod.POST,
-                        "/members",
-                        "/members/checkDuplication"
                 );
     }
 }
