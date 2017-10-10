@@ -25,7 +25,7 @@ public class AuthorDto {
     @NotNull
     private String name;
 
-    private String organization;
+    private String institution;
 
     public AuthorDto(Author author) {
         this.id = author.getAuthorId();
@@ -36,7 +36,7 @@ public class AuthorDto {
 
         this.type = author.getType();
         this.name = author.getName();
-        this.organization = author.getOrganization();
+        this.institution = author.getInstitution();
     }
 
     public Author toEntity() {
@@ -48,7 +48,7 @@ public class AuthorDto {
 
         author.setType(this.type);
         author.setName(this.name);
-        author.setOrganization(this.organization);
+        author.setInstitution(this.institution);
 
         return author;
     }
