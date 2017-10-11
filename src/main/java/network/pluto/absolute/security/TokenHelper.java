@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,22 +34,18 @@ public class TokenHelper {
 
     private SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
 
-    public String getUsernameFromToken(String token) {
-        return getClaimsFromToken(token, Claims::getSubject);
-    }
-
-    public Date getExpirationDateFromToken(String token) {
-        return getClaimsFromToken(token, Claims::getExpiration);
-    }
-
-    public Boolean canTokenBeRefreshed(String token) {
-        return getExpirationDateFromToken(token).compareTo(generateCurrentDate()) > 0;
-    }
-
     public String refreshToken(String token) {
         final Claims claims = getAllClaimsFromToken(token);
         claims.setIssuedAt(generateCurrentDate());
         return generateToken(claims);
+    }
+
+    private String generateToken(Map<String, Object> claims) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setExpiration(generateExpirationDate())
+                .signWith(SIGNATURE_ALGORITHM, secret)
+                .compact();
     }
 
     public String generateToken(LoginUserDetails details) {
@@ -67,6 +64,9 @@ public class TokenHelper {
                 .compact();
     }
 
+    public String getUsernameFromToken(String token) {
+        return getClaimsFromToken(token, Claims::getSubject);
+    }
 
     private <T> T getClaimsFromToken(String token, Function<Claims, T> claimsResolver) {
         Claims claims = getAllClaimsFromToken(token);
@@ -86,14 +86,6 @@ public class TokenHelper {
             log.error("Invalid JWT Token", e);
             throw new TokenInvalidException("Invalid JWT token: ", token, e.getLocalizedMessage());
         }
-    }
-
-    String generateToken(Map<String, Object> claims) {
-        return Jwts.builder()
-                .setClaims(claims)
-                .setExpiration(generateExpirationDate())
-                .signWith(SIGNATURE_ALGORITHM, secret)
-                .compact();
     }
 
     private long getCurrentTimeMillis() {
@@ -127,11 +119,28 @@ public class TokenHelper {
         if (request.getCookies() == null) {
             return null;
         }
-        for (int i = 0; i < request.getCookies().length; i++) {
-            if (request.getCookies()[i].getName().equals(name)) {
-                return request.getCookies()[i];
+
+        for (Cookie cookie : request.getCookies()) {
+            if (cookie.getName().equals(name)) {
+                return cookie;
             }
         }
+
         return null;
+    }
+
+    public void addCookie(HttpServletResponse response, String token) {
+        Cookie authCookie = new Cookie(cookie, token);
+        authCookie.setPath("/");
+        authCookie.setHttpOnly(true);
+        authCookie.setMaxAge(expireIn);
+        response.addCookie(authCookie);
+    }
+
+    public void deleteCookie(HttpServletResponse response) {
+        Cookie authCookie = new Cookie(cookie, null);
+        authCookie.setPath("/");
+        authCookie.setMaxAge(0);
+        response.addCookie(authCookie);
     }
 }
