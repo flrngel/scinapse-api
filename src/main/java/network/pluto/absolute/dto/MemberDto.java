@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import network.pluto.bibliotheca.models.Member;
 import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -32,6 +33,7 @@ public class MemberDto {
     @NotNull
     private String name;
 
+    @URL
     private String profileImage;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

@@ -46,9 +46,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
             new AntPathRequestMatcher("/articles", "GET"),
             new AntPathRequestMatcher("/articles/*", "GET"),
+            new AntPathRequestMatcher("/members/checkDuplication", "GET"),
 
-            new AntPathRequestMatcher("/members", "POST"),
-            new AntPathRequestMatcher("/members/checkDuplication", "POST")
+            new AntPathRequestMatcher("/members", "POST")
     };
 
     @Value("${jwt.cookie}")
