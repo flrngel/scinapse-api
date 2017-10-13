@@ -1,6 +1,7 @@
 package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.ArticleDto;
+import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Article;
@@ -10,7 +11,6 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,9 +27,9 @@ public class ArticleController {
     }
 
     @RequestMapping(value = "/articles", method = RequestMethod.POST)
-    public ArticleDto createArticle(Principal principal,
+    public ArticleDto createArticle(JwtUser user,
                                     @RequestBody @Valid ArticleDto articleDto) {
-        Member member = this.memberService.getMember(principal);
+        Member member = this.memberService.getMember(user.getId());
 
         Article article = articleDto.toEntity();
         article.setCreatedBy(member);
