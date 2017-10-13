@@ -3,7 +3,6 @@ package network.pluto.absolute.controller;
 import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.EvaluationDto;
 import network.pluto.absolute.dto.EvaluationVoteDto;
-import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.EvaluationService;
@@ -16,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,10 +36,10 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations", method = RequestMethod.POST)
-    public EvaluationDto createEvaluation(Principal principal,
+    public EvaluationDto createEvaluation(JwtUser user,
                                           @PathVariable long articleId,
                                           @RequestBody @Valid EvaluationDto evaluationDto) {
-        Member member = memberService.getMember(principal);
+        Member member = memberService.getMember(user.getId());
 
         Evaluation evaluation = evaluationDto.toEntity();
         evaluation.setCreatedBy(member);
@@ -61,9 +59,9 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.POST)
-    public EvaluationDto pressVote(Principal principal,
+    public EvaluationDto pressVote(JwtUser user,
                                    @PathVariable long evaluationId) {
-        Member member = memberService.getMember(principal);
+        Member member = memberService.getMember(user.getId());
         Evaluation evaluation = this.evaluationService.increaseVote(evaluationId, member);
 
         // increase member reputation
@@ -73,15 +71,13 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.GET)
-    public EvaluationVoteDto checkVote(Principal principal,
+    public EvaluationVoteDto checkVote(JwtUser user,
                                        @PathVariable long evaluationId) {
-        JwtUser jwtUser = (JwtUser) ((JwtAuthenticationToken) principal).getPrincipal();
-
         EvaluationVoteDto dto = new EvaluationVoteDto();
         dto.setEvaluationId(evaluationId);
-        dto.setMemberId(jwtUser.getId());
+        dto.setMemberId(user.getId());
 
-        EvaluationVote evaluationVote = this.evaluationService.checkVote(jwtUser.getId(), evaluationId);
+        EvaluationVote evaluationVote = this.evaluationService.checkVote(user.getId(), evaluationId);
         if (evaluationVote != null) {
             dto.setVote(true);
         }
@@ -89,10 +85,10 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.POST)
-    public EvaluationDto createComment(Principal principal,
+    public EvaluationDto createComment(JwtUser user,
                                        @PathVariable long evaluationId,
                                        @RequestBody @Valid CommentDto commentDto) {
-        Member member = memberService.getMember(principal);
+        Member member = memberService.getMember(user.getId());
 
         Comment comment = commentDto.toEntity();
         comment.setCreatedBy(member);

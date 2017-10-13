@@ -45,15 +45,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 List<GrantedAuthority> authorities = roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
 
                 // set principal
-                JwtUser jwtUser = new JwtUser();
+                JwtUser jwtUser = new JwtUser(authorities);
                 jwtUser.setId(memberId);
                 jwtUser.setEmail(claims.getSubject());
                 jwtUser.setName(name);
-                jwtUser.setAuthorities(authorities);
 
                 // set authentication
-                JwtAuthenticationToken authentication = new JwtAuthenticationToken(jwt, jwtUser);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                SecurityContextHolder.getContext().setAuthentication(jwtUser);
 
                 // refresh token
                 String refreshedToken = tokenHelper.refreshToken(jwt);

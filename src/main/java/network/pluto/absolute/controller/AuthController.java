@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import network.pluto.absolute.dto.LoginDto;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.security.TokenHelper;
-import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
+import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,22 +77,23 @@ public class AuthController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @RequestMapping(value = "/user", method = RequestMethod.GET)
-    public Object user(JwtAuthenticationToken token) {
-        return getMessage(token);
+    public Object user(JwtUser user) {
+        return getMessage(user);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(value = "/admin", method = RequestMethod.GET)
-    public Object admin(JwtAuthenticationToken token) {
-        return getMessage(token);
+    public Object admin(JwtUser user) {
+        return getMessage(user);
     }
 
-    private Object getMessage(JwtAuthenticationToken token) {
+    private Object getMessage(JwtUser user) {
         Map<String, Object> result = new HashMap<>();
-        result.put("message", "hello, " + token.getJwtUser().getName() + ".");
-        result.put("email", token.getJwtUser().getEmail());
-        result.put("roles", token.getJwtUser().getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
-        result.put("name", token.getJwtUser().getName());
+        result.put("message", "hello, " + user.getName() + ".");
+        result.put("id", user.getId());
+        result.put("email", user.getEmail());
+        result.put("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+        result.put("name", user.getName());
         return result;
     }
 }

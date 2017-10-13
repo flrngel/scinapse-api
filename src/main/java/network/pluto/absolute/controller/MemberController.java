@@ -2,7 +2,6 @@ package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.MemberDuplicationCheckDto;
-import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.absolute.validator.MemberDuplicationValidator;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.security.Principal;
 
 @RestController
 public class MemberController {
@@ -41,9 +39,8 @@ public class MemberController {
     }
 
     @RequestMapping(value = "/members/info", method = RequestMethod.GET)
-    public MemberDto getMembers(Principal principal) {
-        JwtUser jwtUser = (JwtUser) ((JwtAuthenticationToken) principal).getPrincipal();
-        Member one = memberService.getMember(jwtUser.getId());
+    public MemberDto getMembers(JwtUser user) {
+        Member one = memberService.getMember(user.getId());
         return new MemberDto(one);
     }
 
