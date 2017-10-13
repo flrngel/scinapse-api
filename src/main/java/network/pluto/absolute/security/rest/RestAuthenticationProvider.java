@@ -1,6 +1,5 @@
 package network.pluto.absolute.security.rest;
 
-import network.pluto.absolute.model.LoginUserDetails;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +46,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
             throw new InsufficientAuthenticationException("Member has no roles assigned");
         }
 
-        return new UsernamePasswordAuthenticationToken(new LoginUserDetails(member), null, member.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(member, null, member.getAuthorities());
     }
 
     @Override

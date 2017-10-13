@@ -1,11 +1,7 @@
 package network.pluto.absolute.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import network.pluto.absolute.security.SkipPathRequestMatcher;
-import network.pluto.absolute.security.TokenHelper;
-import network.pluto.absolute.security.jwt.JwtAuthenticationProcessingFilter;
-import network.pluto.absolute.security.jwt.JwtAuthenticationProvider;
-import network.pluto.absolute.security.jwt.JwtAuthenticationSuccessHandler;
+import network.pluto.absolute.security.jwt.JwtAuthenticationFilter;
 import network.pluto.absolute.security.rest.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -27,9 +24,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -59,22 +54,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final RestAuthenticationSuccessHandler restSuccessHandler;
     private final RestAuthenticationFailureHandler restFailureHandler;
     private final RestAuthenticationProvider restAuthenticationProvider;
-    private final JwtAuthenticationSuccessHandler jwtSuccessHandler;
-    private final JwtAuthenticationProvider jwtAuthenticationProvider;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final ObjectMapper objectMapper;
-    private final TokenHelper tokenHelper;
 
     @Autowired
-    public SecurityConfig(LogoutSuccessHandler logoutHandler, RestAuthenticationEntryPoint restAuthenticationEntryPoint, RestAuthenticationSuccessHandler restSuccessHandler, RestAuthenticationFailureHandler restFailureHandler, RestAuthenticationProvider restAuthenticationProvider, JwtAuthenticationSuccessHandler jwtSuccessHandler, JwtAuthenticationProvider jwtAuthenticationProvider, ObjectMapper objectMapper, TokenHelper tokenHelper) {
+    public SecurityConfig(LogoutSuccessHandler logoutHandler,
+                          RestAuthenticationEntryPoint restAuthenticationEntryPoint,
+                          RestAuthenticationSuccessHandler restSuccessHandler,
+                          RestAuthenticationFailureHandler restFailureHandler,
+                          RestAuthenticationProvider restAuthenticationProvider,
+                          JwtAuthenticationFilter jwtAuthenticationFilter,
+                          ObjectMapper objectMapper) {
         this.logoutHandler = logoutHandler;
         this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
         this.restSuccessHandler = restSuccessHandler;
         this.restFailureHandler = restFailureHandler;
         this.restAuthenticationProvider = restAuthenticationProvider;
-        this.jwtSuccessHandler = jwtSuccessHandler;
-        this.jwtAuthenticationProvider = jwtAuthenticationProvider;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.objectMapper = objectMapper;
-        this.tokenHelper = tokenHelper;
     }
 
 
@@ -83,19 +80,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         RestAuthenticationProcessingFilter filter = new RestAuthenticationProcessingFilter(matcher, objectMapper);
         filter.setAuthenticationManager(authenticationManagerBean());
         filter.setAuthenticationSuccessHandler(restSuccessHandler);
-        filter.setAuthenticationFailureHandler(restFailureHandler);
-        return filter;
-    }
-
-    private JwtAuthenticationProcessingFilter buildJwtProcessingFilter() throws Exception {
-        List<RequestMatcher> skipPaths = Arrays.asList(SecurityConfig.skipPaths);
-        AntPathRequestMatcher processingPath = new AntPathRequestMatcher("/**");
-
-        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(skipPaths, processingPath);
-
-        JwtAuthenticationProcessingFilter filter = new JwtAuthenticationProcessingFilter(matcher, tokenHelper);
-        filter.setAuthenticationManager(authenticationManagerBean());
-        filter.setAuthenticationSuccessHandler(jwtSuccessHandler);
         filter.setAuthenticationFailureHandler(restFailureHandler);
         return filter;
     }
@@ -122,7 +106,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(restAuthenticationProvider);
-        auth.authenticationProvider(jwtAuthenticationProvider);
     }
 
     @Override
@@ -138,8 +121,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().authenticationEntryPoint(restAuthenticationEntryPoint);
 
         http
-                .addFilterBefore(buildProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(buildJwtProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, LogoutFilter.class)
+                .addFilterBefore(buildProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
 
         http
                 .authorizeRequests()

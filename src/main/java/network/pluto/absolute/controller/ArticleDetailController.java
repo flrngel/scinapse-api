@@ -4,6 +4,7 @@ import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.EvaluationDto;
 import network.pluto.absolute.dto.EvaluationVoteDto;
 import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
+import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
@@ -74,13 +75,13 @@ public class ArticleDetailController {
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.GET)
     public EvaluationVoteDto checkVote(Principal principal,
                                        @PathVariable long evaluationId) {
-        Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();
+        JwtUser jwtUser = (JwtUser) ((JwtAuthenticationToken) principal).getPrincipal();
 
         EvaluationVoteDto dto = new EvaluationVoteDto();
         dto.setEvaluationId(evaluationId);
-        dto.setMemberId(member.getMemberId());
+        dto.setMemberId(jwtUser.getId());
 
-        EvaluationVote evaluationVote = this.evaluationService.checkVote(member, evaluationId);
+        EvaluationVote evaluationVote = this.evaluationService.checkVote(jwtUser.getId(), evaluationId);
         if (evaluationVote != null) {
             dto.setVote(true);
         }

@@ -3,6 +3,7 @@ package network.pluto.absolute.controller;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.MemberDuplicationCheckDto;
 import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
+import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.absolute.validator.MemberDuplicationValidator;
 import network.pluto.bibliotheca.models.Member;
@@ -41,8 +42,8 @@ public class MemberController {
 
     @RequestMapping(value = "/members/info", method = RequestMethod.GET)
     public MemberDto getMembers(Principal principal) {
-        Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();
-        Member one = memberService.getMember(member.getMemberId());
+        JwtUser jwtUser = (JwtUser) ((JwtAuthenticationToken) principal).getPrincipal();
+        Member one = memberService.getMember(jwtUser.getId());
         return new MemberDto(one);
     }
 

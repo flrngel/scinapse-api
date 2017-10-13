@@ -6,10 +6,10 @@ import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
 import network.pluto.absolute.service.MemberService;
-import network.pluto.bibliotheca.models.Authority;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -89,10 +89,10 @@ public class AuthController {
 
     private Object getMessage(JwtAuthenticationToken token) {
         Map<String, Object> result = new HashMap<>();
-        result.put("message", "hello, " + token.getMember().getName() + ".");
-        result.put("email", token.getMember().getEmail());
-        result.put("roles", token.getMember().getAuthorities().stream().map(Authority::getName).collect(Collectors.toList()));
-        result.put("name", token.getMember().getName());
+        result.put("message", "hello, " + token.getJwtUser().getName() + ".");
+        result.put("email", token.getJwtUser().getEmail());
+        result.put("roles", token.getJwtUser().getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+        result.put("name", token.getJwtUser().getName());
         return result;
     }
 }

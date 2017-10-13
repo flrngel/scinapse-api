@@ -1,6 +1,7 @@
 package network.pluto.absolute.service;
 
 import network.pluto.absolute.security.jwt.JwtAuthenticationToken;
+import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Authority;
 import network.pluto.bibliotheca.models.Member;
@@ -55,8 +56,8 @@ public class MemberService {
     }
 
     public Member getMember(Principal principal) {
-        Member member = (Member) ((JwtAuthenticationToken) principal).getPrincipal();
-        return memberRepository.getOne(member.getMemberId());
+        JwtUser jwtUser = (JwtUser) ((JwtAuthenticationToken) principal).getPrincipal();
+        return memberRepository.getOne(jwtUser.getId());
     }
 
     public Member findByEmail(String username) {

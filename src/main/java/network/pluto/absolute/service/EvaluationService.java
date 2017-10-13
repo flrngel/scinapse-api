@@ -94,7 +94,10 @@ public class EvaluationService {
         return one;
     }
 
-    public EvaluationVote checkVote(Member member, long evaluationId) {
+    public EvaluationVote checkVote(long memberId, long evaluationId) {
+        Member member = new Member();
+        member.setMemberId(memberId);
+
         Evaluation evaluation = new Evaluation();
         evaluation.setEvaluationId(evaluationId);
 

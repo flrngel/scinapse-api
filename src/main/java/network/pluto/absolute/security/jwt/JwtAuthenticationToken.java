@@ -1,25 +1,18 @@
 package network.pluto.absolute.security.jwt;
 
 import lombok.Getter;
-import network.pluto.bibliotheca.models.Member;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
 @Getter
 public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     private String token;
-    private Member member;
+    private JwtUser jwtUser;
 
-    public JwtAuthenticationToken(String token) {
-        super(null);
+    public JwtAuthenticationToken(String token, JwtUser jwtUser) {
+        super(jwtUser.getAuthorities());
         this.token = token;
-        setAuthenticated(false);
-    }
-
-    public JwtAuthenticationToken(String token, Member member) {
-        super(member.getAuthorities());
-        this.token = token;
-        this.member = member;
+        this.jwtUser = jwtUser;
         setAuthenticated(true);
     }
 
@@ -30,6 +23,6 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return member;
+        return jwtUser;
     }
 }
