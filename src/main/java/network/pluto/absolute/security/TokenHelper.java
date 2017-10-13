@@ -80,7 +80,7 @@ public class TokenHelper {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            log.info("JWT Token is expired", e);
+            log.info("JWT Token is expired");
             throw new TokenExpiredException("JWT Token expired", token, e.getLocalizedMessage());
         } catch (UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
             log.error("Invalid JWT Token", e);

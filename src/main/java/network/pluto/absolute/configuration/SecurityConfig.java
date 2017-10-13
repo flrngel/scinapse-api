@@ -17,9 +17,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -33,43 +31,30 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String AUTH_LOGIN_URL = "/auth/login";
     private static final String AUTH_LOGOUT_URL = "/auth/logout";
 
-    private static final RequestMatcher[] skipPaths = {
-            new AntPathRequestMatcher(AUTH_LOGIN_URL),
-            new AntPathRequestMatcher(AUTH_LOGOUT_URL),
-
-            new AntPathRequestMatcher("/hello", "GET"),
-
-            new AntPathRequestMatcher("/articles", "GET"),
-            new AntPathRequestMatcher("/articles/*", "GET"),
-            new AntPathRequestMatcher("/members/checkDuplication", "GET"),
-
-            new AntPathRequestMatcher("/members", "POST")
-    };
-
     @Value("${jwt.cookie}")
     private String cookie;
 
-    private final LogoutSuccessHandler logoutHandler;
-    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final RestLogoutSuccessHandler restLogoutSuccessHandler;
     private final RestAuthenticationSuccessHandler restSuccessHandler;
     private final RestAuthenticationFailureHandler restFailureHandler;
     private final RestAuthenticationProvider restAuthenticationProvider;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public SecurityConfig(LogoutSuccessHandler logoutHandler,
-                          RestAuthenticationEntryPoint restAuthenticationEntryPoint,
+    public SecurityConfig(RestLogoutSuccessHandler restLogoutSuccessHandler,
                           RestAuthenticationSuccessHandler restSuccessHandler,
                           RestAuthenticationFailureHandler restFailureHandler,
                           RestAuthenticationProvider restAuthenticationProvider,
+                          RestAuthenticationEntryPoint restAuthenticationEntryPoint,
                           JwtAuthenticationFilter jwtAuthenticationFilter,
                           ObjectMapper objectMapper) {
-        this.logoutHandler = logoutHandler;
-        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
+        this.restLogoutSuccessHandler = restLogoutSuccessHandler;
         this.restSuccessHandler = restSuccessHandler;
         this.restFailureHandler = restFailureHandler;
         this.restAuthenticationProvider = restAuthenticationProvider;
+        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.objectMapper = objectMapper;
     }
@@ -126,13 +111,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .authorizeRequests()
-                .requestMatchers(skipPaths).permitAll()
+                .antMatchers(
+                        AUTH_LOGIN_URL,
+                        AUTH_LOGOUT_URL
+                ).permitAll()
+
+                .antMatchers(
+                        HttpMethod.GET,
+                        "/",
+                        "/hello",
+                        "/articles",
+                        "/articles/*",
+                        "/members/checkDuplication"
+                ).permitAll()
+
+                .antMatchers(
+                        HttpMethod.POST,
+                        "/members"
+                ).permitAll()
+
                 .anyRequest().authenticated();
 
         http
                 .logout()
                 .logoutUrl(AUTH_LOGOUT_URL)
-                .logoutSuccessHandler(logoutHandler)
+                .logoutSuccessHandler(restLogoutSuccessHandler)
                 .deleteCookies(cookie);
     }
 
@@ -141,7 +144,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring()
                 .antMatchers(
                         HttpMethod.GET,
-                        "/",
                         "/favicon.ico",
                         "/**/*.html",
                         "/**/*.css",

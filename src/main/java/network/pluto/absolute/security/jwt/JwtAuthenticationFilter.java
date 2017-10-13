@@ -60,7 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 tokenHelper.addCookie(response, refreshedToken);
             }
         } catch (Exception e) {
-            log.error("invalid JWT token");
+            // remove token
             tokenHelper.deleteCookie(response);
         }
 
