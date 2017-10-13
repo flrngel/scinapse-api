@@ -36,7 +36,6 @@ public class MemberDto {
     @URL
     private String profileImage;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String institution;
 
     private int reputation;

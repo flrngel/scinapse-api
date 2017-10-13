@@ -66,6 +66,10 @@ public class MemberService {
 
     public Member getByEmail(String email, boolean initAuthority) {
         Member member = memberRepository.findByEmail(email);
+        if (member == null) {
+            return null;
+        }
+
         if (initAuthority) {
             member.getAuthorities().iterator();
         }

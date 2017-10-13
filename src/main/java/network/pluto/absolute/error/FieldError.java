@@ -1,9 +1,9 @@
-package network.pluto.absolute.configuration;
+package network.pluto.absolute.error;
 
 import lombok.Data;
 
 @Data
-public class ApiFieldError {
+public class FieldError {
     private String field;
     private Object rejectedValue;
     private String code;
