@@ -38,6 +38,8 @@ public class MemberDto {
 
     private String institution;
 
+    private String major;
+
     private int reputation;
 
     @ApiModelProperty(readOnly = true)
@@ -49,6 +51,7 @@ public class MemberDto {
         this.name = member.getName();
         this.profileImage = member.getProfileImage();
         this.institution = member.getInstitution();
+        this.major = member.getMajor();
         this.reputation = member.getReputation();
 
         if (member.getWallet() != null) {
@@ -63,6 +66,7 @@ public class MemberDto {
         member.setName(this.name);
         member.setProfileImage(this.profileImage);
         member.setInstitution(this.institution);
+        member.setMajor(this.major);
         return member;
     }
 }

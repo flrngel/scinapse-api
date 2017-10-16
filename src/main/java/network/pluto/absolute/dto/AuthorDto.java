@@ -27,6 +27,8 @@ public class AuthorDto {
 
     private String institution;
 
+    private String major;
+
     public AuthorDto(Author author) {
         this.id = author.getAuthorId();
 
@@ -37,6 +39,7 @@ public class AuthorDto {
         this.type = author.getType();
         this.name = author.getName();
         this.institution = author.getInstitution();
+        this.major = author.getMajor();
     }
 
     public Author toEntity() {
@@ -49,6 +52,7 @@ public class AuthorDto {
         author.setType(this.type);
         author.setName(this.name);
         author.setInstitution(this.institution);
+        author.setMajor(this.major);
 
         return author;
     }
