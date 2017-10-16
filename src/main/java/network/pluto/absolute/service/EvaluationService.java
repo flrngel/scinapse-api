@@ -84,6 +84,10 @@ public class EvaluationService {
         return this.evaluationRepository.getOne(evaluationId);
     }
 
+    public List<Evaluation> findByCreatedBy(Member createdBy) {
+        return evaluationRepository.findByCreatedBy(createdBy);
+    }
+
     public Evaluation increaseVote(long evaluationId, Member member) {
         Evaluation one = this.evaluationRepository.getOne(evaluationId);
 

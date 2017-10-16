@@ -7,11 +7,11 @@ import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Article;
-import network.pluto.bibliotheca.models.Evaluation;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -35,7 +35,7 @@ public class ArticleController {
     }
 
     @RequestMapping(value = "/articles", method = RequestMethod.POST)
-    public ArticleDto createArticle(JwtUser user,
+    public ArticleDto createArticle(@ApiIgnore JwtUser user,
                                     @RequestBody @Valid ArticleDto articleDto) {
         Member member = this.memberService.getMember(user.getId());
 
@@ -56,9 +56,9 @@ public class ArticleController {
     }
 
     @RequestMapping(value = "/articles/{articleId}", method = RequestMethod.GET)
-    public ArticleDto getArticle(JwtUser user,
+    public ArticleDto getArticle(@ApiIgnore JwtUser user,
                                  @PathVariable long articleId) {
-        Article article = this.articleService.getArticle(articleId);
+        Article article = this.articleService.findArticle(articleId);
         if (article == null) {
             throw new ResourceNotFoundException("Article not found.");
         }

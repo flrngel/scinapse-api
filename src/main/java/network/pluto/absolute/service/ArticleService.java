@@ -2,6 +2,7 @@ package network.pluto.absolute.service;
 
 import lombok.NonNull;
 import network.pluto.bibliotheca.models.Article;
+import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.repositories.ArticleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,12 @@ public class ArticleService {
         this.articleRepository = articleRepository;
     }
 
-    public Article getArticle(long id) {
+    public Article findArticle(long id) {
         return this.articleRepository.findOne(id);
+    }
+
+    public Article getArticle(long id) {
+        return articleRepository.getOne(id);
     }
 
     @Transactional
@@ -30,5 +35,9 @@ public class ArticleService {
 
     public List<Article> getArticles() {
         return this.articleRepository.findAll();
+    }
+
+    public List<Article> findByCreatedBy(Member createdBy) {
+        return articleRepository.findByCreatedBy(createdBy);
     }
 }

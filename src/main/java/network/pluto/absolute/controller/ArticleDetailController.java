@@ -12,6 +12,7 @@ import network.pluto.bibliotheca.models.Evaluation;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -36,7 +37,7 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations", method = RequestMethod.POST)
-    public EvaluationDto createEvaluation(JwtUser user,
+    public EvaluationDto createEvaluation(@ApiIgnore JwtUser user,
                                           @PathVariable long articleId,
                                           @RequestBody @Valid EvaluationDto evaluationDto) {
         Member member = memberService.getMember(user.getId());
@@ -52,7 +53,7 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations", method = RequestMethod.GET)
-    public List<EvaluationDto> getEvaluations(JwtUser user,
+    public List<EvaluationDto> getEvaluations(@ApiIgnore JwtUser user,
                                               @PathVariable long articleId) {
         List<Evaluation> evaluations = this.evaluationService.getEvaluations(articleId);
         Map<Long, Boolean> votedMap = this.evaluationService.checkVoted(user != null ? user.getId() : 0, evaluations.stream().map(Evaluation::getEvaluationId).collect(Collectors.toList()));
@@ -64,7 +65,7 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.POST)
-    public EvaluationDto pressVote(JwtUser user,
+    public EvaluationDto pressVote(@ApiIgnore JwtUser user,
                                    @PathVariable long evaluationId) {
         Member member = memberService.getMember(user.getId());
         Evaluation evaluation = this.evaluationService.increaseVote(evaluationId, member);
@@ -76,7 +77,7 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.GET)
-    public EvaluationVoteDto checkVote(JwtUser user,
+    public EvaluationVoteDto checkVote(@ApiIgnore JwtUser user,
                                        @PathVariable long evaluationId) {
         EvaluationVoteDto dto = new EvaluationVoteDto();
         dto.setEvaluationId(evaluationId);
@@ -91,7 +92,7 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.POST)
-    public EvaluationDto createComment(JwtUser user,
+    public EvaluationDto createComment(@ApiIgnore JwtUser user,
                                        @PathVariable long evaluationId,
                                        @RequestBody @Valid CommentDto commentDto) {
         Member member = memberService.getMember(user.getId());
