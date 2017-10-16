@@ -1,7 +1,6 @@
 package network.pluto.absolute.error;
 
 import org.springframework.boot.autoconfigure.web.DefaultErrorAttributes;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -27,13 +26,12 @@ public class CustomErrorAttributes extends DefaultErrorAttributes {
     }
 
     private void addErrorDetails(Map<String, Object> errorAttributes, RequestAttributes requestAttributes) {
-        Throwable error = getError(requestAttributes);
-
-        // prevent sql exposure
-        if (error instanceof DataIntegrityViolationException) {
-            errorAttributes.put("message", "Internal Server Error");
+        if (errorAttributes.get("status").equals(500)) {
+            errorAttributes.put("message", HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
             return;
         }
+
+        Throwable error = getError(requestAttributes);
 
         // add field error details
         if (error instanceof MethodArgumentNotValidException) {

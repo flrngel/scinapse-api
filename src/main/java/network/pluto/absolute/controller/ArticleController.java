@@ -1,7 +1,6 @@
 package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.ArticleDto;
-import network.pluto.absolute.dto.EvaluationDto;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.EvaluationService;
@@ -45,7 +44,7 @@ public class ArticleController {
         article = this.articleService.saveArticle(article);
 
         // increase member reputation
-        this.memberService.increaseReputation(member.getMemberId(), 10);
+        this.memberService.increaseReputation(member, 10);
 
         return new ArticleDto(article);
     }
@@ -60,19 +59,20 @@ public class ArticleController {
                                  @PathVariable long articleId) {
         Article article = this.articleService.findArticle(articleId);
         if (article == null) {
-            throw new ResourceNotFoundException("Article not found.");
+            throw new ResourceNotFoundException("Article not found");
         }
 
         ArticleDto articleDto = new ArticleDto(article, true);
 
         if (user != null) {
-            boolean evaluated = evaluationService.checkEvaluated(articleId, user.getId());
+            Member member = this.memberService.getMember(user.getId());
+
+            boolean evaluated = evaluationService.checkEvaluated(article, member);
             if (evaluated) {
                 articleDto.setEvaluated(true);
             }
 
-            List<Long> evaluationIds = articleDto.getEvaluations().stream().map(EvaluationDto::getId).collect(Collectors.toList());
-            Map<Long, Boolean> votedMap = evaluationService.checkVoted(user.getId(), evaluationIds);
+            Map<Long, Boolean> votedMap = evaluationService.checkVoted(member, article.getEvaluations());
             articleDto.getEvaluations().forEach(e -> {
                 if (votedMap.get(e.getId())) {
                     e.setVoted(true);

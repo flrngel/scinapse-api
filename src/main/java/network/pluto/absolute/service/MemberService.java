@@ -1,5 +1,6 @@
 package network.pluto.absolute.service;
 
+import lombok.NonNull;
 import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Authority;
 import network.pluto.bibliotheca.models.Member;
@@ -35,7 +36,7 @@ public class MemberService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public Member save(Member member) {
+    public Member saveMember(@NonNull Member member) {
         member.setPassword(passwordEncoder.encode(member.getPassword()));
 
         Authority authority = authorityRepository.findByName(AuthorityName.ROLE_USER);
@@ -44,8 +45,12 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
-    public List<Member> getAll() {
+    public List<Member> findAll() {
         return memberRepository.findAll();
+    }
+
+    public Member findMember(long id) {
+        return memberRepository.findOne(id);
     }
 
     public Member getMember(long id) {
@@ -68,14 +73,12 @@ public class MemberService {
         return member;
     }
 
-    public Member increaseReputation(long memberId, int point) {
-        Member one = memberRepository.getOne(memberId);
-
+    public Member increaseReputation(Member member, int point) {
         MemberReputation reputation = new MemberReputation();
-        reputation.setMember(one);
+        reputation.setMember(member);
         memberReputationRepository.save(reputation);
 
-        one.setReputation(one.getReputation() + point);
-        return one;
+        member.setReputation(member.getReputation() + point);
+        return member;
     }
 }

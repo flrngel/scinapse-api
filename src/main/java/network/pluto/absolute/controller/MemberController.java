@@ -46,7 +46,7 @@ public class MemberController {
     @RequestMapping(value = "/members", method = RequestMethod.POST)
     public MemberDto create(@RequestBody @Valid MemberDto memberDto) {
         Member member = memberDto.toEntity();
-        Member saved = memberService.save(member);
+        Member saved = memberService.saveMember(member);
 
         return new MemberDto(saved);
     }

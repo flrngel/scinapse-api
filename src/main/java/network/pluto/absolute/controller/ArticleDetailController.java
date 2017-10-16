@@ -4,13 +4,16 @@ import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.EvaluationDto;
 import network.pluto.absolute.dto.EvaluationVoteDto;
 import network.pluto.absolute.security.jwt.JwtUser;
+import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
+import network.pluto.bibliotheca.models.Article;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.Evaluation;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -24,14 +27,17 @@ import java.util.stream.Collectors;
 public class ArticleDetailController {
 
     private final MemberService memberService;
+    private final ArticleService articleService;
     private final EvaluationService evaluationService;
     private final CommentService commentService;
 
     @Autowired
     public ArticleDetailController(MemberService memberService,
+                                   ArticleService articleService,
                                    EvaluationService evaluationService,
                                    CommentService commentService) {
         this.memberService = memberService;
+        this.articleService = articleService;
         this.evaluationService = evaluationService;
         this.commentService = commentService;
     }
@@ -40,38 +46,63 @@ public class ArticleDetailController {
     public EvaluationDto createEvaluation(@ApiIgnore JwtUser user,
                                           @PathVariable long articleId,
                                           @RequestBody @Valid EvaluationDto evaluationDto) {
+        Article article = this.articleService.findArticle(articleId);
+        if (article == null) {
+            throw new ResourceNotFoundException("Article not found");
+        }
+
         Member member = memberService.getMember(user.getId());
 
         Evaluation evaluation = evaluationDto.toEntity();
         evaluation.setCreatedBy(member);
-        evaluation = this.evaluationService.saveEvaluation(articleId, evaluation);
+
+        evaluation = this.evaluationService.saveEvaluation(article, evaluation);
 
         // increase member reputation
-        memberService.increaseReputation(member.getMemberId(), 5);
+        memberService.increaseReputation(member, 5);
 
         return new EvaluationDto(evaluation);
     }
 
     @RequestMapping(value = "/evaluations", method = RequestMethod.GET)
-    public List<EvaluationDto> getEvaluations(@ApiIgnore JwtUser user,
-                                              @PathVariable long articleId) {
-        List<Evaluation> evaluations = this.evaluationService.getEvaluations(articleId);
-        Map<Long, Boolean> votedMap = this.evaluationService.checkVoted(user != null ? user.getId() : 0, evaluations.stream().map(Evaluation::getEvaluationId).collect(Collectors.toList()));
+    public List<EvaluationDto> findEvaluations(@ApiIgnore JwtUser user,
+                                               @PathVariable long articleId) {
+        Article article = this.articleService.findArticle(articleId);
+        if (article == null) {
+            throw new ResourceNotFoundException("Article not found");
+        }
 
-        return evaluations
-                .stream()
-                .map(evaluation -> new EvaluationDto(evaluation, votedMap.get(evaluation.getEvaluationId())))
-                .collect(Collectors.toList());
+        List<Evaluation> evaluations = article.getEvaluations();
+        List<EvaluationDto> dtoList = evaluations.stream().map(EvaluationDto::new).collect(Collectors.toList());
+
+        if (user != null) {
+            Member member = this.memberService.getMember(user.getId());
+
+            Map<Long, Boolean> votedMap = this.evaluationService.checkVoted(member, evaluations);
+            dtoList.forEach(e -> {
+                if (votedMap.get(e.getId())) {
+                    e.setVoted(true);
+                }
+            });
+        }
+
+        return dtoList;
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.POST)
     public EvaluationDto pressVote(@ApiIgnore JwtUser user,
                                    @PathVariable long evaluationId) {
+        Evaluation evaluation = this.evaluationService.findEvaluation(evaluationId);
+        if (evaluation == null) {
+            throw new ResourceNotFoundException("Evaluation not found");
+        }
+
         Member member = memberService.getMember(user.getId());
-        Evaluation evaluation = this.evaluationService.increaseVote(evaluationId, member);
+
+        evaluation = this.evaluationService.increaseVote(evaluation, member);
 
         // increase member reputation
-        memberService.increaseReputation(evaluation.getCreatedBy().getMemberId(), 1);
+        memberService.increaseReputation(member, 1);
 
         return new EvaluationDto(evaluation);
     }
@@ -79,11 +110,18 @@ public class ArticleDetailController {
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.GET)
     public EvaluationVoteDto checkVote(@ApiIgnore JwtUser user,
                                        @PathVariable long evaluationId) {
+        Evaluation evaluation = this.evaluationService.findEvaluation(evaluationId);
+        if (evaluation == null) {
+            throw new ResourceNotFoundException("Evaluation not found");
+        }
+
+        Member member = memberService.getMember(user.getId());
+
         EvaluationVoteDto dto = new EvaluationVoteDto();
         dto.setEvaluationId(evaluationId);
         dto.setMemberId(user.getId());
 
-        boolean voted = this.evaluationService.checkVoted(user.getId(), evaluationId);
+        boolean voted = this.evaluationService.checkVoted(member, evaluation);
         if (voted) {
             dto.setVote(true);
         }
@@ -95,19 +133,29 @@ public class ArticleDetailController {
     public EvaluationDto createComment(@ApiIgnore JwtUser user,
                                        @PathVariable long evaluationId,
                                        @RequestBody @Valid CommentDto commentDto) {
+        Evaluation evaluation = this.evaluationService.findEvaluation(evaluationId);
+        if (evaluation == null) {
+            throw new ResourceNotFoundException("Evaluation not found");
+        }
+
         Member member = memberService.getMember(user.getId());
 
         Comment comment = commentDto.toEntity();
         comment.setCreatedBy(member);
 
-        this.commentService.saveComment(evaluationId, comment);
-        Evaluation evaluation = this.evaluationService.getEvaluation(evaluationId);
+        this.commentService.saveComment(evaluation, comment);
 
-        return new EvaluationDto(evaluation);
+        Evaluation updated = this.evaluationService.getEvaluation(evaluationId);
+        return new EvaluationDto(updated);
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.GET)
-    public List<CommentDto> getComments(@PathVariable long evaluationId) {
-        return this.commentService.getComments(evaluationId).stream().map(CommentDto::new).collect(Collectors.toList());
+    public List<CommentDto> findComments(@PathVariable long evaluationId) {
+        Evaluation evaluation = this.evaluationService.findEvaluation(evaluationId);
+        if (evaluation == null) {
+            throw new ResourceNotFoundException("Evaluation not found");
+        }
+
+        return evaluation.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
     }
 }

@@ -2,12 +2,9 @@ package network.pluto.absolute.service;
 
 import lombok.NonNull;
 import network.pluto.bibliotheca.models.*;
-import network.pluto.bibliotheca.repositories.ArticleRepository;
 import network.pluto.bibliotheca.repositories.EvaluationRepository;
 import network.pluto.bibliotheca.repositories.EvaluationVoteRepository;
-import network.pluto.bibliotheca.repositories.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -18,28 +15,18 @@ import java.util.stream.Collectors;
 @Service
 public class EvaluationService {
 
-    private final MemberRepository memberRepository;
-    private final ArticleRepository articleRepository;
     private final EvaluationRepository evaluationRepository;
     private final EvaluationVoteRepository evaluationVoteRepository;
 
     @Autowired
-    public EvaluationService(MemberRepository memberRepository,
-                             ArticleRepository articleRepository,
-                             EvaluationRepository evaluationRepository,
+    public EvaluationService(EvaluationRepository evaluationRepository,
                              EvaluationVoteRepository evaluationVoteRepository) {
-        this.memberRepository = memberRepository;
-        this.articleRepository = articleRepository;
         this.evaluationRepository = evaluationRepository;
         this.evaluationVoteRepository = evaluationVoteRepository;
     }
 
     @Transactional
-    public Evaluation saveEvaluation(long articleId, @NonNull Evaluation evaluation) {
-        Article article = this.articleRepository.getOne(articleId);
-        if (article == null) {
-            throw new ResourceNotFoundException("Article not found");
-        }
+    public Evaluation saveEvaluation(Article article, @NonNull Evaluation evaluation) {
         evaluation.setArticle(article);
         Evaluation save = this.evaluationRepository.save(evaluation);
 
@@ -72,12 +59,8 @@ public class EvaluationService {
         articlePoint.updateTotal();
     }
 
-    public List<Evaluation> getEvaluations(long articleId) {
-        Article article = this.articleRepository.getOne(articleId);
-        if (article == null) {
-            throw new ResourceNotFoundException("Article not found");
-        }
-        return article.getEvaluations();
+    public Evaluation findEvaluation(long evaluationId) {
+        return this.evaluationRepository.findOne(evaluationId);
     }
 
     public Evaluation getEvaluation(long evaluationId) {
@@ -88,38 +71,31 @@ public class EvaluationService {
         return evaluationRepository.findByCreatedBy(createdBy);
     }
 
-    public Evaluation increaseVote(long evaluationId, Member member) {
-        Evaluation one = this.evaluationRepository.getOne(evaluationId);
-
+    public Evaluation increaseVote(Evaluation evaluation, Member member) {
         EvaluationVote vote = new EvaluationVote();
         vote.setMember(member);
-        vote.setEvaluation(one);
+        vote.setEvaluation(evaluation);
         evaluationVoteRepository.save(vote);
 
-        one.setVote(one.getVote() + 1);
-        return one;
+        evaluation.setVote(evaluation.getVote() + 1);
+        return evaluation;
     }
 
-    public boolean checkVoted(long memberId, long evaluationId) {
-        Member member = new Member();
-        member.setMemberId(memberId);
-
-        Evaluation evaluation = new Evaluation();
-        evaluation.setEvaluationId(evaluationId);
-
+    public boolean checkVoted(Member member, Evaluation evaluation) {
         return evaluationVoteRepository.existsByMemberAndEvaluation(member, evaluation);
     }
 
     // Map<EvaluationId, voted>
-    public Map<Long, Boolean> checkVoted(long memberId, List<Long> evaluationIds) {
+    public Map<Long, Boolean> checkVoted(Member member, List<Evaluation> evaluations) {
         Map<Long, Boolean> votedMap = evaluationVoteRepository
-                .getVotedEvaluationIds(memberId, evaluationIds)
+                .getVotedEvaluationIds(member, evaluations)
                 .stream()
                 .collect(Collectors.toMap(
                         e -> e,
                         e -> true
                 ));
 
+        List<Long> evaluationIds = evaluations.stream().map(Evaluation::getEvaluationId).collect(Collectors.toList());
         for (Long id : evaluationIds) {
             votedMap.putIfAbsent(id, false);
         }
@@ -127,13 +103,7 @@ public class EvaluationService {
         return votedMap;
     }
 
-    public boolean checkEvaluated(long articleId, long memberId) {
-        Article article = new Article();
-        article.setArticleId(articleId);
-
-        Member member = new Member();
-        member.setMemberId(memberId);
-
+    public boolean checkEvaluated(Article article, Member member) {
         return evaluationRepository.existsByArticleAndCreatedBy(article, member);
     }
 }
