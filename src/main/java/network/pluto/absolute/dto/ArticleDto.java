@@ -60,7 +60,10 @@ public class ArticleDto {
     @ApiModelProperty(readOnly = true)
     private List<EvaluationDto> evaluations;
 
-    public ArticleDto(Article article) {
+    @ApiModelProperty(readOnly = true)
+    private boolean evaluated;
+
+    public ArticleDto(Article article, boolean loadEvaluations) {
         this.id = article.getArticleId();
         this.type = article.getType();
         this.title = article.getTitle();
@@ -79,9 +82,13 @@ public class ArticleDto {
             this.authors = article.getAuthors().stream().map(AuthorDto::new).collect(Collectors.toList());
         }
 
-        if (article.getEvaluations() != null) {
+        if (loadEvaluations && article.getEvaluations() != null) {
             this.evaluations = article.getEvaluations().stream().map(EvaluationDto::new).collect(Collectors.toList());
         }
+    }
+
+    public ArticleDto(Article article) {
+        this(article, false);
     }
 
     public Article toEntity() {

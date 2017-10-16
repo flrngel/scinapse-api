@@ -9,13 +9,13 @@ import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.Evaluation;
-import network.pluto.bibliotheca.models.EvaluationVote;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -52,10 +52,15 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations", method = RequestMethod.GET)
-    public List<EvaluationDto> getEvaluations(@PathVariable long articleId) {
+    public List<EvaluationDto> getEvaluations(JwtUser user,
+                                              @PathVariable long articleId) {
         List<Evaluation> evaluations = this.evaluationService.getEvaluations(articleId);
+        Map<Long, Boolean> votedMap = this.evaluationService.checkVoted(user != null ? user.getId() : 0, evaluations.stream().map(Evaluation::getEvaluationId).collect(Collectors.toList()));
 
-        return evaluations.stream().map(EvaluationDto::new).collect(Collectors.toList());
+        return evaluations
+                .stream()
+                .map(evaluation -> new EvaluationDto(evaluation, votedMap.get(evaluation.getEvaluationId())))
+                .collect(Collectors.toList());
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.POST)
@@ -77,10 +82,11 @@ public class ArticleDetailController {
         dto.setEvaluationId(evaluationId);
         dto.setMemberId(user.getId());
 
-        EvaluationVote evaluationVote = this.evaluationService.checkVote(user.getId(), evaluationId);
-        if (evaluationVote != null) {
+        boolean voted = this.evaluationService.checkVoted(user.getId(), evaluationId);
+        if (voted) {
             dto.setVote(true);
         }
+
         return dto;
     }
 

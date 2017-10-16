@@ -27,6 +27,9 @@ public class EvaluationDto {
     private int vote;
 
     @ApiModelProperty(readOnly = true)
+    private boolean voted;
+
+    @ApiModelProperty(readOnly = true)
     private List<CommentDto> comments;
 
     @ApiModelProperty(readOnly = true)
@@ -35,16 +38,22 @@ public class EvaluationDto {
     @ApiModelProperty(readOnly = true)
     private LocalDateTime createdAt;
 
-    public EvaluationDto(Evaluation evaluation) {
+    public EvaluationDto(Evaluation evaluation, boolean voted) {
         this.id = evaluation.getEvaluationId();
         this.vote = evaluation.getVote();
         this.comments = evaluation.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
         this.createdBy = new MemberDto(evaluation.getCreatedBy());
         this.createdAt = evaluation.getCreatedAt();
 
+        this.voted = voted;
+
         if (evaluation.getPoint() != null) {
             this.point = new EvaluationPointDto(evaluation.getPoint());
         }
+    }
+
+    public EvaluationDto(Evaluation evaluation) {
+        this(evaluation, false);
     }
 
     public Evaluation toEntity() {
