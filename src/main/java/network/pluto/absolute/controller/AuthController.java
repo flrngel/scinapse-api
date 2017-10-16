@@ -13,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -77,13 +78,13 @@ public class AuthController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @RequestMapping(value = "/user", method = RequestMethod.GET)
-    public Object user(JwtUser user) {
+    public Object user(@ApiIgnore JwtUser user) {
         return getMessage(user);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(value = "/admin", method = RequestMethod.GET)
-    public Object admin(JwtUser user) {
+    public Object admin(@ApiIgnore JwtUser user) {
         return getMessage(user);
     }
 
