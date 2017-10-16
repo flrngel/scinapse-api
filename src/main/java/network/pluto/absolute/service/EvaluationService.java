@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class EvaluationService {
@@ -94,13 +96,40 @@ public class EvaluationService {
         return one;
     }
 
-    public EvaluationVote checkVote(long memberId, long evaluationId) {
+    public boolean checkVoted(long memberId, long evaluationId) {
         Member member = new Member();
         member.setMemberId(memberId);
 
         Evaluation evaluation = new Evaluation();
         evaluation.setEvaluationId(evaluationId);
 
-        return evaluationVoteRepository.findByMemberAndEvaluation(member, evaluation);
+        return evaluationVoteRepository.existsByMemberAndEvaluation(member, evaluation);
+    }
+
+    // Map<EvaluationId, voted>
+    public Map<Long, Boolean> checkVoted(long memberId, List<Long> evaluationIds) {
+        Map<Long, Boolean> votedMap = evaluationVoteRepository
+                .getVotedEvaluationIds(memberId, evaluationIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        e -> e,
+                        e -> true
+                ));
+
+        for (Long id : evaluationIds) {
+            votedMap.putIfAbsent(id, false);
+        }
+
+        return votedMap;
+    }
+
+    public boolean checkEvaluated(long articleId, long memberId) {
+        Article article = new Article();
+        article.setArticleId(articleId);
+
+        Member member = new Member();
+        member.setMemberId(memberId);
+
+        return evaluationRepository.existsByArticleAndCreatedBy(article, member);
     }
 }

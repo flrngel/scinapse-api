@@ -1,10 +1,13 @@
 package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.ArticleDto;
+import network.pluto.absolute.dto.EvaluationDto;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
+import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Article;
+import network.pluto.bibliotheca.models.Evaluation;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -19,11 +23,15 @@ public class ArticleController {
 
     private final MemberService memberService;
     private final ArticleService articleService;
+    private final EvaluationService evaluationService;
 
     @Autowired
-    public ArticleController(MemberService memberService, ArticleService articleService) {
+    public ArticleController(MemberService memberService,
+                             ArticleService articleService,
+                             EvaluationService evaluationService) {
         this.memberService = memberService;
         this.articleService = articleService;
+        this.evaluationService = evaluationService;
     }
 
     @RequestMapping(value = "/articles", method = RequestMethod.POST)
@@ -48,11 +56,30 @@ public class ArticleController {
     }
 
     @RequestMapping(value = "/articles/{articleId}", method = RequestMethod.GET)
-    public ArticleDto getArticle(@PathVariable long articleId) {
+    public ArticleDto getArticle(JwtUser user,
+                                 @PathVariable long articleId) {
         Article article = this.articleService.getArticle(articleId);
         if (article == null) {
             throw new ResourceNotFoundException("Article not found.");
         }
-        return new ArticleDto(article);
+
+        ArticleDto articleDto = new ArticleDto(article, true);
+
+        if (user != null) {
+            boolean evaluated = evaluationService.checkEvaluated(articleId, user.getId());
+            if (evaluated) {
+                articleDto.setEvaluated(true);
+            }
+
+            List<Long> evaluationIds = articleDto.getEvaluations().stream().map(EvaluationDto::getId).collect(Collectors.toList());
+            Map<Long, Boolean> votedMap = evaluationService.checkVoted(user.getId(), evaluationIds);
+            articleDto.getEvaluations().forEach(e -> {
+                if (votedMap.get(e.getId())) {
+                    e.setVoted(true);
+                }
+            });
+        }
+
+        return articleDto;
     }
 }
