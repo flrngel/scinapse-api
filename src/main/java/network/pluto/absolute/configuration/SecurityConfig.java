@@ -110,21 +110,34 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(buildProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
 
         http
+                .logout()
+                .logoutUrl(AUTH_LOGOUT_URL)
+                .logoutSuccessHandler(restLogoutSuccessHandler)
+                .deleteCookies(cookie);
+
+        http
                 .authorizeRequests()
+
+                // permit all http methods
                 .antMatchers(
                         AUTH_LOGIN_URL,
                         AUTH_LOGOUT_URL
                 ).permitAll()
 
+                // permit get
                 .antMatchers(
                         HttpMethod.GET,
                         "/",
                         "/hello",
                         "/articles",
                         "/articles/*",
-                        "/members/checkDuplication"
+                        "/members/checkDuplication",
+                        "/members/*",
+                        "/members/*/articles",
+                        "/members/*/evaluations"
                 ).permitAll()
 
+                // permit post
                 .antMatchers(
                         HttpMethod.POST,
                         "/members"
@@ -132,11 +145,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                 .anyRequest().authenticated();
 
-        http
-                .logout()
-                .logoutUrl(AUTH_LOGOUT_URL)
-                .logoutSuccessHandler(restLogoutSuccessHandler)
-                .deleteCookies(cookie);
     }
 
     @Override

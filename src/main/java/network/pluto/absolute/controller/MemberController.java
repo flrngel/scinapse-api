@@ -11,6 +11,7 @@ import network.pluto.absolute.service.MemberService;
 import network.pluto.absolute.validator.MemberDuplicationValidator;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -51,24 +52,39 @@ public class MemberController {
         return new MemberDto(saved);
     }
 
-    @RequestMapping(value = "/members/my", method = RequestMethod.GET)
-    public MemberDto getMembers(@ApiIgnore JwtUser user) {
-        Member one = memberService.getMember(user.getId());
-        return new MemberDto(one);
+    @RequestMapping(value = "/members/{memberId}", method = RequestMethod.GET)
+    public MemberDto getMembers(@ApiIgnore JwtUser user,
+                                @PathVariable long memberId) {
+        Member member = memberService.findMember(memberId);
+        if (member == null) {
+            throw new ResourceNotFoundException("Member not found");
+        }
+
+        return new MemberDto(member);
     }
 
-    @RequestMapping(value = "/members/my/articles", method = RequestMethod.GET)
-    public List<ArticleDto> getMyArticles(@ApiIgnore JwtUser user) {
-        Member member = memberService.getMember(user.getId());
+    @RequestMapping(value = "/members/{memberId}/articles", method = RequestMethod.GET)
+    public List<ArticleDto> getMyArticles(@ApiIgnore JwtUser user,
+                                          @PathVariable long memberId) {
+        Member member = memberService.findMember(memberId);
+        if (member == null) {
+            throw new ResourceNotFoundException("Member not found");
+        }
+
         return articleService.findByCreatedBy(member)
                 .stream()
                 .map(ArticleDto::new)
                 .collect(Collectors.toList());
     }
 
-    @RequestMapping(value = "/members/my/evaluations", method = RequestMethod.GET)
-    public List<EvaluationDto> getMyEvaluations(@ApiIgnore JwtUser user) {
-        Member member = memberService.getMember(user.getId());
+    @RequestMapping(value = "/members/{memberId}/evaluations", method = RequestMethod.GET)
+    public List<EvaluationDto> getMyEvaluations(@ApiIgnore JwtUser user,
+                                                @PathVariable long memberId) {
+        Member member = memberService.findMember(memberId);
+        if (member == null) {
+            throw new ResourceNotFoundException("Member not found");
+        }
+
         return evaluationService.findByCreatedBy(member)
                 .stream()
                 .map(EvaluationDto::new)
