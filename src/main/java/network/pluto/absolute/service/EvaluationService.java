@@ -5,6 +5,8 @@ import network.pluto.bibliotheca.models.*;
 import network.pluto.bibliotheca.repositories.EvaluationRepository;
 import network.pluto.bibliotheca.repositories.EvaluationVoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -28,7 +30,7 @@ public class EvaluationService {
     @Transactional
     public Evaluation saveEvaluation(Article article, @NonNull Evaluation evaluation) {
         evaluation.setArticle(article);
-        Evaluation save = this.evaluationRepository.save(evaluation);
+        Evaluation save = evaluationRepository.save(evaluation);
 
         updateArticlePoint(article, save);
 
@@ -46,7 +48,7 @@ public class EvaluationService {
             article.setPoint(point);
         }
 
-        long count = this.evaluationRepository.countByArticle(article);
+        long count = evaluationRepository.countByArticle(article);
 
         ArticlePoint articlePoint = article.getPoint();
         EvaluationPoint evaluationPoint = save.getPoint();
@@ -60,15 +62,19 @@ public class EvaluationService {
     }
 
     public Evaluation findEvaluation(long evaluationId) {
-        return this.evaluationRepository.findOne(evaluationId);
+        return evaluationRepository.findOne(evaluationId);
     }
 
     public Evaluation getEvaluation(long evaluationId) {
-        return this.evaluationRepository.getOne(evaluationId);
+        return evaluationRepository.getOne(evaluationId);
     }
 
-    public List<Evaluation> findByCreatedBy(Member createdBy) {
-        return evaluationRepository.findByCreatedBy(createdBy);
+    public Page<Evaluation> findByCreatedBy(Member createdBy, Pageable pageable) {
+        return evaluationRepository.findByCreatedBy(createdBy, pageable);
+    }
+
+    public Page<Evaluation> findByArticle(Article article, Pageable pageable) {
+        return evaluationRepository.findByArticle(article, pageable);
     }
 
     public Evaluation increaseVote(Evaluation evaluation, Member member) {
@@ -88,8 +94,9 @@ public class EvaluationService {
     // Map<EvaluationId, voted>
     public Map<Long, Boolean> checkVoted(Member member, List<Evaluation> evaluations) {
         Map<Long, Boolean> votedMap = evaluationVoteRepository
-                .getVotedEvaluationIds(member, evaluations)
+                .findByMemberAndEvaluationIn(member, evaluations)
                 .stream()
+                .map(ev -> ev.getEvaluation().getEvaluationId())
                 .collect(Collectors.toMap(
                         e -> e,
                         e -> true

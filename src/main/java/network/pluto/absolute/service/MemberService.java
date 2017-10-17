@@ -9,12 +9,13 @@ import network.pluto.bibliotheca.repositories.AuthorityRepository;
 import network.pluto.bibliotheca.repositories.MemberRepository;
 import network.pluto.bibliotheca.repositories.MemberReputationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.Collections;
-import java.util.List;
 
 @Transactional
 @Service
@@ -45,8 +46,8 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
-    public List<Member> findAll() {
-        return memberRepository.findAll();
+    public Page<Member> findAll(Pageable pageable) {
+        return memberRepository.findAll(pageable);
     }
 
     public Member findMember(long id) {

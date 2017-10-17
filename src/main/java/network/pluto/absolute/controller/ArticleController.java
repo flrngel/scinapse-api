@@ -8,14 +8,15 @@ import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Article;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 public class ArticleController {
@@ -36,28 +37,28 @@ public class ArticleController {
     @RequestMapping(value = "/articles", method = RequestMethod.POST)
     public ArticleDto createArticle(@ApiIgnore JwtUser user,
                                     @RequestBody @Valid ArticleDto articleDto) {
-        Member member = this.memberService.getMember(user.getId());
+        Member member = memberService.getMember(user.getId());
 
         Article article = articleDto.toEntity();
         article.setCreatedBy(member);
 
-        article = this.articleService.saveArticle(article);
+        article = articleService.saveArticle(article);
 
         // increase member reputation
-        this.memberService.increaseReputation(member, 10);
+        memberService.increaseReputation(member, 10);
 
         return new ArticleDto(article);
     }
 
     @RequestMapping(value = "/articles", method = RequestMethod.GET)
-    public List<ArticleDto> getArticles() {
-        return this.articleService.getArticles().stream().map(ArticleDto::new).collect(Collectors.toList());
+    public Page<ArticleDto> getArticles(@PageableDefault Pageable pageable) {
+        return articleService.getArticles(pageable).map(ArticleDto::new);
     }
 
     @RequestMapping(value = "/articles/{articleId}", method = RequestMethod.GET)
     public ArticleDto getArticle(@ApiIgnore JwtUser user,
                                  @PathVariable long articleId) {
-        Article article = this.articleService.findArticle(articleId);
+        Article article = articleService.findArticle(articleId);
         if (article == null) {
             throw new ResourceNotFoundException("Article not found");
         }
@@ -65,7 +66,7 @@ public class ArticleController {
         ArticleDto articleDto = new ArticleDto(article, true);
 
         if (user != null) {
-            Member member = this.memberService.getMember(user.getId());
+            Member member = memberService.getMember(user.getId());
 
             boolean evaluated = evaluationService.checkEvaluated(article, member);
             if (evaluated) {

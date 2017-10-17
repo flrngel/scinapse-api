@@ -11,15 +11,16 @@ import network.pluto.absolute.service.MemberService;
 import network.pluto.absolute.validator.MemberDuplicationValidator;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 public class MemberController {
@@ -68,31 +69,27 @@ public class MemberController {
     }
 
     @RequestMapping(value = "/members/{memberId}/articles", method = RequestMethod.GET)
-    public List<ArticleDto> getMyArticles(@ApiIgnore JwtUser user,
-                                          @PathVariable long memberId) {
+    public Page<ArticleDto> getMyArticles(@ApiIgnore JwtUser user,
+                                          @PathVariable long memberId,
+                                          @PageableDefault Pageable pageable) {
         Member member = memberService.findMember(memberId);
         if (member == null) {
             throw new ResourceNotFoundException("Member not found");
         }
 
-        return articleService.findByCreatedBy(member)
-                .stream()
-                .map(ArticleDto::new)
-                .collect(Collectors.toList());
+        return articleService.findByCreatedBy(member, pageable).map(ArticleDto::new);
     }
 
     @RequestMapping(value = "/members/{memberId}/evaluations", method = RequestMethod.GET)
-    public List<EvaluationDto> getMyEvaluations(@ApiIgnore JwtUser user,
-                                                @PathVariable long memberId) {
+    public Page<EvaluationDto> getMyEvaluations(@ApiIgnore JwtUser user,
+                                                @PathVariable long memberId,
+                                                @PageableDefault Pageable pageable) {
         Member member = memberService.findMember(memberId);
         if (member == null) {
             throw new ResourceNotFoundException("Member not found");
         }
 
-        return evaluationService.findByCreatedBy(member)
-                .stream()
-                .map(EvaluationDto::new)
-                .collect(Collectors.toList());
+        return evaluationService.findByCreatedBy(member, pageable).map(EvaluationDto::new);
     }
 
     @RequestMapping(value = "/members/checkDuplication", method = RequestMethod.GET)
