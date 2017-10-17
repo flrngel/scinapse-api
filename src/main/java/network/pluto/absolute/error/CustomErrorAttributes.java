@@ -39,8 +39,12 @@ public class CustomErrorAttributes extends DefaultErrorAttributes {
         }
 
         // add error message
-        Object message = getAttribute(requestAttributes, "javax.servlet.error.message");
-        errorAttributes.put("message", message);
+        if (error != null) {
+            errorAttributes.put("message", error.getLocalizedMessage());
+        } else {
+            Object message = getAttribute(requestAttributes, "javax.servlet.error.message");
+            errorAttributes.put("message", message);
+        }
     }
 
     private List<FieldError> getFieldErrors(MethodArgumentNotValidException ex) {
