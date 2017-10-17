@@ -12,6 +12,7 @@ import network.pluto.absolute.validator.MemberDuplicationValidator;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -46,6 +47,9 @@ public class MemberController {
 
     @RequestMapping(value = "/members", method = RequestMethod.POST)
     public MemberDto create(@RequestBody @Valid MemberDto memberDto) {
+        // extract institution
+        memberDto.setInstitution(extractInstitution(memberDto.getEmail()));
+
         Member member = memberDto.toEntity();
         Member saved = memberService.saveMember(member);
 
@@ -105,5 +109,25 @@ public class MemberController {
         }
 
         return dto;
+    }
+
+    private String extractInstitution(String email) {
+        if (StringUtils.isEmpty(email)) {
+            return null;
+        }
+
+        String[] split = email.split("@");
+        if (split.length != 2) {
+            return null;
+        }
+
+        String host = split[1];
+        String institution = host.split("\\.")[0];
+        if (StringUtils.isEmpty(institution)) {
+            return null;
+        }
+
+        // capitalize first letter only
+        return StringUtils.capitalize(institution.toLowerCase());
     }
 }
