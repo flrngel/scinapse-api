@@ -60,7 +60,7 @@ public class EvaluationDto {
         Evaluation evaluation = new Evaluation();
 
         if (this.point != null) {
-            evaluation.setPoint(point.toEntity());
+            evaluation.setPoint(this.point.toEntity());
         }
 
         return evaluation;

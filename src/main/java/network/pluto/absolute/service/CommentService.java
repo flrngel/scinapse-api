@@ -5,6 +5,8 @@ import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.Evaluation;
 import network.pluto.bibliotheca.repositories.CommentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,6 +20,10 @@ public class CommentService {
 
     public Comment saveComment(Evaluation evaluation, @NonNull Comment comment) {
         comment.setEvaluation(evaluation);
-        return this.commentRepository.save(comment);
+        return commentRepository.save(comment);
+    }
+
+    public Page<Comment> findByEvaluation(Evaluation evaluation, Pageable pageable) {
+        return commentRepository.findByEvaluation(evaluation, pageable);
     }
 }

@@ -5,10 +5,11 @@ import network.pluto.bibliotheca.models.Article;
 import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.repositories.ArticleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.List;
 
 @Service
 public class ArticleService {
@@ -21,7 +22,7 @@ public class ArticleService {
     }
 
     public Article findArticle(long id) {
-        return this.articleRepository.findOne(id);
+        return articleRepository.findOne(id);
     }
 
     public Article getArticle(long id) {
@@ -30,14 +31,14 @@ public class ArticleService {
 
     @Transactional
     public Article saveArticle(@NonNull Article article) {
-        return this.articleRepository.save(article);
+        return articleRepository.save(article);
     }
 
-    public List<Article> getArticles() {
-        return this.articleRepository.findAll();
+    public Page<Article> getArticles(Pageable pageable) {
+        return articleRepository.findAll(pageable);
     }
 
-    public List<Article> findByCreatedBy(Member createdBy) {
-        return articleRepository.findByCreatedBy(createdBy);
+    public Page<Article> findByCreatedBy(Member createdBy, Pageable pageable) {
+        return articleRepository.findByCreatedBy(createdBy, pageable);
     }
 }
