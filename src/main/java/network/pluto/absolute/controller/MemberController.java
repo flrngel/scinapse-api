@@ -1,5 +1,8 @@
 package network.pluto.absolute.controller;
 
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
 import network.pluto.absolute.dto.ArticleDto;
 import network.pluto.absolute.dto.EvaluationDto;
 import network.pluto.absolute.dto.MemberDto;
@@ -120,7 +123,7 @@ public class MemberController {
     @RequestMapping(value = "/members/{memberId}/password", method = RequestMethod.PUT)
     public Object updatePassword(@ApiIgnore JwtUser user,
                                  @PathVariable long memberId,
-                                 @RequestBody @NotNull @Size(min = 8) String password) {
+                                 @RequestBody @Valid PasswordWrapper password) {
         if (memberId != user.getId()) {
             throw new AuthorizationServiceException("Members can update own password only");
         }
@@ -130,7 +133,7 @@ public class MemberController {
             throw new ResourceNotFoundException("Member not found");
         }
 
-        memberService.updatePassword(old, password);
+        memberService.updatePassword(old, password.getPassword());
 
         Map<String, String> result = new HashMap<>();
         result.put("result", "success");
@@ -171,5 +174,14 @@ public class MemberController {
 
         // capitalize first letter only
         return StringUtils.capitalize(institution.toLowerCase());
+    }
+
+    @Getter
+    @Setter
+    private static class PasswordWrapper {
+        @ApiModelProperty(required = true)
+        @Size(min = 8, message = "password must be greater than or equal to 8")
+        @NotNull
+        private String password;
     }
 }
