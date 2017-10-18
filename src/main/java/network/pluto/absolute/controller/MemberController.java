@@ -1,8 +1,5 @@
 package network.pluto.absolute.controller;
 
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Getter;
-import lombok.Setter;
 import network.pluto.absolute.dto.ArticleDto;
 import network.pluto.absolute.dto.EvaluationDto;
 import network.pluto.absolute.dto.MemberDto;
@@ -12,8 +9,8 @@ import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.absolute.validator.MemberDuplicationValidator;
+import network.pluto.absolute.validator.Update;
 import network.pluto.bibliotheca.models.Member;
-import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,13 +18,12 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -104,7 +100,7 @@ public class MemberController {
     @RequestMapping(value = "/members/{memberId}", method = RequestMethod.PUT)
     public MemberDto updateArticle(@ApiIgnore JwtUser user,
                                    @PathVariable long memberId,
-                                   @RequestBody MemberDto memberDto) {
+                                   @RequestBody @Validated(Update.class) MemberDto memberDto) {
         if (memberId != user.getId()) {
             throw new AuthorizationServiceException("Members can update own profile only");
         }
@@ -123,7 +119,7 @@ public class MemberController {
     @RequestMapping(value = "/members/{memberId}/password", method = RequestMethod.PUT)
     public Object updatePassword(@ApiIgnore JwtUser user,
                                  @PathVariable long memberId,
-                                 @RequestBody @Valid PasswordWrapper password) {
+                                 @RequestBody @Valid MemberDto.PasswordWrapper password) {
         if (memberId != user.getId()) {
             throw new AuthorizationServiceException("Members can update own password only");
         }
@@ -174,14 +170,5 @@ public class MemberController {
 
         // capitalize first letter only
         return StringUtils.capitalize(institution.toLowerCase());
-    }
-
-    @Getter
-    @Setter
-    private static class PasswordWrapper {
-        @ApiModelProperty(required = true)
-        @Size(min = 8, message = "password must be greater than or equal to 8")
-        @NotNull
-        private String password;
     }
 }

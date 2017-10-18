@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@ComponentScan({"network.pluto.absolute", "network.pluto.bibliotheca"})
+@ComponentScan({ "network.pluto.absolute", "network.pluto.bibliotheca" })
 @EnableJpaAuditing
 @EnableJpaRepositories("network.pluto.bibliotheca.repositories")
 @EntityScan(

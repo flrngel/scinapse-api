@@ -36,6 +36,8 @@ public class CustomErrorAttributes extends DefaultErrorAttributes {
         // add field error details
         if (error instanceof MethodArgumentNotValidException) {
             errorAttributes.put("fieldErrors", getFieldErrors((MethodArgumentNotValidException) error));
+            errorAttributes.put("message", "Validation Failed");
+            return;
         }
 
         // add error message

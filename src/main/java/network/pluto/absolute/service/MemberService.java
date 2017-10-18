@@ -47,7 +47,6 @@ public class MemberService {
     }
 
     public Member updateMember(@NonNull Member old, @NonNull Member updated) {
-        // TODO validation check
         old.setName(updated.getName());
         old.setProfileImage(updated.getProfileImage());
         old.setInstitution(updated.getInstitution());
@@ -56,7 +55,6 @@ public class MemberService {
     }
 
     public void updatePassword(@NonNull Member old, @NonNull String password) {
-        // TODO validation check
         old.setPassword(passwordEncoder.encode(password));
     }
 

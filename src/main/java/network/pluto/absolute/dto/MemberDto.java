@@ -3,13 +3,17 @@ package network.pluto.absolute.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import network.pluto.absolute.validator.Update;
 import network.pluto.bibliotheca.models.Member;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.validation.groups.Default;
 
 @NoArgsConstructor
 @Data
@@ -30,12 +34,13 @@ public class MemberDto {
     private String password;
 
     @ApiModelProperty(required = true)
-    @NotNull
+    @NotNull(groups = { Default.class, Update.class })
     private String name;
 
-    @URL
+    @URL(groups = { Default.class, Update.class })
     private String profileImage;
 
+    @NotNull(groups = Update.class)
     private String institution;
 
     private String major;
@@ -68,5 +73,14 @@ public class MemberDto {
         member.setInstitution(this.institution);
         member.setMajor(this.major);
         return member;
+    }
+
+    @Getter
+    @Setter
+    public static class PasswordWrapper {
+        @ApiModelProperty(required = true)
+        @Size(min = 8, message = "password must be greater than or equal to 8")
+        @NotNull
+        private String password;
     }
 }
