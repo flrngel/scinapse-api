@@ -10,17 +10,23 @@ import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.absolute.validator.MemberDuplicationValidator;
 import network.pluto.bibliotheca.models.Member;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class MemberController {
@@ -52,8 +58,8 @@ public class MemberController {
         memberDto.setInstitution(extractInstitution(memberDto.getEmail()));
 
         Member member = memberDto.toEntity();
-        Member saved = memberService.saveMember(member);
 
+        Member saved = memberService.saveMember(member);
         return new MemberDto(saved);
     }
 
@@ -90,6 +96,45 @@ public class MemberController {
         }
 
         return evaluationService.findByCreatedBy(member, pageable).map(EvaluationDto::new);
+    }
+
+    @RequestMapping(value = "/members/{memberId}", method = RequestMethod.PUT)
+    public MemberDto updateArticle(@ApiIgnore JwtUser user,
+                                   @PathVariable long memberId,
+                                   @RequestBody MemberDto memberDto) {
+        if (memberId != user.getId()) {
+            throw new AuthorizationServiceException("Members can update own profile only");
+        }
+
+        Member old = memberService.findMember(memberId);
+        if (old == null) {
+            throw new ResourceNotFoundException("Member not found");
+        }
+
+        Member updated = memberDto.toEntity();
+
+        Member saved = memberService.updateMember(old, updated);
+        return new MemberDto(saved);
+    }
+
+    @RequestMapping(value = "/members/{memberId}/password", method = RequestMethod.PUT)
+    public Object updatePassword(@ApiIgnore JwtUser user,
+                                 @PathVariable long memberId,
+                                 @RequestBody @NotNull @Size(min = 8) String password) {
+        if (memberId != user.getId()) {
+            throw new AuthorizationServiceException("Members can update own password only");
+        }
+
+        Member old = memberService.findMember(memberId);
+        if (old == null) {
+            throw new ResourceNotFoundException("Member not found");
+        }
+
+        memberService.updatePassword(old, password);
+
+        Map<String, String> result = new HashMap<>();
+        result.put("result", "success");
+        return result;
     }
 
     @RequestMapping(value = "/members/checkDuplication", method = RequestMethod.GET)

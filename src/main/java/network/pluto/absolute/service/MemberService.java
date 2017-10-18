@@ -46,6 +46,20 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
+    public Member updateMember(@NonNull Member old, @NonNull Member updated) {
+        // TODO validation check
+        old.setName(updated.getName());
+        old.setProfileImage(updated.getProfileImage());
+        old.setInstitution(updated.getInstitution());
+        old.setMajor(updated.getMajor());
+        return old;
+    }
+
+    public void updatePassword(@NonNull Member old, @NonNull String password) {
+        // TODO validation check
+        old.setPassword(passwordEncoder.encode(password));
+    }
+
     public Page<Member> findAll(Pageable pageable) {
         return memberRepository.findAll(pageable);
     }
