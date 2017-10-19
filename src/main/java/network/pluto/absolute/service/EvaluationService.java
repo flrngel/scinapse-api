@@ -41,9 +41,9 @@ public class EvaluationService {
         if (article.getPoint() == null) {
             ArticlePoint point = new ArticlePoint();
             point.setOriginality(0.0);
-            point.setContribution(0.0);
-            point.setAnalysis(0.0);
-            point.setExpressiveness(0.0);
+            point.setSignificance(0.0);
+            point.setValidity(0.0);
+            point.setOrganization(0.0);
             point.updateTotal();
             article.setPoint(point);
         }
@@ -54,9 +54,9 @@ public class EvaluationService {
         EvaluationPoint evaluationPoint = save.getPoint();
 
         articlePoint.setOriginality((articlePoint.getOriginality() + evaluationPoint.getOriginality()) / count);
-        articlePoint.setContribution((articlePoint.getContribution() + evaluationPoint.getContribution()) / count);
-        articlePoint.setAnalysis((articlePoint.getAnalysis() + evaluationPoint.getAnalysis()) / count);
-        articlePoint.setExpressiveness((articlePoint.getExpressiveness() + evaluationPoint.getExpressiveness()) / count);
+        articlePoint.setSignificance((articlePoint.getSignificance() + evaluationPoint.getSignificance()) / count);
+        articlePoint.setValidity((articlePoint.getValidity() + evaluationPoint.getValidity()) / count);
+        articlePoint.setOrganization((articlePoint.getOrganization() + evaluationPoint.getOrganization()) / count);
 
         articlePoint.updateTotal();
     }

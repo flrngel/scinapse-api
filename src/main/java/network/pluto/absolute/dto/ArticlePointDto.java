@@ -16,19 +16,19 @@ public class ArticlePointDto {
     private Double originality;
 
     @ApiModelProperty(readOnly = true)
-    private Double contribution;
+    private Double significance;
 
     @ApiModelProperty(readOnly = true)
-    private Double analysis;
+    private Double validity;
 
     @ApiModelProperty(readOnly = true)
-    private Double expressiveness;
+    private Double organization;
 
     public ArticlePointDto(ArticlePoint point) {
         this.total = point.getTotal();
         this.originality = point.getOriginality();
-        this.contribution = point.getContribution();
-        this.analysis = point.getAnalysis();
-        this.expressiveness = point.getExpressiveness();
+        this.significance = point.getSignificance();
+        this.validity = point.getValidity();
+        this.organization = point.getOrganization();
     }
 }

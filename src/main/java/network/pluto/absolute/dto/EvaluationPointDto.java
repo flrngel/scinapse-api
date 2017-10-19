@@ -20,47 +20,47 @@ public class EvaluationPointDto {
 
     @ApiModelProperty(required = true)
     @NotNull
-    private int contribution;
+    private int significance;
 
     @ApiModelProperty(required = true)
     @NotNull
-    private int analysis;
+    private int validity;
 
     @ApiModelProperty(required = true)
     @NotNull
-    private int expressiveness;
+    private int organization;
 
     private String originalityComment;
-    private String contributionComment;
-    private String analysisComment;
-    private String expressivenessComment;
+    private String significanceComment;
+    private String validityComment;
+    private String organizationComment;
 
     public EvaluationPointDto(EvaluationPoint point) {
         this.total = point.getTotal();
 
         this.originality = point.getOriginality();
-        this.contribution = point.getContribution();
-        this.analysis = point.getAnalysis();
-        this.expressiveness = point.getExpressiveness();
+        this.significance = point.getSignificance();
+        this.validity = point.getValidity();
+        this.organization = point.getOrganization();
 
         this.originalityComment = point.getOriginalityComment();
-        this.contributionComment = point.getContributionComment();
-        this.analysisComment = point.getAnalysisComment();
-        this.expressivenessComment = point.getExpressivenessComment();
+        this.significanceComment = point.getSignificanceComment();
+        this.validityComment = point.getValidityComment();
+        this.organizationComment = point.getOrganizationComment();
     }
 
     public EvaluationPoint toEntity() {
         EvaluationPoint point = new EvaluationPoint();
 
         point.setOriginality(this.originality);
-        point.setContribution(this.contribution);
-        point.setAnalysis(this.analysis);
-        point.setExpressiveness(this.expressiveness);
+        point.setSignificance(this.significance);
+        point.setValidity(this.validity);
+        point.setOrganization(this.organization);
 
         point.setOriginalityComment(this.originalityComment);
-        point.setContributionComment(this.contributionComment);
-        point.setAnalysisComment(this.analysisComment);
-        point.setExpressivenessComment(this.expressivenessComment);
+        point.setSignificanceComment(this.significanceComment);
+        point.setValidityComment(this.validityComment);
+        point.setOrganizationComment(this.organizationComment);
 
         point.updateTotal();
 
