@@ -1,6 +1,7 @@
 package network.pluto.absolute.security.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import network.pluto.absolute.controller.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -11,8 +12,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class RestLogoutSuccessHandler implements LogoutSuccessHandler {
@@ -26,12 +25,9 @@ public class RestLogoutSuccessHandler implements LogoutSuccessHandler {
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        Map<String, String> result = new HashMap<>();
-        result.put("result", "success");
-
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        response.getWriter().write(objectMapper.writeValueAsString(result));
+        response.getWriter().write(objectMapper.writeValueAsString(Result.success()));
     }
 }

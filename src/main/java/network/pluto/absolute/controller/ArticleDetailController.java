@@ -92,8 +92,8 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.POST)
-    public EvaluationDto pressVote(@ApiIgnore JwtUser user,
-                                   @PathVariable long evaluationId) {
+    public Result pressVote(@ApiIgnore JwtUser user,
+                            @PathVariable long evaluationId) {
         Evaluation evaluation = evaluationService.findEvaluation(evaluationId);
         if (evaluation == null) {
             throw new ResourceNotFoundException("Evaluation not found");
@@ -101,12 +101,13 @@ public class ArticleDetailController {
 
         Member member = memberService.getMember(user.getId());
 
-        evaluation = evaluationService.increaseVote(evaluation, member);
+        // increase evaluation vote number
+        evaluationService.increaseVote(evaluation, member);
 
         // increase member reputation
         memberService.increaseReputation(member, 1);
 
-        return new EvaluationDto(evaluation);
+        return Result.success();
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.GET)

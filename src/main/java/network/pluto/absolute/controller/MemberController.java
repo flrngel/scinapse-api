@@ -24,8 +24,6 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 public class MemberController {
@@ -117,7 +115,7 @@ public class MemberController {
     }
 
     @RequestMapping(value = "/members/{memberId}/password", method = RequestMethod.PUT)
-    public Object updatePassword(@ApiIgnore JwtUser user,
+    public Result updatePassword(@ApiIgnore JwtUser user,
                                  @PathVariable long memberId,
                                  @RequestBody @Valid MemberDto.PasswordWrapper password) {
         if (memberId != user.getId()) {
@@ -131,9 +129,7 @@ public class MemberController {
 
         memberService.updatePassword(old, password.getPassword());
 
-        Map<String, String> result = new HashMap<>();
-        result.put("result", "success");
-        return result;
+        return Result.success();
     }
 
     @RequestMapping(value = "/members/checkDuplication", method = RequestMethod.GET)
