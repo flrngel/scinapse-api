@@ -3,6 +3,7 @@ package network.pluto.absolute.controller;
 import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.EvaluationDto;
 import network.pluto.absolute.dto.EvaluationVoteDto;
+import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.CommentService;
@@ -54,6 +55,11 @@ public class ArticleDetailController {
 
         Member member = memberService.getMember(user.getId());
 
+        boolean evaluated = evaluationService.checkEvaluated(article, member);
+        if (evaluated) {
+            throw new BadRequestException("Already evaluated");
+        }
+
         Evaluation evaluation = evaluationDto.toEntity();
         evaluation.setCreatedBy(member);
 
@@ -100,6 +106,11 @@ public class ArticleDetailController {
         }
 
         Member member = memberService.getMember(user.getId());
+
+        boolean voted = evaluationService.checkVoted(member, evaluation);
+        if (voted) {
+            throw new BadRequestException("Already voted");
+        }
 
         // increase evaluation vote number
         evaluationService.increaseVote(evaluation, member);
