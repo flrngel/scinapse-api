@@ -53,7 +53,7 @@ public class ArticleController {
     }
 
     @RequestMapping(value = "/articles", method = RequestMethod.GET)
-    public Page<ArticleDto> getArticles(@RequestParam List<Long> ids,
+    public Page<ArticleDto> getArticles(@RequestParam(required = false) List<Long> ids,
                                         @PageableDefault Pageable pageable) {
         if (!CollectionUtils.isEmpty(ids)) {
             return articleService.findArticlesIn(ids, pageable).map(ArticleDto::new);
