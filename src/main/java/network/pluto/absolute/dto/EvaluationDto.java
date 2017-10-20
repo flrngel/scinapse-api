@@ -24,6 +24,9 @@ public class EvaluationDto {
     private EvaluationPointDto point;
 
     @ApiModelProperty(readOnly = true)
+    private long articleId;
+
+    @ApiModelProperty(readOnly = true)
     private int vote;
 
     @ApiModelProperty(readOnly = true)
@@ -40,6 +43,7 @@ public class EvaluationDto {
 
     public EvaluationDto(Evaluation evaluation, boolean voted) {
         this.id = evaluation.getEvaluationId();
+        this.articleId = evaluation.getArticle().getArticleId();
         this.vote = evaluation.getVote();
         this.comments = evaluation.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
         this.createdBy = new MemberDto(evaluation.getCreatedBy());

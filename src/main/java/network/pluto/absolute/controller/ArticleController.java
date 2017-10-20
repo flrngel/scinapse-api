@@ -12,10 +12,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -51,8 +53,13 @@ public class ArticleController {
     }
 
     @RequestMapping(value = "/articles", method = RequestMethod.GET)
-    public Page<ArticleDto> getArticles(@PageableDefault Pageable pageable) {
-        return articleService.getArticles(pageable).map(ArticleDto::new);
+    public Page<ArticleDto> getArticles(@RequestParam List<Long> ids,
+                                        @PageableDefault Pageable pageable) {
+        if (!CollectionUtils.isEmpty(ids)) {
+            return articleService.findArticlesIn(ids, pageable).map(ArticleDto::new);
+        }
+
+        return articleService.findArticles(pageable).map(ArticleDto::new);
     }
 
     @RequestMapping(value = "/articles/{articleId}", method = RequestMethod.GET)
@@ -82,5 +89,15 @@ public class ArticleController {
         }
 
         return articleDto;
+    }
+
+    @RequestMapping(value = "/articles/{articleId}", params = "simple", method = RequestMethod.GET)
+    public ArticleDto getSimpleArticle(@PathVariable long articleId) {
+        Article article = articleService.findArticle(articleId);
+        if (article == null) {
+            throw new ResourceNotFoundException("Article not found");
+        }
+
+        return new ArticleDto(article, false);
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 @Service
 public class ArticleService {
@@ -34,8 +35,12 @@ public class ArticleService {
         return articleRepository.save(article);
     }
 
-    public Page<Article> getArticles(Pageable pageable) {
+    public Page<Article> findArticles(Pageable pageable) {
         return articleRepository.findAll(pageable);
+    }
+
+    public Page<Article> findArticlesIn(List<Long> ids, Pageable pageable) {
+        return articleRepository.findByArticleIdIn(ids, pageable);
     }
 
     public Page<Article> findByCreatedBy(Member createdBy, Pageable pageable) {
