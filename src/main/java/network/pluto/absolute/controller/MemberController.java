@@ -4,11 +4,11 @@ import network.pluto.absolute.dto.ArticleDto;
 import network.pluto.absolute.dto.EvaluationDto;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.MemberDuplicationCheckDto;
+import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
-import network.pluto.absolute.validator.MemberDuplicationValidator;
 import network.pluto.absolute.validator.Update;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -29,28 +28,25 @@ import javax.validation.Valid;
 public class MemberController {
 
     private final MemberService memberService;
-    private final MemberDuplicationValidator memberDuplicationValidator;
     private final ArticleService articleService;
     private final EvaluationService evaluationService;
 
     @Autowired
     public MemberController(MemberService memberService,
-                            MemberDuplicationValidator memberDuplicationValidator,
                             ArticleService articleService,
                             EvaluationService evaluationService) {
         this.memberService = memberService;
-        this.memberDuplicationValidator = memberDuplicationValidator;
         this.articleService = articleService;
         this.evaluationService = evaluationService;
     }
 
-    @InitBinder("memberDto")
-    public void initBinder(WebDataBinder binder) {
-        binder.addValidators(memberDuplicationValidator);
-    }
-
     @RequestMapping(value = "/members", method = RequestMethod.POST)
     public MemberDto create(@RequestBody @Valid MemberDto memberDto) {
+        Member exist = memberService.findByEmail(memberDto.getEmail());
+        if (exist != null) {
+            throw new BadRequestException("Email already exists");
+        }
+
         // extract institution
         memberDto.setInstitution(extractInstitution(memberDto.getEmail()));
 
