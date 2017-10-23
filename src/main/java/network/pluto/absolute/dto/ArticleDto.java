@@ -46,7 +46,7 @@ public class ArticleDto {
     private LocalDateTime articleUpdatedAt;
 
     @ApiModelProperty(readOnly = true)
-    private ArticlePointDto point;
+    private Double point;
 
     @ApiModelProperty(readOnly = true)
     private MemberDto createdBy;
@@ -71,12 +71,9 @@ public class ArticleDto {
         this.link = article.getLink();
         this.source = article.getSource();
         this.note = article.getNote();
+        this.point = article.getPoint();
         this.createdBy = new MemberDto(article.getCreatedBy());
         this.createdAt = article.getCreatedAt();
-
-        if (article.getPoint() != null) {
-            this.point = new ArticlePointDto(article.getPoint());
-        }
 
         if (article.getAuthors() != null) {
             this.authors = article.getAuthors().stream().map(AuthorDto::new).collect(Collectors.toList());
