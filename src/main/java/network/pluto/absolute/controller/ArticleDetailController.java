@@ -55,7 +55,7 @@ public class ArticleDetailController {
 
         Member member = memberService.getMember(user.getId());
 
-        boolean evaluated = evaluationService.checkEvaluated(article, member);
+        boolean evaluated = evaluationService.checkEvaluated(member, article);
         if (evaluated) {
             throw new BadRequestException("Already evaluated");
         }

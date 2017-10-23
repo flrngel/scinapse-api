@@ -110,7 +110,26 @@ public class EvaluationService {
         return votedMap;
     }
 
-    public boolean checkEvaluated(Article article, Member member) {
-        return evaluationRepository.existsByArticleAndCreatedBy(article, member);
+    public boolean checkEvaluated(Member member, Article article) {
+        return evaluationRepository.existsByCreatedByAndArticle(member, article);
+    }
+
+    // Map<ArticleId, evaluated>
+    public Map<Long, Boolean> checkEvaluated(Member member, List<Article> articles) {
+        Map<Long, Boolean> evaluatedMap = evaluationRepository
+                .findByCreatedByAndArticleIn(member, articles)
+                .stream()
+                .map(e -> e.getArticle().getArticleId())
+                .collect(Collectors.toMap(
+                        id -> id,
+                        id -> true
+                ));
+
+        List<Long> articleIds = articles.stream().map(Article::getArticleId).collect(Collectors.toList());
+        for (Long id : articleIds) {
+            evaluatedMap.putIfAbsent(id, false);
+        }
+
+        return evaluatedMap;
     }
 }

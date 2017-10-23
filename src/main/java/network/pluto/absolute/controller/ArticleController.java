@@ -53,13 +53,31 @@ public class ArticleController {
     }
 
     @RequestMapping(value = "/articles", method = RequestMethod.GET)
-    public Page<ArticleDto> getArticles(@RequestParam(required = false) List<Long> ids,
+    public Page<ArticleDto> getArticles(@ApiIgnore JwtUser user,
+                                        @RequestParam(required = false) List<Long> ids,
                                         @PageableDefault Pageable pageable) {
+        Page<Article> articles;
+
         if (!CollectionUtils.isEmpty(ids)) {
-            return articleService.findArticlesIn(ids, pageable).map(ArticleDto::new);
+            articles = articleService.findArticlesIn(ids, pageable);
+        } else {
+            articles = articleService.findArticles(pageable);
         }
 
-        return articleService.findArticles(pageable).map(ArticleDto::new);
+        Page<ArticleDto> articleDtos = articles.map(ArticleDto::new);
+
+        if (user != null) {
+            Member member = memberService.getMember(user.getId());
+
+            Map<Long, Boolean> evaluatedMap = evaluationService.checkEvaluated(member, articles.getContent());
+            articleDtos.forEach(dto -> {
+                if (evaluatedMap.get(dto.getId())) {
+                    dto.setEvaluated(true);
+                }
+            });
+        }
+
+        return articleDtos;
     }
 
     @RequestMapping(value = "/articles/{articleId}", method = RequestMethod.GET)
@@ -75,7 +93,7 @@ public class ArticleController {
         if (user != null) {
             Member member = memberService.getMember(user.getId());
 
-            boolean evaluated = evaluationService.checkEvaluated(article, member);
+            boolean evaluated = evaluationService.checkEvaluated(member, article);
             if (evaluated) {
                 articleDto.setEvaluated(true);
             }
