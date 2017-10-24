@@ -129,12 +129,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         HttpMethod.GET,
                         "/",
                         "/hello",
-                        "/articles",
-                        "/articles/*",
                         "/members/checkDuplication",
                         "/members/*",
                         "/members/*/articles",
-                        "/members/*/evaluations"
+                        "/members/*/evaluations",
+                        "/articles",
+                        "/articles/*",
+                        "/articles/*/evaluations",
+                        "/articles/*/evaluations/*",
+                        "/articles/*/evaluations/*/comments"
                 ).permitAll()
 
                 // permit post
