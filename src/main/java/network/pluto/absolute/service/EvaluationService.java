@@ -1,10 +1,7 @@
 package network.pluto.absolute.service;
 
 import lombok.NonNull;
-import network.pluto.bibliotheca.models.Article;
-import network.pluto.bibliotheca.models.Evaluation;
-import network.pluto.bibliotheca.models.EvaluationVote;
-import network.pluto.bibliotheca.models.Member;
+import network.pluto.bibliotheca.models.*;
 import network.pluto.bibliotheca.repositories.EvaluationRepository;
 import network.pluto.bibliotheca.repositories.EvaluationVoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,13 +39,26 @@ public class EvaluationService {
 
     private void updateArticlePoint(Article article, Evaluation save) {
         if (article.getPoint() == null) {
-            article.setPoint(0.0);
+            ArticlePoint point = new ArticlePoint();
+            point.setOriginality(0.0);
+            point.setSignificance(0.0);
+            point.setValidity(0.0);
+            point.setOrganization(0.0);
+            point.updateTotal();
+            article.setPoint(point);
         }
 
-        long evaluationCount = evaluationRepository.countByArticle(article);
+        long count = evaluationRepository.countByArticle(article);
 
-        double totalPointSum = article.getPoint() + save.getPoint();
-        article.setPoint(totalPointSum / evaluationCount);
+        ArticlePoint articlePoint = article.getPoint();
+        EvaluationPoint evaluationPoint = save.getPoint();
+
+        articlePoint.setOriginality((articlePoint.getOriginality() + evaluationPoint.getOriginality()) / count);
+        articlePoint.setSignificance((articlePoint.getSignificance() + evaluationPoint.getSignificance()) / count);
+        articlePoint.setValidity((articlePoint.getValidity() + evaluationPoint.getValidity()) / count);
+        articlePoint.setOrganization((articlePoint.getOrganization() + evaluationPoint.getOrganization()) / count);
+
+        articlePoint.updateTotal();
     }
 
     public Evaluation findEvaluation(long evaluationId) {

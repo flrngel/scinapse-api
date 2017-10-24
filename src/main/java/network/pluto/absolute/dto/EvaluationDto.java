@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import network.pluto.bibliotheca.models.Evaluation;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,14 +18,13 @@ public class EvaluationDto {
     @ApiModelProperty(readOnly = true)
     private long id;
 
-    @ApiModelProperty(readOnly = true)
-    private long articleId;
-
-    private int point;
-
     @ApiModelProperty(required = true)
     @NotNull
-    private String evaluation;
+    @Valid
+    private EvaluationPointDto point;
+
+    @ApiModelProperty(readOnly = true)
+    private long articleId;
 
     @ApiModelProperty(readOnly = true)
     private int vote;
@@ -44,14 +44,16 @@ public class EvaluationDto {
     public EvaluationDto(Evaluation evaluation, boolean voted) {
         this.id = evaluation.getEvaluationId();
         this.articleId = evaluation.getArticle().getArticleId();
-        this.point = evaluation.getPoint();
-        this.evaluation = evaluation.getEvaluation();
         this.vote = evaluation.getVote();
         this.comments = evaluation.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
         this.createdBy = new MemberDto(evaluation.getCreatedBy());
         this.createdAt = evaluation.getCreatedAt();
 
         this.voted = voted;
+
+        if (evaluation.getPoint() != null) {
+            this.point = new EvaluationPointDto(evaluation.getPoint());
+        }
     }
 
     public EvaluationDto(Evaluation evaluation) {
@@ -60,8 +62,11 @@ public class EvaluationDto {
 
     public Evaluation toEntity() {
         Evaluation evaluation = new Evaluation();
-        evaluation.setPoint(this.point);
-        evaluation.setEvaluation(this.evaluation);
+
+        if (this.point != null) {
+            evaluation.setPoint(this.point.toEntity());
+        }
+
         return evaluation;
     }
 }
