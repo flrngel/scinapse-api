@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
+@Transactional(readOnly = true)
 @Service
 public class MemberService {
 
