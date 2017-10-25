@@ -13,5 +13,8 @@ public class EvaluationVoteDto {
     private long memberId;
 
     @ApiModelProperty(readOnly = true)
-    private boolean vote = false;
+    private int vote = 0;
+
+    @ApiModelProperty(readOnly = true)
+    private boolean voted = false;
 }

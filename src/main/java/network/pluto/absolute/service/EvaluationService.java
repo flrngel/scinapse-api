@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,6 +33,7 @@ public class EvaluationService {
         Evaluation save = evaluationRepository.save(evaluation);
 
         updateArticlePoint(article, save);
+        article.increaseEvaluationSize();
 
         return save;
     }
@@ -77,14 +78,14 @@ public class EvaluationService {
         return evaluationRepository.findByArticle(article, pageable);
     }
 
-    public Evaluation increaseVote(Evaluation evaluation, Member member) {
+    @Transactional
+    public void increaseVote(Evaluation evaluation, Member member) {
         EvaluationVote vote = new EvaluationVote();
         vote.setMember(member);
         vote.setEvaluation(evaluation);
         evaluationVoteRepository.save(vote);
 
-        evaluation.setVote(evaluation.getVote() + 1);
-        return evaluation;
+        evaluation.increaseVote();
     }
 
     public boolean checkVoted(Member member, Evaluation evaluation) {

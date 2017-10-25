@@ -98,8 +98,8 @@ public class ArticleDetailController {
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.POST)
-    public Result pressVote(@ApiIgnore JwtUser user,
-                            @PathVariable long evaluationId) {
+    public EvaluationVoteDto pressVote(@ApiIgnore JwtUser user,
+                                       @PathVariable long evaluationId) {
         Evaluation evaluation = evaluationService.findEvaluation(evaluationId);
         if (evaluation == null) {
             throw new ResourceNotFoundException("Evaluation not found");
@@ -118,7 +118,14 @@ public class ArticleDetailController {
         // increase member reputation
         memberService.increaseReputation(member, 1);
 
-        return Result.success();
+
+        EvaluationVoteDto dto = new EvaluationVoteDto();
+        dto.setEvaluationId(evaluationId);
+        dto.setMemberId(user.getId());
+        dto.setVote(evaluation.getVote());
+        dto.setVoted(true);
+
+        return dto;
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.GET)
@@ -134,19 +141,20 @@ public class ArticleDetailController {
         EvaluationVoteDto dto = new EvaluationVoteDto();
         dto.setEvaluationId(evaluationId);
         dto.setMemberId(user.getId());
+        dto.setVote(evaluation.getVote());
 
         boolean voted = evaluationService.checkVoted(member, evaluation);
         if (voted) {
-            dto.setVote(true);
+            dto.setVoted(true);
         }
 
         return dto;
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.POST)
-    public EvaluationDto createComment(@ApiIgnore JwtUser user,
-                                       @PathVariable long evaluationId,
-                                       @RequestBody @Valid CommentDto commentDto) {
+    public CommentDto createComment(@ApiIgnore JwtUser user,
+                                    @PathVariable long evaluationId,
+                                    @RequestBody @Valid CommentDto commentDto) {
         Evaluation evaluation = evaluationService.findEvaluation(evaluationId);
         if (evaluation == null) {
             throw new ResourceNotFoundException("Evaluation not found");
@@ -157,10 +165,8 @@ public class ArticleDetailController {
         Comment comment = commentDto.toEntity();
         comment.setCreatedBy(member);
 
-        commentService.saveComment(evaluation, comment);
-
-        Evaluation updated = evaluationService.getEvaluation(evaluationId);
-        return new EvaluationDto(updated);
+        comment = commentService.saveComment(evaluation, comment);
+        return new CommentDto(comment);
     }
 
     @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.GET)

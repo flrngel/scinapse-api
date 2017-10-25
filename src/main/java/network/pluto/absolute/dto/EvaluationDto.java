@@ -36,6 +36,9 @@ public class EvaluationDto {
     private List<CommentDto> comments;
 
     @ApiModelProperty(readOnly = true)
+    private int commentSize;
+
+    @ApiModelProperty(readOnly = true)
     private MemberDto createdBy;
 
     @ApiModelProperty(readOnly = true)
@@ -45,7 +48,7 @@ public class EvaluationDto {
         this.id = evaluation.getEvaluationId();
         this.articleId = evaluation.getArticle().getArticleId();
         this.vote = evaluation.getVote();
-        this.comments = evaluation.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
+        this.commentSize = evaluation.getCommentSize();
         this.createdBy = new MemberDto(evaluation.getCreatedBy());
         this.createdAt = evaluation.getCreatedAt();
 
@@ -53,6 +56,10 @@ public class EvaluationDto {
 
         if (evaluation.getPoint() != null) {
             this.point = new EvaluationPointDto(evaluation.getPoint());
+        }
+
+        if (evaluation.getComments() != null) {
+            this.comments = evaluation.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
         }
     }
 

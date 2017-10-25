@@ -61,6 +61,9 @@ public class ArticleDto {
     private List<EvaluationDto> evaluations;
 
     @ApiModelProperty(readOnly = true)
+    private int evaluationSize;
+
+    @ApiModelProperty(readOnly = true)
     private boolean evaluated;
 
     public ArticleDto(Article article, boolean loadEvaluations) {
@@ -71,6 +74,7 @@ public class ArticleDto {
         this.link = article.getLink();
         this.source = article.getSource();
         this.note = article.getNote();
+        this.evaluationSize = article.getEvaluationSize();
         this.createdBy = new MemberDto(article.getCreatedBy());
         this.createdAt = article.getCreatedAt();
 

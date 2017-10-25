@@ -45,7 +45,7 @@ public class MemberDto {
 
     private String major;
 
-    private int reputation;
+    private long reputation;
 
     @ApiModelProperty(readOnly = true)
     private WalletDto wallet;

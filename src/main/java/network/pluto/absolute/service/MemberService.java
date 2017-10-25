@@ -13,11 +13,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.Collections;
 
-@Transactional
 @Service
 public class MemberService {
 
@@ -37,6 +36,7 @@ public class MemberService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public Member saveMember(@NonNull Member member) {
         member.setPassword(passwordEncoder.encode(member.getPassword()));
 
@@ -46,6 +46,7 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
+    @Transactional
     public Member updateMember(@NonNull Member old, @NonNull Member updated) {
         old.setName(updated.getName());
         old.setProfileImage(updated.getProfileImage());
@@ -54,6 +55,7 @@ public class MemberService {
         return old;
     }
 
+    @Transactional
     public void updatePassword(@NonNull Member old, @NonNull String password) {
         old.setPassword(passwordEncoder.encode(password));
     }
@@ -86,12 +88,12 @@ public class MemberService {
         return member;
     }
 
-    public Member increaseReputation(Member member, int point) {
+    @Transactional
+    public void increaseReputation(Member member, long point) {
         MemberReputation reputation = new MemberReputation();
         reputation.setMember(member);
         memberReputationRepository.save(reputation);
 
-        member.setReputation(member.getReputation() + point);
-        return member;
+        member.increaseReputation(point);
     }
 }
