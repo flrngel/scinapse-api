@@ -9,6 +9,7 @@ import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
+import network.pluto.absolute.service.TransactionService;
 import network.pluto.absolute.validator.Update;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,14 +31,17 @@ public class MemberController {
     private final MemberService memberService;
     private final ArticleService articleService;
     private final EvaluationService evaluationService;
+    private final TransactionService transactionService;
 
     @Autowired
     public MemberController(MemberService memberService,
                             ArticleService articleService,
-                            EvaluationService evaluationService) {
+                            EvaluationService evaluationService,
+                            TransactionService transactionService) {
         this.memberService = memberService;
         this.articleService = articleService;
         this.evaluationService = evaluationService;
+        this.transactionService = transactionService;
     }
 
     @RequestMapping(value = "/members", method = RequestMethod.POST)
@@ -50,9 +54,11 @@ public class MemberController {
         // extract institution
         memberDto.setInstitution(extractInstitution(memberDto.getEmail()));
 
-        Member member = memberDto.toEntity();
+        Member saved = memberService.saveMember(memberDto.toEntity());
 
-        Member saved = memberService.saveMember(member);
+        // send transaction
+        transactionService.createWallet(saved);
+
         return new MemberDto(saved);
     }
 
