@@ -1,15 +1,19 @@
 package network.pluto.absolute.dto;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import network.pluto.bibliotheca.enums.AuthorType;
 import network.pluto.bibliotheca.models.Author;
 
 import javax.validation.constraints.NotNull;
 
 @NoArgsConstructor
-@Data
+@ToString(exclude = { "member" })
+@Getter
+@Setter
 public class AuthorDto {
 
     @ApiModelProperty(readOnly = true)

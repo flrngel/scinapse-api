@@ -1,14 +1,18 @@
 package network.pluto.absolute.security.jwt;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 
-@EqualsAndHashCode(callSuper = false)
-@Data
+@EqualsAndHashCode(callSuper = false, of = { "id", "email" })
+@ToString
+@Getter
+@Setter
 public class JwtUser extends AbstractAuthenticationToken {
 
     private long id;

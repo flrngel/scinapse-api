@@ -1,8 +1,12 @@
 package network.pluto.absolute.error;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@ToString
+@Getter
+@Setter
 public class FieldError {
     private String field;
     private Object rejectedValue;

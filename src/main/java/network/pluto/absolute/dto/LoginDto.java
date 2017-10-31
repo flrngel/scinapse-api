@@ -1,11 +1,13 @@
 package network.pluto.absolute.dto;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-@AllArgsConstructor
-@Data
+@ToString
+@Getter
+@Setter
 public class LoginDto {
 
     @ApiModelProperty(readOnly = true)
@@ -16,4 +18,10 @@ public class LoginDto {
 
     @ApiModelProperty(readOnly = true)
     private MemberDto member;
+
+    public LoginDto(boolean loggedIn, String token, MemberDto member) {
+        this.loggedIn = loggedIn;
+        this.token = token;
+        this.member = member;
+    }
 }

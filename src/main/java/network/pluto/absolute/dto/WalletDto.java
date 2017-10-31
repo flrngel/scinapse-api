@@ -1,12 +1,16 @@
 package network.pluto.absolute.dto;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import network.pluto.bibliotheca.models.Wallet;
 
 @NoArgsConstructor
-@Data
+@ToString
+@Getter
+@Setter
 public class WalletDto {
 
     @ApiModelProperty(readOnly = true)

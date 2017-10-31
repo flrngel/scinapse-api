@@ -1,8 +1,10 @@
 package network.pluto.absolute.dto;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import network.pluto.bibliotheca.models.Evaluation;
 
 import javax.validation.Valid;
@@ -12,7 +14,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor
-@Data
+@ToString(exclude = { "comments", "createdBy" })
+@Getter
+@Setter
 public class EvaluationDto {
 
     @ApiModelProperty(readOnly = true)

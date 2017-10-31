@@ -1,9 +1,13 @@
 package network.pluto.absolute.dto;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@ToString
+@Getter
+@Setter
 public class EvaluationVoteDto {
 
     @ApiModelProperty(readOnly = true)

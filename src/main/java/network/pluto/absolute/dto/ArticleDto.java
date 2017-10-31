@@ -2,8 +2,10 @@ package network.pluto.absolute.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import network.pluto.bibliotheca.enums.ArticleSource;
 import network.pluto.bibliotheca.enums.ArticleType;
 import network.pluto.bibliotheca.models.Article;
@@ -16,7 +18,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor
-@Data
+@ToString(exclude = { "createdBy", "authors", "evaluations" })
+@Getter
+@Setter
 public class ArticleDto {
 
     @ApiModelProperty(readOnly = true)

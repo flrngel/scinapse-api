@@ -1,15 +1,19 @@
 package network.pluto.absolute.dto;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import network.pluto.bibliotheca.models.Comment;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
-@Data
+@ToString(exclude = { "createdBy" })
+@Getter
+@Setter
 public class CommentDto {
 
     @ApiModelProperty(readOnly = true)

@@ -2,10 +2,10 @@ package network.pluto.absolute.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import network.pluto.absolute.validator.Update;
 import network.pluto.bibliotheca.models.Member;
 import org.hibernate.validator.constraints.Email;
@@ -16,7 +16,9 @@ import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
 
 @NoArgsConstructor
-@Data
+@ToString(exclude = { "wallet" })
+@Getter
+@Setter
 public class MemberDto {
 
     @ApiModelProperty(readOnly = true)
