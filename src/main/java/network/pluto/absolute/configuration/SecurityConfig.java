@@ -135,6 +135,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/members/*/evaluations",
                         "/articles",
                         "/articles/*",
+                        "/articles/*/point",
                         "/articles/*/evaluations",
                         "/articles/*/evaluations/*",
                         "/articles/*/evaluations/*/comments"
