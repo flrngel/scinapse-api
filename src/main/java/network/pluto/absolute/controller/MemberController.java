@@ -6,6 +6,7 @@ import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.MemberDuplicationCheckDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
+import network.pluto.absolute.facade.MemberFacade;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.EvaluationService;
@@ -32,16 +33,19 @@ public class MemberController {
     private final ArticleService articleService;
     private final EvaluationService evaluationService;
     private final TransactionService transactionService;
+    private final MemberFacade memberFacade;
 
     @Autowired
     public MemberController(MemberService memberService,
                             ArticleService articleService,
                             EvaluationService evaluationService,
-                            TransactionService transactionService) {
+                            TransactionService transactionService,
+                            MemberFacade memberFacade) {
         this.memberService = memberService;
         this.articleService = articleService;
         this.evaluationService = evaluationService;
         this.transactionService = transactionService;
+        this.memberFacade = memberFacade;
     }
 
     @RequestMapping(value = "/members", method = RequestMethod.POST)
@@ -65,12 +69,7 @@ public class MemberController {
     @RequestMapping(value = "/members/{memberId}", method = RequestMethod.GET)
     public MemberDto getMembers(@ApiIgnore JwtUser user,
                                 @PathVariable long memberId) {
-        Member member = memberService.findMember(memberId);
-        if (member == null) {
-            throw new ResourceNotFoundException("Member not found");
-        }
-
-        return new MemberDto(member);
+        return memberFacade.getDetail(memberId);
     }
 
     @RequestMapping(value = "/members/{memberId}/articles", method = RequestMethod.GET)

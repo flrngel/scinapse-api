@@ -3,6 +3,7 @@ package network.pluto.absolute.service;
 import lombok.NonNull;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.Evaluation;
+import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.repositories.CommentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -31,5 +32,9 @@ public class CommentService {
 
     public Page<Comment> findByEvaluation(Evaluation evaluation, Pageable pageable) {
         return commentRepository.findByEvaluation(evaluation, pageable);
+    }
+
+    public long getCount(Member createdBy) {
+        return commentRepository.countByCreatedBy(createdBy);
     }
 }

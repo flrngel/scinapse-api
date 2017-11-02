@@ -52,6 +52,15 @@ public class MemberDto {
     @ApiModelProperty(readOnly = true)
     private WalletDto wallet;
 
+    @ApiModelProperty(readOnly = true)
+    private long articleCount;
+
+    @ApiModelProperty(readOnly = true)
+    private long evaluationCount;
+
+    @ApiModelProperty(readOnly = true)
+    private long commentCount;
+
     public MemberDto(Member member) {
         this.id = member.getMemberId();
         this.email = member.getEmail();

@@ -78,6 +78,10 @@ public class EvaluationService {
         return evaluationRepository.findByArticle(article, pageable);
     }
 
+    public long getCount(Member createdBy) {
+        return evaluationRepository.countByCreatedBy(createdBy);
+    }
+
     @Transactional
     public void increaseVote(Evaluation evaluation, Member member) {
         EvaluationVote vote = new EvaluationVote();

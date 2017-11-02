@@ -1,6 +1,7 @@
 package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.ArticleDto;
+import network.pluto.absolute.dto.ArticlePointDto;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
@@ -117,5 +118,15 @@ public class ArticleController {
         }
 
         return new ArticleDto(article, false);
+    }
+
+    @RequestMapping(value = "/articles/{articleId}/point", method = RequestMethod.GET)
+    public ArticlePointDto getPoint(@PathVariable long articleId) {
+        Article article = articleService.findArticle(articleId);
+        if (article == null) {
+            throw new ResourceNotFoundException("Article not found");
+        }
+
+        return new ArticlePointDto(article.getPoint());
     }
 }

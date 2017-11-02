@@ -29,6 +29,9 @@ public class ArticlePointDto {
     private Double organization;
 
     public ArticlePointDto(ArticlePoint point) {
+        if (point == null) {
+            return;
+        }
         this.total = point.getTotal();
         this.originality = point.getOriginality();
         this.significance = point.getSignificance();

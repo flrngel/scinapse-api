@@ -46,4 +46,8 @@ public class ArticleService {
     public Page<Article> findByCreatedBy(Member createdBy, Pageable pageable) {
         return articleRepository.findByCreatedBy(createdBy, pageable);
     }
+
+    public long getCount(Member createdBy) {
+        return articleRepository.countByCreatedBy(createdBy);
+    }
 }
