@@ -29,6 +29,9 @@ public class WebConfig extends WebMvcConfigurerAdapter {
             @Override
             public Sort resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
                 Sort sort = super.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+                if (sort == null) {
+                    return null;
+                }
 
                 // with nulls last
                 List<Sort.Order> orders = new ArrayList<>();
