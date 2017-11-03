@@ -1,5 +1,6 @@
 package network.pluto.absolute.service;
 
+import com.querydsl.core.types.Predicate;
 import lombok.NonNull;
 import network.pluto.bibliotheca.models.Article;
 import network.pluto.bibliotheca.models.Member;
@@ -35,8 +36,8 @@ public class ArticleService {
         return articleRepository.save(article);
     }
 
-    public Page<Article> findArticles(Pageable pageable) {
-        return articleRepository.findAll(pageable);
+    public Page<Article> findArticles(Predicate predicate, Pageable pageable) {
+        return articleRepository.findAll(predicate, pageable);
     }
 
     public Page<Article> findArticlesIn(List<Long> ids, Pageable pageable) {

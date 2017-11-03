@@ -1,5 +1,9 @@
 package network.pluto.absolute.controller;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
+import lombok.Getter;
+import lombok.Setter;
 import network.pluto.absolute.dto.ArticleDto;
 import network.pluto.absolute.dto.ArticlePointDto;
 import network.pluto.absolute.error.ResourceNotFoundException;
@@ -7,8 +11,10 @@ import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
+import network.pluto.bibliotheca.enums.ArticleType;
 import network.pluto.bibliotheca.models.Article;
 import network.pluto.bibliotheca.models.Member;
+import network.pluto.bibliotheca.models.QArticle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,15 +61,9 @@ public class ArticleController {
 
     @RequestMapping(value = "/articles", method = RequestMethod.GET)
     public Page<ArticleDto> getArticles(@ApiIgnore JwtUser user,
-                                        @RequestParam(required = false) List<Long> ids,
+                                        ArticleQuery query,
                                         @PageableDefault Pageable pageable) {
-        Page<Article> articles;
-
-        if (!CollectionUtils.isEmpty(ids)) {
-            articles = articleService.findArticlesIn(ids, pageable);
-        } else {
-            articles = articleService.findArticles(pageable);
-        }
+        Page<Article> articles = articleService.findArticles(query.toPredicate(), pageable);
 
         Page<ArticleDto> articleDtos = articles.map(ArticleDto::new);
 
@@ -128,5 +128,28 @@ public class ArticleController {
         }
 
         return new ArticlePointDto(article.getPoint());
+    }
+
+    @Getter
+    @Setter
+    public static class ArticleQuery {
+        private List<Long> ids;
+        private ArticleType type;
+
+        public Predicate toPredicate() {
+            QArticle article = QArticle.article;
+
+            BooleanBuilder builder = new BooleanBuilder();
+
+            if (!CollectionUtils.isEmpty(ids)) {
+                builder.and(article.articleId.in(ids));
+            }
+
+            if (type != null) {
+                builder.and(article.type.eq(type));
+            }
+
+            return builder;
+        }
     }
 }
