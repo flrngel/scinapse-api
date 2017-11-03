@@ -39,6 +39,8 @@ public class EvaluationPointDto {
     private String validityComment;
     private String organizationComment;
 
+    private String review;
+
     public EvaluationPointDto(EvaluationPoint point) {
         this.total = point.getTotal();
 
@@ -51,6 +53,8 @@ public class EvaluationPointDto {
         this.significanceComment = point.getSignificanceComment();
         this.validityComment = point.getValidityComment();
         this.organizationComment = point.getOrganizationComment();
+
+        this.review = point.getReview();
     }
 
     public EvaluationPoint toEntity() {
@@ -65,6 +69,8 @@ public class EvaluationPointDto {
         point.setSignificanceComment(this.significanceComment);
         point.setValidityComment(this.validityComment);
         point.setOrganizationComment(this.organizationComment);
+
+        point.setReview(this.review);
 
         point.updateTotal();
 
