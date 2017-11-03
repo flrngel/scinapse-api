@@ -54,10 +54,10 @@ public class EvaluationService {
         ArticlePoint articlePoint = article.getPoint();
         EvaluationPoint evaluationPoint = save.getPoint();
 
-        articlePoint.setOriginality((articlePoint.getOriginality() + evaluationPoint.getOriginality()) / count);
-        articlePoint.setSignificance((articlePoint.getSignificance() + evaluationPoint.getSignificance()) / count);
-        articlePoint.setValidity((articlePoint.getValidity() + evaluationPoint.getValidity()) / count);
-        articlePoint.setOrganization((articlePoint.getOrganization() + evaluationPoint.getOrganization()) / count);
+        articlePoint.setOriginality((articlePoint.getOriginality() * (count - 1) + evaluationPoint.getOriginality()) / count);
+        articlePoint.setSignificance((articlePoint.getSignificance() * (count - 1) + evaluationPoint.getSignificance()) / count);
+        articlePoint.setValidity((articlePoint.getValidity() * (count - 1) + evaluationPoint.getValidity()) / count);
+        articlePoint.setOrganization((articlePoint.getOrganization() * (count - 1) + evaluationPoint.getOrganization()) / count);
 
         articlePoint.updateTotal();
     }
