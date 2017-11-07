@@ -56,7 +56,7 @@ public class MemberDto {
     private long articleCount;
 
     @ApiModelProperty(readOnly = true)
-    private long evaluationCount;
+    private long reviewCount;
 
     @ApiModelProperty(readOnly = true)
     private long commentCount;

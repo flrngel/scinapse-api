@@ -5,8 +5,8 @@ import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.CommentService;
-import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
+import network.pluto.absolute.service.ReviewService;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -17,14 +17,14 @@ public class MemberFacade {
 
     private final MemberService memberService;
     private final ArticleService articleService;
-    private final EvaluationService evaluationService;
+    private final ReviewService reviewService;
     private final CommentService commentService;
 
     @Autowired
-    public MemberFacade(MemberService memberService, ArticleService articleService, EvaluationService evaluationService, CommentService commentService) {
+    public MemberFacade(MemberService memberService, ArticleService articleService, ReviewService reviewService, CommentService commentService) {
         this.memberService = memberService;
         this.articleService = articleService;
-        this.evaluationService = evaluationService;
+        this.reviewService = reviewService;
         this.commentService = commentService;
     }
 
@@ -36,12 +36,12 @@ public class MemberFacade {
         }
 
         long articleCount = articleService.getCount(member);
-        long evaluationCount = evaluationService.getCount(member);
+        long reviewCount = reviewService.getCount(member);
         long commentCount = commentService.getCount(member);
 
         MemberDto memberDto = new MemberDto(member);
         memberDto.setArticleCount(articleCount);
-        memberDto.setEvaluationCount(evaluationCount);
+        memberDto.setReviewCount(reviewCount);
         memberDto.setCommentCount(commentCount);
 
         return memberDto;

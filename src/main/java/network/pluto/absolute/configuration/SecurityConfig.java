@@ -132,13 +132,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/members/checkDuplication",
                         "/members/*",
                         "/members/*/articles",
-                        "/members/*/evaluations",
+                        "/members/*/reviews",
                         "/articles",
                         "/articles/*",
                         "/articles/*/point",
-                        "/articles/*/evaluations",
-                        "/articles/*/evaluations/*",
-                        "/articles/*/evaluations/*/comments"
+                        "/articles/*/reviews",
+                        "/articles/*/reviews/*",
+                        "/articles/*/reviews/*/comments"
                 ).permitAll()
 
                 // permit post

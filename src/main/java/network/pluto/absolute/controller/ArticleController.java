@@ -9,8 +9,8 @@ import network.pluto.absolute.dto.ArticlePointDto;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
-import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
+import network.pluto.absolute.service.ReviewService;
 import network.pluto.bibliotheca.enums.ArticleType;
 import network.pluto.bibliotheca.models.Article;
 import network.pluto.bibliotheca.models.Member;
@@ -32,15 +32,15 @@ public class ArticleController {
 
     private final MemberService memberService;
     private final ArticleService articleService;
-    private final EvaluationService evaluationService;
+    private final ReviewService reviewService;
 
     @Autowired
     public ArticleController(MemberService memberService,
                              ArticleService articleService,
-                             EvaluationService evaluationService) {
+                             ReviewService reviewService) {
         this.memberService = memberService;
         this.articleService = articleService;
-        this.evaluationService = evaluationService;
+        this.reviewService = reviewService;
     }
 
     @RequestMapping(value = "/articles", method = RequestMethod.POST)
@@ -70,7 +70,7 @@ public class ArticleController {
         if (user != null) {
             Member member = memberService.getMember(user.getId());
 
-            Map<Long, Boolean> evaluatedMap = evaluationService.checkEvaluated(member, articles.getContent());
+            Map<Long, Boolean> evaluatedMap = reviewService.checkEvaluated(member, articles.getContent());
             articleDtos.forEach(dto -> {
                 if (evaluatedMap.get(dto.getId())) {
                     dto.setEvaluated(true);
@@ -94,13 +94,13 @@ public class ArticleController {
         if (user != null) {
             Member member = memberService.getMember(user.getId());
 
-            boolean evaluated = evaluationService.checkEvaluated(member, article);
+            boolean evaluated = reviewService.checkEvaluated(member, article);
             if (evaluated) {
                 articleDto.setEvaluated(true);
             }
 
-            Map<Long, Boolean> votedMap = evaluationService.checkVoted(member, article.getEvaluations());
-            articleDto.getEvaluations().forEach(e -> {
+            Map<Long, Boolean> votedMap = reviewService.checkVoted(member, article.getReviews());
+            articleDto.getReviews().forEach(e -> {
                 if (votedMap.get(e.getId())) {
                     e.setVoted(true);
                 }

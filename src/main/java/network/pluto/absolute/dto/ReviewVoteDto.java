@@ -8,10 +8,10 @@ import lombok.ToString;
 @ToString
 @Getter
 @Setter
-public class EvaluationVoteDto {
+public class ReviewVoteDto {
 
     @ApiModelProperty(readOnly = true)
-    private long evaluationId;
+    private long reviewId;
 
     @ApiModelProperty(readOnly = true)
     private long memberId;
