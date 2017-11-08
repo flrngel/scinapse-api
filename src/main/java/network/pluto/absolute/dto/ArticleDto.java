@@ -71,7 +71,7 @@ public class ArticleDto {
     private boolean evaluated;
 
     public ArticleDto(Article article, boolean loadReviews) {
-        this.id = article.getArticleId();
+        this.id = article.getId();
         this.type = article.getType();
         this.title = article.getTitle();
         this.summary = article.getSummary();

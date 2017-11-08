@@ -101,13 +101,13 @@ public class ReviewService {
         Map<Long, Boolean> votedMap = reviewVoteRepository
                 .findByMemberAndReviewIn(member, reviews)
                 .stream()
-                .map(ev -> ev.getReview().getReviewId())
+                .map(ev -> ev.getReview().getId())
                 .collect(Collectors.toMap(
                         e -> e,
                         e -> true
                 ));
 
-        List<Long> reviewIds = reviews.stream().map(Review::getReviewId).collect(Collectors.toList());
+        List<Long> reviewIds = reviews.stream().map(Review::getId).collect(Collectors.toList());
         for (Long id : reviewIds) {
             votedMap.putIfAbsent(id, false);
         }
@@ -124,13 +124,13 @@ public class ReviewService {
         Map<Long, Boolean> evaluatedMap = reviewRepository
                 .findByCreatedByAndArticleIn(member, articles)
                 .stream()
-                .map(e -> e.getArticle().getArticleId())
+                .map(e -> e.getArticle().getId())
                 .collect(Collectors.toMap(
                         id -> id,
                         id -> true
                 ));
 
-        List<Long> articleIds = articles.stream().map(Article::getArticleId).collect(Collectors.toList());
+        List<Long> articleIds = articles.stream().map(Article::getId).collect(Collectors.toList());
         for (Long id : articleIds) {
             evaluatedMap.putIfAbsent(id, false);
         }

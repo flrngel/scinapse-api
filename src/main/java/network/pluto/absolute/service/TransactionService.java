@@ -21,6 +21,6 @@ public class TransactionService {
 
     public void createWallet(Member member) {
         // TODO handle exception
-        restTemplate.postForObject(alfredUrl + "/wallets/" + member.getMemberId(), null, String.class);
+        restTemplate.postForObject(alfredUrl + "/wallets/" + member.getId(), null, String.class);
     }
 }

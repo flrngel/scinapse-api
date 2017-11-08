@@ -49,8 +49,8 @@ public class ReviewDto {
     private LocalDateTime createdAt;
 
     public ReviewDto(Review review, boolean voted) {
-        this.id = review.getReviewId();
-        this.articleId = review.getArticle().getArticleId();
+        this.id = review.getId();
+        this.articleId = review.getArticle().getId();
         this.vote = review.getVote();
         this.commentSize = review.getCommentSize();
         this.createdBy = new MemberDto(review.getCreatedBy());

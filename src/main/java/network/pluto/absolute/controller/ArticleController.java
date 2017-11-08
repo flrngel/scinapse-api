@@ -142,7 +142,7 @@ public class ArticleController {
             BooleanBuilder builder = new BooleanBuilder();
 
             if (!CollectionUtils.isEmpty(ids)) {
-                builder.and(article.articleId.in(ids));
+                builder.and(article.id.in(ids));
             }
 
             if (type != null) {

@@ -33,9 +33,9 @@ public class CommentDto {
     private LocalDateTime createdAt;
 
     public CommentDto(Comment comment) {
-        this.id = comment.getCommentId();
+        this.id = comment.getId();
         this.comment = comment.getComment();
-        this.reviewId = comment.getReview().getReviewId();
+        this.reviewId = comment.getReview().getId();
         this.createdBy = new MemberDto(comment.getCreatedBy());
         this.createdAt = comment.getCreatedAt();
     }

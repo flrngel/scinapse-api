@@ -50,7 +50,7 @@ public class TokenHelper {
 
     public String generateToken(Member member) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("id", member.getMemberId());
+        claims.put("id", member.getId());
         claims.put("name", member.getName());
         claims.put("roles", member.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
 
