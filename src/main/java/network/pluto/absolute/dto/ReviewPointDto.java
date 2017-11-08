@@ -49,11 +49,6 @@ public class ReviewPointDto {
         this.validity = point.getValidity();
         this.organization = point.getOrganization();
 
-        this.originalityComment = point.getOriginalityComment();
-        this.significanceComment = point.getSignificanceComment();
-        this.validityComment = point.getValidityComment();
-        this.organizationComment = point.getOrganizationComment();
-
         this.review = point.getReview();
     }
 
@@ -65,14 +60,9 @@ public class ReviewPointDto {
         point.setValidity(this.validity);
         point.setOrganization(this.organization);
 
-        point.setOriginalityComment(this.originalityComment);
-        point.setSignificanceComment(this.significanceComment);
-        point.setValidityComment(this.validityComment);
-        point.setOrganizationComment(this.organizationComment);
+        point.updateTotal();
 
         point.setReview(this.review);
-
-        point.updateTotal();
 
         return point;
     }
