@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import network.pluto.bibliotheca.models.Evaluation;
+import network.pluto.bibliotheca.models.Review;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @ToString(exclude = { "comments", "createdBy" })
 @Getter
 @Setter
-public class EvaluationDto {
+public class ReviewDto {
 
     @ApiModelProperty(readOnly = true)
     private long id;
@@ -25,7 +25,7 @@ public class EvaluationDto {
     @ApiModelProperty(required = true)
     @NotNull
     @Valid
-    private EvaluationPointDto point;
+    private ReviewPointDto point;
 
     @ApiModelProperty(readOnly = true)
     private long articleId;
@@ -48,36 +48,36 @@ public class EvaluationDto {
     @ApiModelProperty(readOnly = true)
     private LocalDateTime createdAt;
 
-    public EvaluationDto(Evaluation evaluation, boolean voted) {
-        this.id = evaluation.getEvaluationId();
-        this.articleId = evaluation.getArticle().getArticleId();
-        this.vote = evaluation.getVote();
-        this.commentSize = evaluation.getCommentSize();
-        this.createdBy = new MemberDto(evaluation.getCreatedBy());
-        this.createdAt = evaluation.getCreatedAt();
+    public ReviewDto(Review review, boolean voted) {
+        this.id = review.getId();
+        this.articleId = review.getArticle().getId();
+        this.vote = review.getVote();
+        this.commentSize = review.getCommentSize();
+        this.createdBy = new MemberDto(review.getCreatedBy());
+        this.createdAt = review.getCreatedAt();
 
         this.voted = voted;
 
-        if (evaluation.getPoint() != null) {
-            this.point = new EvaluationPointDto(evaluation.getPoint());
+        if (review.getPoint() != null) {
+            this.point = new ReviewPointDto(review.getPoint());
         }
 
-        if (evaluation.getComments() != null) {
-            this.comments = evaluation.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
+        if (review.getComments() != null) {
+            this.comments = review.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
         }
     }
 
-    public EvaluationDto(Evaluation evaluation) {
-        this(evaluation, false);
+    public ReviewDto(Review review) {
+        this(review, false);
     }
 
-    public Evaluation toEntity() {
-        Evaluation evaluation = new Evaluation();
+    public Review toEntity() {
+        Review review = new Review();
 
         if (this.point != null) {
-            evaluation.setPoint(this.point.toEntity());
+            review.setPoint(this.point.toEntity());
         }
 
-        return evaluation;
+        return review;
     }
 }

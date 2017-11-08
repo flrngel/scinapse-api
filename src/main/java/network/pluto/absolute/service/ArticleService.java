@@ -41,7 +41,7 @@ public class ArticleService {
     }
 
     public Page<Article> findArticlesIn(List<Long> ids, Pageable pageable) {
-        return articleRepository.findByArticleIdIn(ids, pageable);
+        return articleRepository.findByIdIn(ids, pageable);
     }
 
     public Page<Article> findByCreatedBy(Member createdBy, Pageable pageable) {

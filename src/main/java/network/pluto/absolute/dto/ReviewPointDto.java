@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import network.pluto.bibliotheca.models.EvaluationPoint;
+import network.pluto.bibliotheca.models.ReviewPoint;
 
 import javax.validation.constraints.NotNull;
 
@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
 @ToString
 @Getter
 @Setter
-public class EvaluationPointDto {
+public class ReviewPointDto {
 
     @ApiModelProperty(readOnly = true)
     private double total;
@@ -41,7 +41,7 @@ public class EvaluationPointDto {
 
     private String review;
 
-    public EvaluationPointDto(EvaluationPoint point) {
+    public ReviewPointDto(ReviewPoint point) {
         this.total = point.getTotal();
 
         this.originality = point.getOriginality();
@@ -49,30 +49,20 @@ public class EvaluationPointDto {
         this.validity = point.getValidity();
         this.organization = point.getOrganization();
 
-        this.originalityComment = point.getOriginalityComment();
-        this.significanceComment = point.getSignificanceComment();
-        this.validityComment = point.getValidityComment();
-        this.organizationComment = point.getOrganizationComment();
-
         this.review = point.getReview();
     }
 
-    public EvaluationPoint toEntity() {
-        EvaluationPoint point = new EvaluationPoint();
+    public ReviewPoint toEntity() {
+        ReviewPoint point = new ReviewPoint();
 
         point.setOriginality(this.originality);
         point.setSignificance(this.significance);
         point.setValidity(this.validity);
         point.setOrganization(this.organization);
 
-        point.setOriginalityComment(this.originalityComment);
-        point.setSignificanceComment(this.significanceComment);
-        point.setValidityComment(this.validityComment);
-        point.setOrganizationComment(this.organizationComment);
+        point.updateTotal();
 
         point.setReview(this.review);
-
-        point.updateTotal();
 
         return point;
     }

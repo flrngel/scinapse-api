@@ -56,13 +56,13 @@ public class MemberDto {
     private long articleCount;
 
     @ApiModelProperty(readOnly = true)
-    private long evaluationCount;
+    private long reviewCount;
 
     @ApiModelProperty(readOnly = true)
     private long commentCount;
 
     public MemberDto(Member member) {
-        this.id = member.getMemberId();
+        this.id = member.getId();
         this.email = member.getEmail();
         this.name = member.getName();
         this.profileImage = member.getProfileImage();

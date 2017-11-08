@@ -20,7 +20,7 @@ public class WalletDto {
     private String address;
 
     public WalletDto(Wallet wallet) {
-        this.id = wallet.getWalletId();
+        this.id = wallet.getId();
         this.address = wallet.getAddress();
     }
 }

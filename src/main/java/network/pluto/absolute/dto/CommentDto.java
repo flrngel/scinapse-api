@@ -24,7 +24,7 @@ public class CommentDto {
     private String comment;
 
     @ApiModelProperty(readOnly = true)
-    private long evaluationId;
+    private long reviewId;
 
     @ApiModelProperty(readOnly = true)
     private MemberDto createdBy;
@@ -33,9 +33,9 @@ public class CommentDto {
     private LocalDateTime createdAt;
 
     public CommentDto(Comment comment) {
-        this.id = comment.getCommentId();
+        this.id = comment.getId();
         this.comment = comment.getComment();
-        this.evaluationId = comment.getEvaluation().getEvaluationId();
+        this.reviewId = comment.getReview().getId();
         this.createdBy = new MemberDto(comment.getCreatedBy());
         this.createdAt = comment.getCreatedAt();
     }

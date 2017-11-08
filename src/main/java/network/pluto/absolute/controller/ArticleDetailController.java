@@ -1,19 +1,19 @@
 package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.CommentDto;
-import network.pluto.absolute.dto.EvaluationDto;
-import network.pluto.absolute.dto.EvaluationVoteDto;
+import network.pluto.absolute.dto.ReviewDto;
+import network.pluto.absolute.dto.ReviewVoteDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.CommentService;
-import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
+import network.pluto.absolute.service.ReviewService;
 import network.pluto.bibliotheca.models.Article;
 import network.pluto.bibliotheca.models.Comment;
-import network.pluto.bibliotheca.models.Evaluation;
 import network.pluto.bibliotheca.models.Member;
+import network.pluto.bibliotheca.models.Review;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,24 +30,24 @@ public class ArticleDetailController {
 
     private final MemberService memberService;
     private final ArticleService articleService;
-    private final EvaluationService evaluationService;
+    private final ReviewService reviewService;
     private final CommentService commentService;
 
     @Autowired
     public ArticleDetailController(MemberService memberService,
                                    ArticleService articleService,
-                                   EvaluationService evaluationService,
+                                   ReviewService reviewService,
                                    CommentService commentService) {
         this.memberService = memberService;
         this.articleService = articleService;
-        this.evaluationService = evaluationService;
+        this.reviewService = reviewService;
         this.commentService = commentService;
     }
 
-    @RequestMapping(value = "/evaluations", method = RequestMethod.POST)
-    public EvaluationDto createEvaluation(@ApiIgnore JwtUser user,
-                                          @PathVariable long articleId,
-                                          @RequestBody @Valid EvaluationDto evaluationDto) {
+    @RequestMapping(value = "/reviews", method = RequestMethod.POST)
+    public ReviewDto createReview(@ApiIgnore JwtUser user,
+                                  @PathVariable long articleId,
+                                  @RequestBody @Valid ReviewDto reviewDto) {
         Article article = articleService.findArticle(articleId);
         if (article == null) {
             throw new ResourceNotFoundException("Article not found");
@@ -55,38 +55,38 @@ public class ArticleDetailController {
 
         Member member = memberService.getMember(user.getId());
 
-        boolean evaluated = evaluationService.checkEvaluated(member, article);
+        boolean evaluated = reviewService.checkEvaluated(member, article);
         if (evaluated) {
             throw new BadRequestException("Already evaluated");
         }
 
-        Evaluation evaluation = evaluationDto.toEntity();
-        evaluation.setCreatedBy(member);
+        Review review = reviewDto.toEntity();
+        review.setCreatedBy(member);
 
-        evaluation = evaluationService.saveEvaluation(article, evaluation);
+        review = reviewService.saveReview(article, review);
 
         // increase member reputation
         memberService.increaseReputation(member, 5);
 
-        return new EvaluationDto(evaluation);
+        return new ReviewDto(review);
     }
 
-    @RequestMapping(value = "/evaluations", method = RequestMethod.GET)
-    public Page<EvaluationDto> findEvaluations(@ApiIgnore JwtUser user,
-                                               @PathVariable long articleId,
-                                               @PageableDefault Pageable pageable) {
+    @RequestMapping(value = "/reviews", method = RequestMethod.GET)
+    public Page<ReviewDto> findReviews(@ApiIgnore JwtUser user,
+                                       @PathVariable long articleId,
+                                       @PageableDefault Pageable pageable) {
         Article article = articleService.findArticle(articleId);
         if (article == null) {
             throw new ResourceNotFoundException("Article not found");
         }
 
-        Page<Evaluation> evaluations = evaluationService.findByArticle(article, pageable);
-        Page<EvaluationDto> dtoList = evaluations.map(EvaluationDto::new);
+        Page<Review> reviews = reviewService.findByArticle(article, pageable);
+        Page<ReviewDto> dtoList = reviews.map(ReviewDto::new);
 
         if (user != null) {
             Member member = memberService.getMember(user.getId());
 
-            Map<Long, Boolean> votedMap = evaluationService.checkVoted(member, evaluations.getContent());
+            Map<Long, Boolean> votedMap = reviewService.checkVoted(member, reviews.getContent());
             dtoList.forEach(e -> {
                 if (votedMap.get(e.getId())) {
                     e.setVoted(true);
@@ -97,53 +97,53 @@ public class ArticleDetailController {
         return dtoList;
     }
 
-    @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.POST)
-    public EvaluationVoteDto pressVote(@ApiIgnore JwtUser user,
-                                       @PathVariable long evaluationId) {
-        Evaluation evaluation = evaluationService.findEvaluation(evaluationId);
-        if (evaluation == null) {
-            throw new ResourceNotFoundException("Evaluation not found");
+    @RequestMapping(value = "/reviews/{reviewId}/vote", method = RequestMethod.POST)
+    public ReviewVoteDto pressVote(@ApiIgnore JwtUser user,
+                                   @PathVariable long reviewId) {
+        Review review = reviewService.findReview(reviewId);
+        if (review == null) {
+            throw new ResourceNotFoundException("Review not found");
         }
 
         Member member = memberService.getMember(user.getId());
 
-        boolean voted = evaluationService.checkVoted(member, evaluation);
+        boolean voted = reviewService.checkVoted(member, review);
         if (voted) {
             throw new BadRequestException("Already voted");
         }
 
-        // increase evaluation vote number
-        evaluationService.increaseVote(evaluation, member);
+        // increase review vote number
+        reviewService.increaseVote(review, member);
 
         // increase member reputation
         memberService.increaseReputation(member, 1);
 
 
-        EvaluationVoteDto dto = new EvaluationVoteDto();
-        dto.setEvaluationId(evaluationId);
+        ReviewVoteDto dto = new ReviewVoteDto();
+        dto.setReviewId(reviewId);
         dto.setMemberId(user.getId());
-        dto.setVote(evaluation.getVote());
+        dto.setVote(review.getVote());
         dto.setVoted(true);
 
         return dto;
     }
 
-    @RequestMapping(value = "/evaluations/{evaluationId}/vote", method = RequestMethod.GET)
-    public EvaluationVoteDto checkVote(@ApiIgnore JwtUser user,
-                                       @PathVariable long evaluationId) {
-        Evaluation evaluation = evaluationService.findEvaluation(evaluationId);
-        if (evaluation == null) {
-            throw new ResourceNotFoundException("Evaluation not found");
+    @RequestMapping(value = "/reviews/{reviewId}/vote", method = RequestMethod.GET)
+    public ReviewVoteDto checkVote(@ApiIgnore JwtUser user,
+                                   @PathVariable long reviewId) {
+        Review review = reviewService.findReview(reviewId);
+        if (review == null) {
+            throw new ResourceNotFoundException("Review not found");
         }
 
         Member member = memberService.getMember(user.getId());
 
-        EvaluationVoteDto dto = new EvaluationVoteDto();
-        dto.setEvaluationId(evaluationId);
+        ReviewVoteDto dto = new ReviewVoteDto();
+        dto.setReviewId(reviewId);
         dto.setMemberId(user.getId());
-        dto.setVote(evaluation.getVote());
+        dto.setVote(review.getVote());
 
-        boolean voted = evaluationService.checkVoted(member, evaluation);
+        boolean voted = reviewService.checkVoted(member, review);
         if (voted) {
             dto.setVoted(true);
         }
@@ -151,13 +151,13 @@ public class ArticleDetailController {
         return dto;
     }
 
-    @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.POST)
+    @RequestMapping(value = "/reviews/{reviewId}/comments", method = RequestMethod.POST)
     public CommentDto createComment(@ApiIgnore JwtUser user,
-                                    @PathVariable long evaluationId,
+                                    @PathVariable long reviewId,
                                     @RequestBody @Valid CommentDto commentDto) {
-        Evaluation evaluation = evaluationService.findEvaluation(evaluationId);
-        if (evaluation == null) {
-            throw new ResourceNotFoundException("Evaluation not found");
+        Review review = reviewService.findReview(reviewId);
+        if (review == null) {
+            throw new ResourceNotFoundException("Review not found");
         }
 
         Member member = memberService.getMember(user.getId());
@@ -165,18 +165,18 @@ public class ArticleDetailController {
         Comment comment = commentDto.toEntity();
         comment.setCreatedBy(member);
 
-        comment = commentService.saveComment(evaluation, comment);
+        comment = commentService.saveComment(review, comment);
         return new CommentDto(comment);
     }
 
-    @RequestMapping(value = "/evaluations/{evaluationId}/comments", method = RequestMethod.GET)
-    public Page<CommentDto> findComments(@PathVariable long evaluationId,
+    @RequestMapping(value = "/reviews/{reviewId}/comments", method = RequestMethod.GET)
+    public Page<CommentDto> findComments(@PathVariable long reviewId,
                                          @PageableDefault Pageable pageable) {
-        Evaluation evaluation = evaluationService.findEvaluation(evaluationId);
-        if (evaluation == null) {
-            throw new ResourceNotFoundException("Evaluation not found");
+        Review review = reviewService.findReview(reviewId);
+        if (review == null) {
+            throw new ResourceNotFoundException("Review not found");
         }
 
-        return commentService.findByEvaluation(evaluation, pageable).map(CommentDto::new);
+        return commentService.findByReview(review, pageable).map(CommentDto::new);
     }
 }

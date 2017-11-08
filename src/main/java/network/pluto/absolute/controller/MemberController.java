@@ -1,16 +1,16 @@
 package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.ArticleDto;
-import network.pluto.absolute.dto.EvaluationDto;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.MemberDuplicationCheckDto;
+import network.pluto.absolute.dto.ReviewDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.facade.MemberFacade;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.ArticleService;
-import network.pluto.absolute.service.EvaluationService;
 import network.pluto.absolute.service.MemberService;
+import network.pluto.absolute.service.ReviewService;
 import network.pluto.absolute.service.TransactionService;
 import network.pluto.absolute.validator.Update;
 import network.pluto.bibliotheca.models.Member;
@@ -31,19 +31,19 @@ public class MemberController {
 
     private final MemberService memberService;
     private final ArticleService articleService;
-    private final EvaluationService evaluationService;
+    private final ReviewService reviewService;
     private final TransactionService transactionService;
     private final MemberFacade memberFacade;
 
     @Autowired
     public MemberController(MemberService memberService,
                             ArticleService articleService,
-                            EvaluationService evaluationService,
+                            ReviewService reviewService,
                             TransactionService transactionService,
                             MemberFacade memberFacade) {
         this.memberService = memberService;
         this.articleService = articleService;
-        this.evaluationService = evaluationService;
+        this.reviewService = reviewService;
         this.transactionService = transactionService;
         this.memberFacade = memberFacade;
     }
@@ -84,16 +84,16 @@ public class MemberController {
         return articleService.findByCreatedBy(member, pageable).map(ArticleDto::new);
     }
 
-    @RequestMapping(value = "/members/{memberId}/evaluations", method = RequestMethod.GET)
-    public Page<EvaluationDto> getMyEvaluations(@ApiIgnore JwtUser user,
-                                                @PathVariable long memberId,
-                                                @PageableDefault Pageable pageable) {
+    @RequestMapping(value = "/members/{memberId}/reviews", method = RequestMethod.GET)
+    public Page<ReviewDto> getMyReviews(@ApiIgnore JwtUser user,
+                                        @PathVariable long memberId,
+                                        @PageableDefault Pageable pageable) {
         Member member = memberService.findMember(memberId);
         if (member == null) {
             throw new ResourceNotFoundException("Member not found");
         }
 
-        return evaluationService.findByCreatedBy(member, pageable).map(EvaluationDto::new);
+        return reviewService.findByCreatedBy(member, pageable).map(ReviewDto::new);
     }
 
     @RequestMapping(value = "/members/{memberId}", method = RequestMethod.PUT)

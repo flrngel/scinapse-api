@@ -2,8 +2,8 @@ package network.pluto.absolute.service;
 
 import lombok.NonNull;
 import network.pluto.bibliotheca.models.Comment;
-import network.pluto.bibliotheca.models.Evaluation;
 import network.pluto.bibliotheca.models.Member;
+import network.pluto.bibliotheca.models.Review;
 import network.pluto.bibliotheca.repositories.CommentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,17 +21,17 @@ public class CommentService {
     }
 
     @Transactional
-    public Comment saveComment(Evaluation evaluation, @NonNull Comment comment) {
-        comment.setEvaluation(evaluation);
+    public Comment saveComment(Review review, @NonNull Comment comment) {
+        comment.setReview(review);
         Comment save = commentRepository.save(comment);
 
-        evaluation.increaseCommentSize();
+        review.increaseCommentSize();
 
         return save;
     }
 
-    public Page<Comment> findByEvaluation(Evaluation evaluation, Pageable pageable) {
-        return commentRepository.findByEvaluation(evaluation, pageable);
+    public Page<Comment> findByReview(Review review, Pageable pageable) {
+        return commentRepository.findByReview(review, pageable);
     }
 
     public long getCount(Member createdBy) {

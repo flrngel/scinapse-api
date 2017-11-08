@@ -34,7 +34,7 @@ public class AuthorDto {
     private String major;
 
     public AuthorDto(Author author) {
-        this.id = author.getAuthorId();
+        this.id = author.getId();
 
         if (author.getMember() != null) {
             this.member = new MemberDto(author.getMember());

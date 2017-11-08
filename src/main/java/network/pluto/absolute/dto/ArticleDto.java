@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor
-@ToString(exclude = { "createdBy", "authors", "evaluations" })
+@ToString(exclude = { "createdBy", "authors", "reviews" })
 @Getter
 @Setter
 public class ArticleDto {
@@ -62,23 +62,23 @@ public class ArticleDto {
     private List<AuthorDto> authors;
 
     @ApiModelProperty(readOnly = true)
-    private List<EvaluationDto> evaluations;
+    private List<ReviewDto> reviews;
 
     @ApiModelProperty(readOnly = true)
-    private int evaluationSize;
+    private int reviewSize;
 
     @ApiModelProperty(readOnly = true)
     private boolean evaluated;
 
-    public ArticleDto(Article article, boolean loadEvaluations) {
-        this.id = article.getArticleId();
+    public ArticleDto(Article article, boolean loadReviews) {
+        this.id = article.getId();
         this.type = article.getType();
         this.title = article.getTitle();
         this.summary = article.getSummary();
         this.link = article.getLink();
         this.source = article.getSource();
         this.note = article.getNote();
-        this.evaluationSize = article.getEvaluationSize();
+        this.reviewSize = article.getReviewSize();
         this.createdBy = new MemberDto(article.getCreatedBy());
         this.createdAt = article.getCreatedAt();
 
@@ -90,8 +90,8 @@ public class ArticleDto {
             this.authors = article.getAuthors().stream().map(AuthorDto::new).collect(Collectors.toList());
         }
 
-        if (loadEvaluations && article.getEvaluations() != null) {
-            this.evaluations = article.getEvaluations().stream().map(EvaluationDto::new).collect(Collectors.toList());
+        if (loadReviews && article.getReviews() != null) {
+            this.reviews = article.getReviews().stream().map(ReviewDto::new).collect(Collectors.toList());
         }
     }
 
