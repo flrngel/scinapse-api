@@ -12,6 +12,7 @@ import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.absolute.service.ReviewService;
 import network.pluto.bibliotheca.enums.ArticleType;
+import network.pluto.bibliotheca.enums.ReputationChangeReason;
 import network.pluto.bibliotheca.models.Article;
 import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.models.QArticle;
@@ -54,7 +55,7 @@ public class ArticleController {
         article = articleService.saveArticle(article);
 
         // increase member reputation
-        memberService.increaseReputation(member, 10);
+        memberService.changeReputation(member, ReputationChangeReason.ARTICLE_CREATE, 10);
 
         return new ArticleDto(article);
     }

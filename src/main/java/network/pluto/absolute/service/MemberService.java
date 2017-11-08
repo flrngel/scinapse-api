@@ -2,6 +2,7 @@ package network.pluto.absolute.service;
 
 import lombok.NonNull;
 import network.pluto.bibliotheca.enums.AuthorityName;
+import network.pluto.bibliotheca.enums.ReputationChangeReason;
 import network.pluto.bibliotheca.models.Authority;
 import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.models.MemberReputation;
@@ -90,11 +91,13 @@ public class MemberService {
     }
 
     @Transactional
-    public void increaseReputation(Member member, long point) {
+    public void changeReputation(Member member, ReputationChangeReason reason, long point) {
         MemberReputation reputation = new MemberReputation();
         reputation.setMember(member);
+        reputation.setReason(reason);
+        reputation.setDelta(point);
         memberReputationRepository.save(reputation);
 
-        member.increaseReputation(point);
+        member.changeReputation(point);
     }
 }
