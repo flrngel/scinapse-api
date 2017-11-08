@@ -10,6 +10,7 @@ import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.absolute.service.ReviewService;
+import network.pluto.bibliotheca.enums.ReputationChangeReason;
 import network.pluto.bibliotheca.models.Article;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.Member;
@@ -66,7 +67,7 @@ public class ArticleDetailController {
         review = reviewService.saveReview(article, review);
 
         // increase member reputation
-        memberService.increaseReputation(member, 5);
+        memberService.changeReputation(member, ReputationChangeReason.REVIEW_CREATE, 5);
 
         return new ReviewDto(review);
     }
@@ -115,9 +116,8 @@ public class ArticleDetailController {
         // increase review vote number
         reviewService.increaseVote(review, member);
 
-        // increase member reputation
-        memberService.increaseReputation(member, 1);
-
+        // increase review creator's reputation
+        memberService.changeReputation(review.getCreatedBy(), ReputationChangeReason.REVIEW_VOTED, 1);
 
         ReviewVoteDto dto = new ReviewVoteDto();
         dto.setReviewId(reviewId);
