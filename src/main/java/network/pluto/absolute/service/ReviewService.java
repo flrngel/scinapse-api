@@ -32,13 +32,13 @@ public class ReviewService {
         review.setArticle(article);
         Review save = reviewRepository.save(review);
 
-        updateArticlePoint(article, save);
+        addReviewPoint(article, save);
         article.increaseReviewSize();
 
         return save;
     }
 
-    private void updateArticlePoint(Article article, Review save) {
+    private void addReviewPoint(Article article, Review save) {
         if (article.getPoint() == null) {
             ArticlePoint point = new ArticlePoint();
             point.setOriginality(0.0);
@@ -58,6 +58,34 @@ public class ReviewService {
         articlePoint.setSignificance((articlePoint.getSignificance() * (count - 1) + reviewPoint.getSignificance()) / count);
         articlePoint.setValidity((articlePoint.getValidity() * (count - 1) + reviewPoint.getValidity()) / count);
         articlePoint.setOrganization((articlePoint.getOrganization() * (count - 1) + reviewPoint.getOrganization()) / count);
+
+        articlePoint.updateTotal();
+    }
+
+    @Transactional
+    public void deleteReview(Article article, Review review) {
+        deleteReviewPoint(article, review);
+        article.decreaseReviewSize();
+
+        deleteAllVotes(review);
+        reviewRepository.delete(review);
+    }
+
+    private void deleteReviewPoint(Article article, Review review) {
+        if (article.getReviewSize() == 1) {
+            article.setPoint(null);
+            return;
+        }
+
+        int count = article.getReviewSize();
+
+        ArticlePoint articlePoint = article.getPoint();
+        ReviewPoint reviewPoint = review.getPoint();
+
+        articlePoint.setOriginality((articlePoint.getOriginality() * count - reviewPoint.getOriginality()) / (count - 1));
+        articlePoint.setSignificance((articlePoint.getSignificance() * count - reviewPoint.getSignificance()) / (count - 1));
+        articlePoint.setValidity((articlePoint.getValidity() * count - reviewPoint.getValidity()) / (count - 1));
+        articlePoint.setOrganization((articlePoint.getOrganization() * count - reviewPoint.getOrganization()) / (count - 1));
 
         articlePoint.updateTotal();
     }
@@ -90,6 +118,17 @@ public class ReviewService {
         reviewVoteRepository.save(vote);
 
         review.increaseVote();
+    }
+
+    @Transactional
+    public void decreaseVote(Review review, Member member) {
+        reviewVoteRepository.deleteByMemberAndReview(member, review);
+        review.decreaseVote();
+    }
+
+    public void deleteAllVotes(Review review) {
+        reviewVoteRepository.deleteByReview(review);
+        review.setVote(0);
     }
 
     public boolean checkVoted(Member member, Review review) {

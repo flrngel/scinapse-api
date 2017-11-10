@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -98,6 +99,32 @@ public class ArticleDetailController {
         return dtoList;
     }
 
+    @RequestMapping(value = "/reviews/{reviewId}", method = RequestMethod.DELETE)
+    public Result deleteReview(@ApiIgnore JwtUser user,
+                               @PathVariable long articleId,
+                               @PathVariable long reviewId) {
+        Article article = articleService.findArticle(articleId);
+        if (article == null) {
+            throw new ResourceNotFoundException("Article not found");
+        }
+
+        Review review = reviewService.findReview(reviewId);
+        if (review == null) {
+            throw new ResourceNotFoundException("Review not found");
+        }
+
+        if (review.getCreatedBy().getId() != user.getId()) {
+            throw new AuthorizationServiceException("Deleting review is only possible by its creator");
+        }
+
+        int vote = review.getVote();
+        memberService.changeReputation(review.getCreatedBy(), ReputationChangeReason.REVIEW_DELETE, -5 + (-1 * vote));
+
+        reviewService.deleteReview(article, review);
+
+        return Result.success();
+    }
+
     @RequestMapping(value = "/reviews/{reviewId}/vote", method = RequestMethod.POST)
     public ReviewVoteDto pressVote(@ApiIgnore JwtUser user,
                                    @PathVariable long reviewId) {
@@ -121,9 +148,39 @@ public class ArticleDetailController {
 
         ReviewVoteDto dto = new ReviewVoteDto();
         dto.setReviewId(reviewId);
-        dto.setMemberId(user.getId());
+        dto.setMemberId(member.getId());
         dto.setVote(review.getVote());
         dto.setVoted(true);
+
+        return dto;
+    }
+
+    @RequestMapping(value = "/reviews/{reviewId}/vote", method = RequestMethod.DELETE)
+    public ReviewVoteDto pressUnVote(@ApiIgnore JwtUser user,
+                                     @PathVariable long reviewId) {
+        Review review = reviewService.findReview(reviewId);
+        if (review == null) {
+            throw new ResourceNotFoundException("Review not found");
+        }
+
+        Member member = memberService.getMember(user.getId());
+
+        boolean voted = reviewService.checkVoted(member, review);
+        if (!voted) {
+            throw new BadRequestException("Not voted");
+        }
+
+        // decrease review vote number
+        reviewService.decreaseVote(review, member);
+
+        // decrease review creator's reputation
+        memberService.changeReputation(review.getCreatedBy(), ReputationChangeReason.REVIEW_UNVOTED, -1);
+
+        ReviewVoteDto dto = new ReviewVoteDto();
+        dto.setReviewId(reviewId);
+        dto.setMemberId(member.getId());
+        dto.setVote(review.getVote());
+        dto.setVoted(false);
 
         return dto;
     }
