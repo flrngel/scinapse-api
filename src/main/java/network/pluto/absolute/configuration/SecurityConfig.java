@@ -129,6 +129,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         HttpMethod.GET,
                         "/",
                         "/hello",
+                        "/verification",
                         "/members/checkDuplication",
                         "/members/*",
                         "/members/*/articles",

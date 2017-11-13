@@ -8,10 +8,7 @@ import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.facade.MemberFacade;
 import network.pluto.absolute.security.jwt.JwtUser;
-import network.pluto.absolute.service.ArticleService;
-import network.pluto.absolute.service.MemberService;
-import network.pluto.absolute.service.ReviewService;
-import network.pluto.absolute.service.TransactionService;
+import network.pluto.absolute.service.*;
 import network.pluto.absolute.validator.Update;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,18 +31,21 @@ public class MemberController {
     private final ReviewService reviewService;
     private final TransactionService transactionService;
     private final MemberFacade memberFacade;
+    private final VerificationService verificationService;
 
     @Autowired
     public MemberController(MemberService memberService,
                             ArticleService articleService,
                             ReviewService reviewService,
                             TransactionService transactionService,
-                            MemberFacade memberFacade) {
+                            MemberFacade memberFacade,
+                            VerificationService verificationService) {
         this.memberService = memberService;
         this.articleService = articleService;
         this.reviewService = reviewService;
         this.transactionService = transactionService;
         this.memberFacade = memberFacade;
+        this.verificationService = verificationService;
     }
 
     @RequestMapping(value = "/members", method = RequestMethod.POST)
@@ -62,6 +62,9 @@ public class MemberController {
 
         // send transaction
         transactionService.createWallet(saved);
+
+        // send verification email
+        verificationService.sendVerification(saved);
 
         return new MemberDto(saved);
     }
