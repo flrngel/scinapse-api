@@ -20,16 +20,16 @@ import java.util.stream.Collectors;
 @Component
 public class TokenHelper {
 
-    @Value("${jwt.issuer}")
+    @Value("${pluto.jwt.issuer}")
     private String issuer;
 
-    @Value("${jwt.secret}")
+    @Value("${pluto.jwt.secret}")
     private String secret;
 
-    @Value("${jwt.cookie}")
+    @Value("${pluto.jwt.cookie}")
     private String cookie;
 
-    @Value("${jwt.expires-in}")
+    @Value("${pluto.jwt.expires-in}")
     private int expireIn;
 
     private SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
