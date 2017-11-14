@@ -9,6 +9,7 @@ import network.pluto.bibliotheca.enums.AuthorType;
 import network.pluto.bibliotheca.models.Author;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @NoArgsConstructor
 @ToString(exclude = { "member" })
@@ -26,11 +27,14 @@ public class AuthorDto {
     private AuthorType type;
 
     @ApiModelProperty(required = true)
+    @Size(max = 250)
     @NotNull
     private String name;
 
+    @Size(max = 250)
     private String institution;
 
+    @Size(max = 250)
     private String major;
 
     public AuthorDto(Author author) {
