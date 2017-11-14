@@ -42,7 +42,7 @@ public class MemberService {
     public Member saveMember(@NonNull Member member) {
         member.setPassword(passwordEncoder.encode(member.getPassword()));
 
-        Authority authority = authorityRepository.findByName(AuthorityName.ROLE_USER);
+        Authority authority = authorityRepository.findByName(AuthorityName.ROLE_UNVERIFIED);
         member.setAuthorities(Collections.singletonList(authority));
 
         return memberRepository.save(member);

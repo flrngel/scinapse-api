@@ -31,7 +31,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String AUTH_LOGIN_URL = "/auth/login";
     private static final String AUTH_LOGOUT_URL = "/auth/logout";
 
-    @Value("${jwt.cookie}")
+    @Value("${pluto.jwt.cookie}")
     private String cookie;
 
     private final RestLogoutSuccessHandler restLogoutSuccessHandler;
@@ -129,6 +129,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         HttpMethod.GET,
                         "/",
                         "/hello",
+                        "/verification",
                         "/members/checkDuplication",
                         "/members/*",
                         "/members/*/articles",
@@ -148,8 +149,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/members"
                 ).permitAll()
 
-                .anyRequest().authenticated();
-
+                .anyRequest()
+                .authenticated();
     }
 
     @Override
