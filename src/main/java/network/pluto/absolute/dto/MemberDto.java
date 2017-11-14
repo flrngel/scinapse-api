@@ -31,20 +31,24 @@ public class MemberDto {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @ApiModelProperty(required = true)
-    @Size(min = 8, message = "password must be greater than or equal to 8")
+    @Size(min = 8, max = 50, message = "password length must be between 8 and 50")
     @NotNull
     private String password;
 
     @ApiModelProperty(required = true)
+    @Size(max = 250)
     @NotNull(groups = { Default.class, Update.class })
     private String name;
 
+    @Size(max = 250)
     @URL(groups = { Default.class, Update.class })
     private String profileImage;
 
+    @Size(max = 250)
     @NotNull(groups = Update.class)
     private String institution;
 
+    @Size(max = 250)
     private String major;
 
     private long reputation;

@@ -13,6 +13,7 @@ import org.hibernate.validator.constraints.URL;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,11 +32,13 @@ public class ArticleDto {
     private ArticleType type;
 
     @ApiModelProperty(required = true)
+    @Size(max = 250)
     @NotNull
     private String title;
 
     private String summary;
 
+    @Size(max = 250)
     @URL
     private String link;
 

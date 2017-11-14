@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @ToString
 @Getter
@@ -16,6 +17,7 @@ public class MemberDuplicationCheckDto {
     private Boolean duplicated;
 
     @ApiModelProperty(required = true)
+    @Size(max = 250)
     @NotNull
     private String email;
 
