@@ -34,11 +34,6 @@ public class ReviewPointDto {
     @NotNull
     private int organization;
 
-    private String originalityComment;
-    private String significanceComment;
-    private String validityComment;
-    private String organizationComment;
-
     private String review;
 
     public ReviewPointDto(ReviewPoint point) {
