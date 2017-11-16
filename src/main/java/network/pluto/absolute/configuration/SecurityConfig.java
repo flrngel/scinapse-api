@@ -30,6 +30,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final String AUTH_LOGIN_URL = "/auth/login";
     private static final String AUTH_LOGOUT_URL = "/auth/logout";
+    private static final String AUTH_OAUTH_AUTHORIZE_URI = "/auth/oauth/authorize-uri";
 
     @Value("${pluto.jwt.cookie}")
     private String cookie;
@@ -121,7 +122,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // permit all http methods
                 .antMatchers(
                         AUTH_LOGIN_URL,
-                        AUTH_LOGOUT_URL
+                        AUTH_LOGOUT_URL,
+                        AUTH_OAUTH_AUTHORIZE_URI
                 ).permitAll()
 
                 // permit get

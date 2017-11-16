@@ -6,6 +6,7 @@ import network.pluto.bibliotheca.enums.ReputationChangeReason;
 import network.pluto.bibliotheca.models.Authority;
 import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.models.MemberReputation;
+import network.pluto.bibliotheca.models.Orcid;
 import network.pluto.bibliotheca.repositories.AuthorityRepository;
 import network.pluto.bibliotheca.repositories.MemberRepository;
 import network.pluto.bibliotheca.repositories.MemberReputationRepository;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
 
 @Transactional(readOnly = true)
@@ -60,6 +62,11 @@ public class MemberService {
     @Transactional
     public void updatePassword(@NonNull Member old, @NonNull String password) {
         old.setPassword(passwordEncoder.encode(password));
+    }
+
+    @Transactional
+    public void updateOrcid(@Nonnull Member old, @Nonnull Orcid orcid) {
+        old.setOrcid(orcid);
     }
 
     public Page<Member> findAll(Pageable pageable) {

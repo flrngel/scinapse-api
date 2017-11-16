@@ -65,6 +65,10 @@ public class MemberDto {
     @ApiModelProperty(readOnly = true)
     private long commentCount;
 
+    @ApiModelProperty(readOnly = true)
+    private OrcidDto orcid;
+
+
     public MemberDto(Member member) {
         this.id = member.getId();
         this.email = member.getEmail();
@@ -76,6 +80,10 @@ public class MemberDto {
 
         if (member.getWallet() != null) {
             this.wallet = new WalletDto(member.getWallet());
+        }
+
+        if (member.getOrcid() != null) {
+            this.orcid = new OrcidDto(member.getOrcid());
         }
     }
 
