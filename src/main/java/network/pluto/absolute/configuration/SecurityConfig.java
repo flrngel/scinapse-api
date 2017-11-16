@@ -28,8 +28,8 @@ import java.util.Collections;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private static final String AUTH_LOGIN_URL = "/auth/login";
-    private static final String AUTH_LOGOUT_URL = "/auth/logout";
+    private static final String AUTH_LOGIN_URI = "/auth/login";
+    private static final String AUTH_LOGOUT_URI = "/auth/logout";
     private static final String AUTH_OAUTH_AUTHORIZE_URI = "/auth/oauth/authorize-uri";
     private static final String AUTH_OAUTH_EXCHANGE_URI = "/auth/oauth/exchange";
 
@@ -63,7 +63,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
     private RestAuthenticationProcessingFilter buildProcessingFilter() throws Exception {
-        AntPathRequestMatcher matcher = new AntPathRequestMatcher(AUTH_LOGIN_URL, HttpMethod.POST.name());
+        AntPathRequestMatcher matcher = new AntPathRequestMatcher(AUTH_LOGIN_URI, HttpMethod.POST.name());
         RestAuthenticationProcessingFilter filter = new RestAuthenticationProcessingFilter(matcher, objectMapper);
         filter.setAuthenticationManager(authenticationManagerBean());
         filter.setAuthenticationSuccessHandler(restSuccessHandler);
@@ -113,7 +113,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .logout()
-                .logoutUrl(AUTH_LOGOUT_URL)
+                .logoutUrl(AUTH_LOGOUT_URI)
                 .logoutSuccessHandler(restLogoutSuccessHandler)
                 .deleteCookies(cookie);
 
@@ -122,8 +122,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                 // permit all http methods
                 .antMatchers(
-                        AUTH_LOGIN_URL,
-                        AUTH_LOGOUT_URL,
+                        AUTH_LOGIN_URI,
+                        AUTH_LOGOUT_URI,
                         AUTH_OAUTH_AUTHORIZE_URI,
                         AUTH_OAUTH_EXCHANGE_URI
                 ).permitAll()
