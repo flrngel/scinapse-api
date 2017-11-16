@@ -65,7 +65,6 @@ public class MemberDto {
     @ApiModelProperty(readOnly = true)
     private long commentCount;
 
-    @ApiModelProperty(readOnly = true)
     private OrcidDto orcid;
 
 

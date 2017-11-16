@@ -2,17 +2,16 @@ package network.pluto.absolute.facade;
 
 import network.pluto.absolute.configuration.CacheName;
 import network.pluto.absolute.dto.MemberDto;
-import network.pluto.absolute.dto.OrcidDto;
+import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
-import network.pluto.absolute.service.ArticleService;
-import network.pluto.absolute.service.CommentService;
-import network.pluto.absolute.service.MemberService;
-import network.pluto.absolute.service.ReviewService;
+import network.pluto.absolute.service.*;
 import network.pluto.bibliotheca.models.Member;
+import network.pluto.bibliotheca.models.Orcid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Component
 public class MemberFacade {
@@ -21,16 +20,25 @@ public class MemberFacade {
     private final ArticleService articleService;
     private final ReviewService reviewService;
     private final CommentService commentService;
+    private final OAuthOrcidFacade oAuthOrcidFacade;
+    private final TransactionService transactionService;
+    private final VerificationService verificationService;
 
     @Autowired
     public MemberFacade(MemberService memberService,
                         ArticleService articleService,
                         ReviewService reviewService,
-                        CommentService commentService) {
+                        CommentService commentService,
+                        OAuthOrcidFacade oAuthOrcidFacade,
+                        TransactionService transactionService,
+                        VerificationService verificationService) {
         this.memberService = memberService;
         this.articleService = articleService;
         this.reviewService = reviewService;
         this.commentService = commentService;
+        this.oAuthOrcidFacade = oAuthOrcidFacade;
+        this.transactionService = transactionService;
+        this.verificationService = verificationService;
     }
 
     @Cacheable(CacheName.Member.GET_DETAIL)
@@ -53,9 +61,59 @@ public class MemberFacade {
     }
 
     @Transactional
-    public MemberDto authenticate(long memberId, OrcidDto token) {
+    public MemberDto create(MemberDto memberDto) {
+        Member exist = memberService.findByEmail(memberDto.getEmail());
+        if (exist != null) {
+            throw new BadRequestException("Email already exists");
+        }
+
+        // extract institution
+        memberDto.setInstitution(extractInstitution(memberDto.getEmail()));
+
+        Member saved = memberService.saveMember(memberDto.toEntity());
+
+        if (memberDto.getOrcid() != null) {
+            Orcid orcid = oAuthOrcidFacade.verifyOrcid(memberDto.getOrcid());
+            authenticate(saved, orcid);
+        }
+
+        // send transaction
+        transactionService.createWallet(saved);
+
+        // send verification email
+        verificationService.sendVerification(saved);
+
+        return new MemberDto(saved);
+    }
+
+    @Transactional
+    public MemberDto authenticate(long memberId, Orcid orcid) {
         Member member = memberService.getMember(memberId);
-        memberService.updateOrcid(member, token.toEntity());
+        return authenticate(member, orcid);
+    }
+
+    private MemberDto authenticate(Member member, Orcid orcid) {
+        memberService.updateOrcid(member, orcid);
         return new MemberDto(member);
+    }
+
+    private String extractInstitution(String email) {
+        if (StringUtils.isEmpty(email)) {
+            return null;
+        }
+
+        String[] split = email.split("@");
+        if (split.length != 2) {
+            return null;
+        }
+
+        String host = split[1];
+        String institution = host.split("\\.")[0];
+        if (StringUtils.isEmpty(institution)) {
+            return null;
+        }
+
+        // capitalize first letter only
+        return StringUtils.capitalize(institution.toLowerCase());
     }
 }

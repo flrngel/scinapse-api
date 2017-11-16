@@ -13,6 +13,7 @@ import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Member;
+import network.pluto.bibliotheca.models.Orcid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
@@ -107,8 +108,18 @@ public class AuthController {
             throw new BadRequestException("Vendor not supported: " + vendor);
         }
 
-        OrcidDto dto = oAuthOrcidFacade.exchange(code);
-        return memberFacade.authenticate(user.getId(), dto);
+        Orcid orcid = oAuthOrcidFacade.exchange(code);
+        return memberFacade.authenticate(user.getId(), orcid);
+    }
+
+    @RequestMapping(value = "/auth/oauth/exchange", method = RequestMethod.POST)
+    public OrcidDto exchange(@RequestParam OAuthVendor vendor,
+                             @RequestParam String code) {
+        if (vendor != OAuthVendor.ORCID) {
+            throw new BadRequestException("Vendor not supported: " + vendor);
+        }
+
+        return new OrcidDto(oAuthOrcidFacade.exchange(code), true);
     }
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)

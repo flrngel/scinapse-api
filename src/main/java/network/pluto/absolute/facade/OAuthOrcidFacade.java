@@ -1,13 +1,18 @@
 package network.pluto.absolute.facade;
 
 import network.pluto.absolute.dto.OrcidDto;
+import network.pluto.absolute.error.BadRequestException;
+import network.pluto.absolute.service.OrcidService;
+import network.pluto.bibliotheca.models.Orcid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -32,11 +37,16 @@ public class OAuthOrcidFacade {
     @Value("${pluto.oauth.orcid.endpoint.authorize}")
     private String authorizeEndpoint;
 
+    @Value("${pluto.oauth.orcid.endpoint.api}")
+    private String apiEndpoint;
+
     private final RestTemplate restTemplate;
+    private final OrcidService orcidService;
 
     @Autowired
-    public OAuthOrcidFacade(RestTemplate restTemplate) {
+    public OAuthOrcidFacade(RestTemplate restTemplate, OrcidService orcidService) {
         this.restTemplate = restTemplate;
+        this.orcidService = orcidService;
     }
 
     public URI getAuthorizeUri() {
@@ -50,7 +60,7 @@ public class OAuthOrcidFacade {
                 .toUri();
     }
 
-    public OrcidDto exchange(String authCode) {
+    public Orcid exchange(String authCode) {
         LinkedMultiValueMap<String, String> request = new LinkedMultiValueMap<>();
         request.add("client_id", clientId);
         request.add("client_secret", clientSecret);
@@ -63,6 +73,31 @@ public class OAuthOrcidFacade {
         httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         HttpEntity<LinkedMultiValueMap<String, String>> entity = new HttpEntity<>(request, httpHeaders);
-        return restTemplate.postForEntity(tokenEndpoint, entity, OrcidDto.class).getBody();
+        ResponseEntity<OrcidDto> response = restTemplate.postForEntity(tokenEndpoint, entity, OrcidDto.class);
+        OrcidDto token = response.getBody();
+
+        Orcid exist = orcidService.findByOrcid(token.getOrcid());
+        if (exist != null) {
+            return orcidService.update(exist, token.toEntity());
+        }
+
+        return orcidService.create(token.toEntity());
+    }
+
+    public Orcid verifyOrcid(OrcidDto dto) {
+        Orcid orcid = orcidService.findByOrcid(dto.getOrcid());
+        if (orcid == null) {
+            return dto.toEntity();
+        }
+
+        if (!StringUtils.hasText(dto.getAccessToken()) || !StringUtils.hasText(orcid.getAccessToken())) {
+            throw new BadRequestException("Invalid ORCID token : ORCID access token not available");
+        }
+
+        if (!dto.getAccessToken().equals(orcid.getAccessToken())) {
+            throw new BadRequestException("Invalid ORCID token : ORCID access token not matched");
+        }
+
+        return orcid;
     }
 }
