@@ -3,6 +3,7 @@ package network.pluto.absolute.facade;
 import network.pluto.absolute.dto.OrcidDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.service.OrcidService;
+import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.models.Orcid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +11,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -87,7 +90,7 @@ public class OAuthOrcidFacade {
     public Orcid verifyOrcid(OrcidDto dto) {
         Orcid orcid = orcidService.findByOrcid(dto.getOrcid());
         if (orcid == null) {
-            return dto.toEntity();
+            return orcidService.create(dto.toEntity());
         }
 
         if (!StringUtils.hasText(dto.getAccessToken()) || !StringUtils.hasText(orcid.getAccessToken())) {
@@ -99,5 +102,36 @@ public class OAuthOrcidFacade {
         }
 
         return orcid;
+    }
+
+    public boolean isValidOrcid(OrcidDto dto) {
+        Orcid orcid = orcidService.findByOrcid(dto.getOrcid());
+        if (orcid == null) {
+            return false;
+        }
+
+        if (!StringUtils.hasText(dto.getAccessToken()) || !StringUtils.hasText(orcid.getAccessToken())) {
+            return false;
+        }
+
+        if (!dto.getAccessToken().equals(orcid.getAccessToken())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public Orcid getOrcid(String orcid) {
+        return orcidService.findByOrcid(orcid);
+    }
+
+    @Transactional
+    public Member getMember(String orcid) {
+        Orcid one = orcidService.findByOrcid(orcid);
+        if (one == null) {
+            throw new BadCredentialsException("Invalid ORCID");
+        }
+
+        return one.getMember();
     }
 }

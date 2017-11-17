@@ -65,8 +65,9 @@ public class MemberService {
     }
 
     @Transactional
-    public void updateOrcid(@Nonnull Member old, @Nonnull Orcid orcid) {
-        old.setOrcid(orcid);
+    public void updateOrcid(@Nonnull Member member, @Nonnull Orcid orcid) {
+        orcid.setMember(member);
+        member.setOrcid(orcid);
     }
 
     public Page<Member> findAll(Pageable pageable) {

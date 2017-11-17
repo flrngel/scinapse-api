@@ -16,11 +16,9 @@ import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.models.Orcid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
@@ -120,6 +118,22 @@ public class AuthController {
         }
 
         return new OrcidDto(oAuthOrcidFacade.exchange(code), true);
+    }
+
+    @RequestMapping(value = "/auth/oauth/login", method = RequestMethod.POST)
+    public LoginDto login(HttpServletResponse response, @RequestBody OrcidDto orcidDto) {
+        boolean valid = oAuthOrcidFacade.isValidOrcid(orcidDto);
+        if (!valid) {
+            throw new BadCredentialsException("Invalid ORCID");
+        }
+
+        Member member = oAuthOrcidFacade.getMember(orcidDto.getOrcid());
+
+        String jws = tokenHelper.generateToken(member);
+        tokenHelper.addCookie(response, jws);
+
+        MemberDto memberDto = new MemberDto(member);
+        return new LoginDto(true, jws, memberDto);
     }
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
