@@ -1,23 +1,18 @@
 package network.pluto.absolute.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import network.pluto.absolute.security.jwt.JwtAuthenticationFilter;
-import network.pluto.absolute.security.rest.*;
+import network.pluto.absolute.security.rest.RestAccessDeniedHandler;
+import network.pluto.absolute.security.rest.RestAuthExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -34,42 +29,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String AUTH_OAUTH_EXCHANGE_URI = "/auth/oauth/exchange";
     private static final String AUTH_OAUTH_LOGIN_URI = "/auth/oauth/login";
 
-    @Value("${pluto.jwt.cookie}")
-    private String cookie;
-
-    private final RestLogoutSuccessHandler restLogoutSuccessHandler;
-    private final RestAuthenticationSuccessHandler restSuccessHandler;
-    private final RestAuthenticationFailureHandler restFailureHandler;
-    private final RestAuthenticationProvider restAuthenticationProvider;
-    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final ObjectMapper objectMapper;
+    private final RestAuthExceptionHandler restAuthExceptionHandler;
+    private final RestAccessDeniedHandler restAccessDeniedHandler;
 
     @Autowired
-    public SecurityConfig(RestLogoutSuccessHandler restLogoutSuccessHandler,
-                          RestAuthenticationSuccessHandler restSuccessHandler,
-                          RestAuthenticationFailureHandler restFailureHandler,
-                          RestAuthenticationProvider restAuthenticationProvider,
-                          RestAuthenticationEntryPoint restAuthenticationEntryPoint,
-                          JwtAuthenticationFilter jwtAuthenticationFilter,
-                          ObjectMapper objectMapper) {
-        this.restLogoutSuccessHandler = restLogoutSuccessHandler;
-        this.restSuccessHandler = restSuccessHandler;
-        this.restFailureHandler = restFailureHandler;
-        this.restAuthenticationProvider = restAuthenticationProvider;
-        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          RestAuthExceptionHandler restAuthExceptionHandler,
+                          RestAccessDeniedHandler restAccessDeniedHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.objectMapper = objectMapper;
-    }
-
-
-    private RestAuthenticationProcessingFilter buildProcessingFilter() throws Exception {
-        AntPathRequestMatcher matcher = new AntPathRequestMatcher(AUTH_LOGIN_URI, HttpMethod.POST.name());
-        RestAuthenticationProcessingFilter filter = new RestAuthenticationProcessingFilter(matcher, objectMapper);
-        filter.setAuthenticationManager(authenticationManagerBean());
-        filter.setAuthenticationSuccessHandler(restSuccessHandler);
-        filter.setAuthenticationFailureHandler(restFailureHandler);
-        return filter;
+        this.restAuthExceptionHandler = restAuthExceptionHandler;
+        this.restAccessDeniedHandler = restAccessDeniedHandler;
     }
 
     @Bean
@@ -85,17 +55,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return source;
     }
 
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(restAuthenticationProvider);
-    }
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -105,18 +64,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .csrf().disable()
                 .cors().and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-                .exceptionHandling().authenticationEntryPoint(restAuthenticationEntryPoint);
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         http
-                .addFilterBefore(jwtAuthenticationFilter, LogoutFilter.class)
-                .addFilterBefore(buildProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
+                .exceptionHandling()
+                .authenticationEntryPoint(restAuthExceptionHandler)
+                .accessDeniedHandler(restAccessDeniedHandler);
 
         http
-                .logout()
-                .logoutUrl(AUTH_LOGOUT_URI)
-                .logoutSuccessHandler(restLogoutSuccessHandler)
-                .deleteCookies(cookie);
+                .addFilterAfter(jwtAuthenticationFilter, SecurityContextPersistenceFilter.class);
+
+        http
+                .logout().disable(); // use custom logout
 
         http
                 .authorizeRequests()
