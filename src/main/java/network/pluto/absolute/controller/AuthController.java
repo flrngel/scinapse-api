@@ -60,13 +60,13 @@ public class AuthController {
         LoginDto loginDto = new LoginDto(false, null, null);
 
         if (user == null) {
-            tokenHelper.deleteCookie(response);
+            tokenHelper.removeCookie(response);
             return loginDto;
         }
 
         Member member = memberService.findMember(user.getId());
         if (member == null) {
-            tokenHelper.deleteCookie(response);
+            tokenHelper.removeCookie(response);
             return loginDto;
         }
 
@@ -161,7 +161,7 @@ public class AuthController {
     public Result logout(HttpServletResponse response) {
 
         // remove jwt cookie
-        tokenHelper.deleteCookie(response);
+        tokenHelper.removeCookie(response);
 
         // clear context
         SecurityContextHolder.getContext().setAuthentication(null);

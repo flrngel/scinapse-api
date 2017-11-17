@@ -21,6 +21,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 @RestController
@@ -43,8 +44,8 @@ public class MemberController {
     }
 
     @RequestMapping(value = "/members", method = RequestMethod.POST)
-    public MemberDto create(@RequestBody @Valid MemberDto memberDto) {
-        return memberFacade.create(memberDto);
+    public MemberDto create(HttpServletResponse response, @RequestBody @Valid MemberDto memberDto) {
+        return memberFacade.create(response, memberDto);
     }
 
     @RequestMapping(value = "/members/{memberId}", method = RequestMethod.GET)

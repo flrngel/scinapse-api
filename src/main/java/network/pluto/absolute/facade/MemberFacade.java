@@ -4,6 +4,7 @@ import network.pluto.absolute.configuration.CacheName;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
+import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.service.*;
 import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.models.Orcid;
@@ -12,6 +13,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import javax.servlet.http.HttpServletResponse;
 
 @Component
 public class MemberFacade {
@@ -23,6 +26,7 @@ public class MemberFacade {
     private final OAuthOrcidFacade oAuthOrcidFacade;
     private final TransactionService transactionService;
     private final VerificationService verificationService;
+    private final TokenHelper tokenHelper;
 
     @Autowired
     public MemberFacade(MemberService memberService,
@@ -31,7 +35,8 @@ public class MemberFacade {
                         CommentService commentService,
                         OAuthOrcidFacade oAuthOrcidFacade,
                         TransactionService transactionService,
-                        VerificationService verificationService) {
+                        VerificationService verificationService,
+                        TokenHelper tokenHelper) {
         this.memberService = memberService;
         this.articleService = articleService;
         this.reviewService = reviewService;
@@ -39,6 +44,7 @@ public class MemberFacade {
         this.oAuthOrcidFacade = oAuthOrcidFacade;
         this.transactionService = transactionService;
         this.verificationService = verificationService;
+        this.tokenHelper = tokenHelper;
     }
 
     @Cacheable(CacheName.Member.GET_DETAIL)
@@ -61,7 +67,7 @@ public class MemberFacade {
     }
 
     @Transactional
-    public MemberDto create(MemberDto memberDto) {
+    public MemberDto create(HttpServletResponse response, MemberDto memberDto) {
         Member exist = memberService.findByEmail(memberDto.getEmail());
         if (exist != null) {
             throw new BadRequestException("Email already exists");
@@ -82,6 +88,10 @@ public class MemberFacade {
 
         // send verification email
         verificationService.sendVerification(saved);
+
+        // auto login
+        String jwt = tokenHelper.generateToken(saved);
+        tokenHelper.addCookie(response, jwt);
 
         return new MemberDto(saved);
     }

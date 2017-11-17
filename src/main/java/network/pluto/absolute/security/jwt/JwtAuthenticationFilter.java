@@ -63,8 +63,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         } catch (Exception e) {
 
-            // remove token
-            tokenHelper.deleteCookie(response);
+            // remove jwt cookie
+            tokenHelper.removeCookie(response);
         }
 
         filterChain.doFilter(request, response);
