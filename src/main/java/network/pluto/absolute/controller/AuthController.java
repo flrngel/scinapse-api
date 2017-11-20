@@ -131,7 +131,7 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/auth/oauth/exchange", method = RequestMethod.POST)
-    public OrcidDto exchange(@RequestBody @Valid OauthRequest request) {
+    public OrcidDto exchange(@RequestBody @Valid OAuthRequest request) {
         OrcidDto dto = oAuthOrcidFacade.exchange(request.getCode());
         Orcid orcid = oAuthOrcidFacade.saveOrUpdate(dto);
         return new OrcidDto(orcid, true);
@@ -139,7 +139,7 @@ public class AuthController {
 
     @RequestMapping(value = "/auth/oauth/login", method = RequestMethod.POST)
     public LoginDto login(HttpServletResponse response,
-                          @RequestBody @Valid OauthRequest request) {
+                          @RequestBody @Valid OAuthRequest request) {
         OrcidDto dto = oAuthOrcidFacade.exchange(request.getCode());
         Orcid orcid = oAuthOrcidFacade.saveOrUpdate(dto);
 
@@ -157,7 +157,7 @@ public class AuthController {
 
     @RequestMapping(value = "/auth/oauth/authenticate", method = RequestMethod.POST)
     public MemberDto authenticate(@ApiIgnore JwtUser user,
-                                  @RequestBody @Valid OauthRequest request) {
+                                  @RequestBody @Valid OAuthRequest request) {
         OrcidDto dto = oAuthOrcidFacade.exchange(request.getCode());
         Orcid orcid = oAuthOrcidFacade.saveOrUpdate(dto);
 
