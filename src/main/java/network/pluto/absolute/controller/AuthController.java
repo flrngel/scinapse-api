@@ -1,9 +1,6 @@
 package network.pluto.absolute.controller;
 
-import network.pluto.absolute.dto.LoginDto;
-import network.pluto.absolute.dto.MemberDto;
-import network.pluto.absolute.dto.OAuthAuthorizeUriDto;
-import network.pluto.absolute.dto.OrcidDto;
+import network.pluto.absolute.dto.*;
 import network.pluto.absolute.enums.OAuthVendor;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.facade.MemberFacade;
@@ -28,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -104,6 +102,19 @@ public class AuthController {
         return new LoginDto(true, jws, memberDto);
     }
 
+    @RequestMapping(value = "/auth/logout", method = RequestMethod.POST)
+    public Result logout(HttpServletResponse response) {
+
+        // remove jwt cookie
+        tokenHelper.removeCookie(response);
+
+        // clear context
+        SecurityContextHolder.getContext().setAuthentication(null);
+        SecurityContextHolder.clearContext();
+
+        return Result.success();
+    }
+
     @RequestMapping(value = "/auth/oauth/authorize-uri", method = RequestMethod.GET)
     public OAuthAuthorizeUriDto getAuthorizeUri(@RequestParam OAuthVendor vendor) {
         if (vendor != OAuthVendor.ORCID) {
@@ -120,23 +131,22 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/auth/oauth/exchange", method = RequestMethod.POST)
-    public OrcidDto exchange(@RequestParam OAuthVendor vendor,
-                             @RequestParam String code) {
-        if (vendor != OAuthVendor.ORCID) {
-            throw new BadRequestException("Vendor not supported: " + vendor);
-        }
-
-        return new OrcidDto(oAuthOrcidFacade.exchange(code), true);
+    public OrcidDto exchange(@RequestBody @Valid OauthRequest request) {
+        OrcidDto dto = oAuthOrcidFacade.exchange(request.getCode());
+        Orcid orcid = oAuthOrcidFacade.saveOrUpdate(dto);
+        return new OrcidDto(orcid, true);
     }
 
     @RequestMapping(value = "/auth/oauth/login", method = RequestMethod.POST)
-    public LoginDto login(HttpServletResponse response, @RequestBody OrcidDto orcidDto) {
-        boolean valid = oAuthOrcidFacade.isValidOrcid(orcidDto);
-        if (!valid) {
-            throw new BadCredentialsException("Invalid ORCID");
-        }
+    public LoginDto login(HttpServletResponse response,
+                          @RequestBody @Valid OauthRequest request) {
+        OrcidDto dto = oAuthOrcidFacade.exchange(request.getCode());
+        Orcid orcid = oAuthOrcidFacade.saveOrUpdate(dto);
 
-        Member member = oAuthOrcidFacade.getMember(orcidDto.getOrcid());
+        Member member = orcid.getMember();
+        if (member == null) {
+            throw new BadCredentialsException("Authentication Failed. Member not existence.");
+        }
 
         String jws = tokenHelper.generateToken(member);
         tokenHelper.addCookie(response, jws);
@@ -147,27 +157,11 @@ public class AuthController {
 
     @RequestMapping(value = "/auth/oauth/authenticate", method = RequestMethod.POST)
     public MemberDto authenticate(@ApiIgnore JwtUser user,
-                                  @RequestParam OAuthVendor vendor,
-                                  @RequestParam String code) {
-        if (vendor != OAuthVendor.ORCID) {
-            throw new BadRequestException("Vendor not supported: " + vendor);
-        }
+                                  @RequestBody @Valid OauthRequest request) {
+        OrcidDto dto = oAuthOrcidFacade.exchange(request.getCode());
+        Orcid orcid = oAuthOrcidFacade.saveOrUpdate(dto);
 
-        Orcid orcid = oAuthOrcidFacade.exchange(code);
         return memberFacade.authenticate(user.getId(), orcid);
-    }
-
-    @RequestMapping(value = "/auth/logout", method = RequestMethod.POST)
-    public Result logout(HttpServletResponse response) {
-
-        // remove jwt cookie
-        tokenHelper.removeCookie(response);
-
-        // clear context
-        SecurityContextHolder.getContext().setAuthentication(null);
-        SecurityContextHolder.clearContext();
-
-        return Result.success();
     }
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)

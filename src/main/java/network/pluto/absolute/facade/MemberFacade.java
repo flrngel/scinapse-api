@@ -79,7 +79,7 @@ public class MemberFacade {
         Member saved = memberService.saveMember(memberDto.toEntity());
 
         if (memberDto.getOrcid() != null) {
-            Orcid orcid = oAuthOrcidFacade.verifyOrcid(memberDto.getOrcid());
+            Orcid orcid = oAuthOrcidFacade.getVerifiedOrcid(memberDto.getOrcid());
             authenticate(saved, orcid);
         }
 

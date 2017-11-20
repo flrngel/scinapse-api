@@ -3,7 +3,6 @@ package network.pluto.absolute.facade;
 import network.pluto.absolute.dto.OrcidDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.service.OrcidService;
-import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.models.Orcid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +10,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -63,7 +61,7 @@ public class OAuthOrcidFacade {
                 .toUri();
     }
 
-    public Orcid exchange(String authCode) {
+    public OrcidDto exchange(String authCode) {
         LinkedMultiValueMap<String, String> request = new LinkedMultiValueMap<>();
         request.add("client_id", clientId);
         request.add("client_secret", clientSecret);
@@ -76,21 +74,25 @@ public class OAuthOrcidFacade {
         httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         HttpEntity<LinkedMultiValueMap<String, String>> entity = new HttpEntity<>(request, httpHeaders);
+
+        // TODO 400 error handling
         ResponseEntity<OrcidDto> response = restTemplate.postForEntity(tokenEndpoint, entity, OrcidDto.class);
-        OrcidDto token = response.getBody();
-
-        Orcid exist = orcidService.findByOrcid(token.getOrcid());
-        if (exist != null) {
-            return orcidService.update(exist, token.toEntity());
-        }
-
-        return orcidService.create(token.toEntity());
+        return response.getBody();
     }
 
-    public Orcid verifyOrcid(OrcidDto dto) {
+    @Transactional
+    public Orcid saveOrUpdate(OrcidDto dto) {
+        Orcid exist = orcidService.findByOrcid(dto.getOrcid());
+        if (exist != null) {
+            return orcidService.update(exist, dto.toEntity());
+        }
+        return orcidService.create(dto.toEntity());
+    }
+
+    public Orcid getVerifiedOrcid(OrcidDto dto) {
         Orcid orcid = orcidService.findByOrcid(dto.getOrcid());
         if (orcid == null) {
-            return orcidService.create(dto.toEntity());
+            throw new BadRequestException("Invalid ORCID token : ORCID not existence");
         }
 
         if (!StringUtils.hasText(dto.getAccessToken()) || !StringUtils.hasText(orcid.getAccessToken())) {
@@ -102,36 +104,5 @@ public class OAuthOrcidFacade {
         }
 
         return orcid;
-    }
-
-    public boolean isValidOrcid(OrcidDto dto) {
-        Orcid orcid = orcidService.findByOrcid(dto.getOrcid());
-        if (orcid == null) {
-            return false;
-        }
-
-        if (!StringUtils.hasText(dto.getAccessToken()) || !StringUtils.hasText(orcid.getAccessToken())) {
-            return false;
-        }
-
-        if (!dto.getAccessToken().equals(orcid.getAccessToken())) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public Orcid getOrcid(String orcid) {
-        return orcidService.findByOrcid(orcid);
-    }
-
-    @Transactional
-    public Member getMember(String orcid) {
-        Orcid one = orcidService.findByOrcid(orcid);
-        if (one == null) {
-            throw new BadCredentialsException("Invalid ORCID");
-        }
-
-        return one.getMember();
     }
 }
