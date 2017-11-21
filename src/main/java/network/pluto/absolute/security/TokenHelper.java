@@ -6,6 +6,7 @@ import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -13,7 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,19 +30,16 @@ public class TokenHelper {
     private String cookie;
 
     @Value("${pluto.jwt.expires-in}")
-    private int expireIn;
+    private int expiresIn;
 
     private SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
 
     public String refreshToken(String token) {
         final Claims claims = getAllClaimsFromToken(token);
-        claims.setIssuedAt(generateCurrentDate());
-        return generateToken(claims);
-    }
 
-    private String generateToken(Map<String, Object> claims) {
         return Jwts.builder()
                 .setClaims(claims)
+                .setIssuedAt(generateCurrentDate())
                 .setExpiration(generateExpirationDate())
                 .signWith(SIGNATURE_ALGORITHM, secret)
                 .compact();
@@ -64,24 +61,17 @@ public class TokenHelper {
                 .compact();
     }
 
-    public String getUsernameFromToken(String token) {
-        return getClaimsFromToken(token, Claims::getSubject);
-    }
-
-    private <T> T getClaimsFromToken(String token, Function<Claims, T> claimsResolver) {
-        Claims claims = getAllClaimsFromToken(token);
-        return claimsResolver.apply(claims);
-    }
-
     public Claims getAllClaimsFromToken(String token) {
         try {
             return Jwts.parser()
                     .setSigningKey(secret)
                     .parseClaimsJws(token)
                     .getBody();
+
         } catch (ExpiredJwtException e) {
             log.info("JWT Token is expired");
             throw new TokenExpiredException("JWT Token expired", token, e.getLocalizedMessage());
+
         } catch (UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
             log.error("Invalid JWT Token", e);
             throw new TokenInvalidException("Invalid JWT token: ", token, e.getLocalizedMessage());
@@ -97,14 +87,15 @@ public class TokenHelper {
     }
 
     private Date generateExpirationDate() {
-        return new Date(getCurrentTimeMillis() + expireIn * 1000);
+        return new Date(getCurrentTimeMillis() + expiresIn * 1000);
     }
 
     public String getToken(HttpServletRequest request) {
+
         // get token from cookie
-        Cookie authCookie = getCookieValueByName(request, cookie);
-        if (authCookie != null) {
-            return authCookie.getValue();
+        Cookie jwt = WebUtils.getCookie(request, cookie);
+        if (jwt != null) {
+            return jwt.getValue();
         }
 
         // get token from header
@@ -115,29 +106,15 @@ public class TokenHelper {
         return null;
     }
 
-    public Cookie getCookieValueByName(HttpServletRequest request, String name) {
-        if (request.getCookies() == null) {
-            return null;
-        }
-
-        for (Cookie cookie : request.getCookies()) {
-            if (cookie.getName().equals(name)) {
-                return cookie;
-            }
-        }
-
-        return null;
-    }
-
     public void addCookie(HttpServletResponse response, String token) {
         Cookie authCookie = new Cookie(cookie, token);
         authCookie.setPath("/");
         authCookie.setHttpOnly(true);
-        authCookie.setMaxAge(expireIn);
+        authCookie.setMaxAge(expiresIn);
         response.addCookie(authCookie);
     }
 
-    public void deleteCookie(HttpServletResponse response) {
+    public void removeCookie(HttpServletResponse response) {
         Cookie authCookie = new Cookie(cookie, null);
         authCookie.setPath("/");
         authCookie.setMaxAge(0);

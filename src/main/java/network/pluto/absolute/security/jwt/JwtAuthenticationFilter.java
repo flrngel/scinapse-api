@@ -33,12 +33,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
+
             // get token
             String jwt = tokenHelper.getToken(request);
+
             if (!Strings.isNullOrEmpty(jwt)) {
 
+                // refresh token
+                String refreshedToken = tokenHelper.refreshToken(jwt);
+                tokenHelper.addCookie(response, refreshedToken);
+
                 // get claims
-                Claims claims = tokenHelper.getAllClaimsFromToken(jwt);
+                Claims claims = tokenHelper.getAllClaimsFromToken(refreshedToken);
                 Integer memberId = claims.get("id", Integer.class);
                 String name = claims.get("name", String.class);
                 List<String> roles = claims.get("roles", List.class);
@@ -49,17 +55,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 jwtUser.setId(memberId);
                 jwtUser.setEmail(claims.getSubject());
                 jwtUser.setName(name);
+                jwtUser.setToken(refreshedToken);
 
                 // set authentication
                 SecurityContextHolder.getContext().setAuthentication(jwtUser);
-
-                // refresh token
-                String refreshedToken = tokenHelper.refreshToken(jwt);
-                tokenHelper.addCookie(response, refreshedToken);
             }
+
         } catch (Exception e) {
-            // remove token
-            tokenHelper.deleteCookie(response);
+
+            // remove jwt cookie
+            tokenHelper.removeCookie(response);
         }
 
         filterChain.doFilter(request, response);
