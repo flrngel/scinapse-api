@@ -47,7 +47,7 @@ public class MemberService {
         Authority authority = authorityRepository.findByName(AuthorityName.ROLE_UNVERIFIED);
         member.setAuthorities(Collections.singletonList(authority));
 
-        return memberRepository.saveAndFlush(member);
+        return memberRepository.save(member);
     }
 
     @Transactional

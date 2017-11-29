@@ -67,7 +67,7 @@ public class MemberFacade {
     }
 
     @Transactional
-    public MemberDto create(HttpServletResponse response, MemberDto memberDto) {
+    public Member create(HttpServletResponse response, MemberDto memberDto) {
         Member exist = memberService.findByEmail(memberDto.getEmail());
         if (exist != null) {
             throw new BadRequestException("Email already exists");
@@ -83,9 +83,6 @@ public class MemberFacade {
             authenticate(saved, orcid);
         }
 
-        // send transaction
-        transactionService.createWallet(saved);
-
         // send verification email
         verificationService.sendVerification(saved);
 
@@ -93,7 +90,13 @@ public class MemberFacade {
         String jwt = tokenHelper.generateToken(saved);
         tokenHelper.addCookie(response, jwt);
 
-        return new MemberDto(saved);
+        return saved;
+    }
+
+    @Transactional
+    public void createWallet(Member member) {
+        // send transaction
+        transactionService.createWallet(member);
     }
 
     @Transactional
