@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
-public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class RestAuthExceptionHandler implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {

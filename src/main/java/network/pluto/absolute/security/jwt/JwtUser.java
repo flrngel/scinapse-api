@@ -18,6 +18,7 @@ public class JwtUser extends AbstractAuthenticationToken {
     private long id;
     private String email;
     private String name;
+    private String token;
 
     public JwtUser(Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
@@ -32,5 +33,14 @@ public class JwtUser extends AbstractAuthenticationToken {
     @Override
     public Object getPrincipal() {
         return this;
+    }
+
+    @Override
+    public void setAuthenticated(boolean authenticated) {
+        if (authenticated) {
+            throw new IllegalArgumentException("Cannot set this token to trusted - use constructor which takes a GrantedAuthority list instead");
+        }
+
+        super.setAuthenticated(false);
     }
 }
