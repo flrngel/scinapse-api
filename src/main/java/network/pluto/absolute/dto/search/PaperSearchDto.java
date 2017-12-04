@@ -1,6 +1,7 @@
 package network.pluto.absolute.dto.search;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,43 +11,61 @@ import lombok.Setter;
 @Setter
 public class PaperSearchDto {
 
-    @JsonProperty("id")
+    private long id;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String magId;
 
     private String title;
 
     private int year;
 
-    @JsonProperty("n_citation")
-    private Integer nCitation;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Integer citation;
 
-    @JsonProperty("abstract")
+    @JsonProperty(value = "abstract", access = JsonProperty.Access.READ_ONLY)
     private String paperAbstract;
-
-    private String urls;
 
     private String lang;
 
     private String doi;
 
-    @JsonProperty("doc_type")
-    private String docType;
-
-    @JsonProperty("journal_name")
-    private String journalName;
-
-    @JsonProperty("journal_id")
-    private Integer journalId;
-
     private String publisher;
+
+    private String venue;
 
     private Integer volume;
 
     private Integer issue;
 
-    @JsonProperty("page_start")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String pageStart;
 
-    @JsonProperty("page_end")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String pageEnd;
+
+    @JsonSetter("mag_id")
+    public void setMagId(String magId) {
+        this.magId = magId;
+    }
+
+    @JsonSetter("n_citation")
+    public void setCitation(Integer citation) {
+        this.citation = citation;
+    }
+
+    @JsonSetter("abstract")
+    public void setPaperAbstract(String paperAbstract) {
+        this.paperAbstract = paperAbstract;
+    }
+
+    @JsonSetter("page_start")
+    public void setPageStart(String pageStart) {
+        this.pageStart = pageStart;
+    }
+
+    @JsonSetter("page_end")
+    public void setPageEnd(String pageEnd) {
+        this.pageEnd = pageEnd;
+    }
 }

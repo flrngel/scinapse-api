@@ -7,9 +7,13 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -32,12 +36,13 @@ public class SearchService {
     @Value("${pluto.server.es.index}")
     private String indexName;
 
-    public List<PaperSearchDto> search(String text) {
+    public Page<PaperSearchDto> search(String text, Pageable pageable) {
         SearchRequest request = new SearchRequest(indexName);
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
         builder.query(QueryBuilders.multiMatchQuery(text, "title", "abstract"));
-        builder.size(10);
+        builder.from(pageable.getOffset());
+        builder.size(pageable.getPageSize());
 
         request.source(builder);
 
@@ -45,22 +50,14 @@ public class SearchService {
             SearchResponse response = restHighLevelClient.search(request);
 
             List<PaperSearchDto> list = new ArrayList<>();
-
-            response.getHits().forEach(h -> {
-                PaperSearchDto paperDto = null;
-                try {
-                    paperDto = objectMapper.readValue(h.getSourceAsString(), PaperSearchDto.class);
-                } catch (IOException e) {
-                    log.error(e.getMessage());
-                }
+            for (SearchHit hit : response.getHits()) {
+                PaperSearchDto paperDto = objectMapper.readValue(hit.getSourceAsString(), PaperSearchDto.class);
                 list.add(paperDto);
-            });
-
-            return list;
+            }
+            return new PageImpl<>(list, pageable, response.getHits().getTotalHits());
 
         } catch (IOException e) {
-            log.error(e.getMessage());
-            return new ArrayList<>();
+            throw new RuntimeException("Elasticsearch exception", e);
         }
     }
 }

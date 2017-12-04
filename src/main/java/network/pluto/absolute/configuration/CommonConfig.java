@@ -26,8 +26,10 @@ public class CommonConfig {
     }
 
     @Bean
-    public RestHighLevelClient restHighLevelClient(@Value("${pluto.server.es.hostname}") String hostname) {
+    public RestHighLevelClient restHighLevelClient(@Value("${pluto.server.es.hostname}") String hostname,
+                                                   @Value("${pluto.server.es.port}") int port,
+                                                   @Value("${pluto.server.es.scheme}") String scheme) {
         return new RestHighLevelClient(
-                RestClient.builder(new HttpHost(hostname, 9200, "http")).build());
+                RestClient.builder(new HttpHost(hostname, port, scheme)).build());
     }
 }

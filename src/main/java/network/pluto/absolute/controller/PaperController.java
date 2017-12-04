@@ -5,9 +5,10 @@ import network.pluto.absolute.service.PaperService;
 import network.pluto.absolute.service.SearchService;
 import network.pluto.bibliotheca.academic.Paper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 public class PaperController {
@@ -27,7 +28,7 @@ public class PaperController {
     }
 
     @RequestMapping(value = "/papers/search", method = RequestMethod.GET)
-    public List<PaperSearchDto> search(@RequestParam String text) {
-        return searchService.search(text);
+    public Page<PaperSearchDto> search(@RequestParam String text, @PageableDefault Pageable pageable) {
+        return searchService.search(text, pageable);
     }
 }
