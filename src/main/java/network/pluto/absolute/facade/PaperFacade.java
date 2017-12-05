@@ -1,7 +1,6 @@
 package network.pluto.absolute.facade;
 
 import network.pluto.absolute.dto.PaperDto;
-import network.pluto.absolute.dto.search.PaperSearchDto;
 import network.pluto.absolute.service.PaperService;
 import network.pluto.absolute.service.SearchService;
 import network.pluto.bibliotheca.academic.Paper;
@@ -29,12 +28,15 @@ public class PaperFacade {
 
     @Transactional
     public Page<PaperDto> search(String text, Pageable pageable) {
-        Page<PaperSearchDto> search = searchService.search(text, pageable);
-        List<Paper> papers = paperService.findByIdIn(search.getContent().stream().map(PaperSearchDto::getId).collect(Collectors.toList()));
+        Page<Long> search = searchService.search(text, pageable);
+        List<Paper> papers = paperService.findByIdIn(search.getContent());
         Map<Long, Paper> paperMap = papers.stream().collect(Collectors.toMap(Paper::getId, p -> p));
 
         return search.map(s -> {
-            Paper paper = paperMap.get(s.getId());
+            Paper paper = paperMap.get(s);
+            if (paper == null) {
+                return null;
+            }
             return new PaperDto(paper);
         });
     }

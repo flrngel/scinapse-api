@@ -1,8 +1,6 @@
 package network.pluto.absolute.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import network.pluto.absolute.dto.search.PaperSearchDto;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -25,18 +23,16 @@ import java.util.List;
 public class SearchService {
 
     private final RestHighLevelClient restHighLevelClient;
-    private final ObjectMapper objectMapper;
 
     @Autowired
-    public SearchService(RestHighLevelClient restHighLevelClient, ObjectMapper objectMapper) {
+    public SearchService(RestHighLevelClient restHighLevelClient) {
         this.restHighLevelClient = restHighLevelClient;
-        this.objectMapper = objectMapper;
     }
 
     @Value("${pluto.server.es.index}")
     private String indexName;
 
-    public Page<PaperSearchDto> search(String text, Pageable pageable) {
+    public Page<Long> search(String text, Pageable pageable) {
         SearchRequest request = new SearchRequest(indexName);
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
@@ -44,8 +40,8 @@ public class SearchService {
         // search specific fields
         builder.query(QueryBuilders.multiMatchQuery(text, "title", "abstract"));
 
-        // only retrieve ids
-        builder.fetchSource("id", null);
+        // do not retrieve source
+        builder.fetchSource(false);
 
         // apply pagination
         builder.from(pageable.getOffset());
@@ -56,14 +52,13 @@ public class SearchService {
         try {
             SearchResponse response = restHighLevelClient.search(request);
 
-            List<PaperSearchDto> list = new ArrayList<>();
+            List<Long> list = new ArrayList<>();
             for (SearchHit hit : response.getHits()) {
-                PaperSearchDto paperDto = objectMapper.readValue(hit.getSourceAsString(), PaperSearchDto.class);
-                list.add(paperDto);
+                list.add(Long.valueOf(hit.getId()));
             }
             return new PageImpl<>(list, pageable, response.getHits().getTotalHits());
 
-        } catch (IOException e) {
+        } catch (IOException | NumberFormatException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }
     }
