@@ -5,6 +5,8 @@ import network.pluto.bibliotheca.academic.PaperRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class PaperService {
 
@@ -17,5 +19,9 @@ public class PaperService {
 
     public Paper find(long paperId) {
         return paperRepository.findOne(paperId);
+    }
+
+    public List<Paper> findByIdIn(List<Long> paperIds) {
+        return paperRepository.findByIdIn(paperIds);
     }
 }

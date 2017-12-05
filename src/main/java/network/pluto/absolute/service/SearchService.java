@@ -40,7 +40,14 @@ public class SearchService {
         SearchRequest request = new SearchRequest(indexName);
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
+
+        // search specific fields
         builder.query(QueryBuilders.multiMatchQuery(text, "title", "abstract"));
+
+        // only retrieve ids
+        builder.fetchSource("id", null);
+
+        // apply pagination
         builder.from(pageable.getOffset());
         builder.size(pageable.getPageSize());
 
