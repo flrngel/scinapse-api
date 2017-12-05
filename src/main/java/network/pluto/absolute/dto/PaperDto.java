@@ -1,5 +1,6 @@
 package network.pluto.absolute.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,6 +24,7 @@ public class PaperDto {
 
     private Integer citation;
 
+    @JsonProperty("abstract")
     private String paperAbstract;
 
     private String lang;
