@@ -107,6 +107,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/articles/*/reviews/*",
                         "/articles/*/reviews/*/vote",
                         "/articles/*/reviews/*/comments",
+                        "/papers",
                         "/papers/*",
                         "/papers/search"
                 ).permitAll()
