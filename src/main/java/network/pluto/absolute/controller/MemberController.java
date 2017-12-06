@@ -85,7 +85,7 @@ public class MemberController {
                                    @PathVariable long memberId,
                                    @RequestBody @Validated(Update.class) MemberDto memberDto) {
         if (memberId != user.getId()) {
-            throw new AuthorizationServiceException("Members can update own profile only");
+            throw new AuthorizationServiceException("Members can update their own profile only");
         }
 
         Member old = memberService.findMember(memberId);
@@ -104,7 +104,7 @@ public class MemberController {
                                  @PathVariable long memberId,
                                  @RequestBody @Valid MemberDto.PasswordWrapper password) {
         if (memberId != user.getId()) {
-            throw new AuthorizationServiceException("Members can update own password only");
+            throw new AuthorizationServiceException("Members can update their own password only");
         }
 
         Member old = memberService.findMember(memberId);

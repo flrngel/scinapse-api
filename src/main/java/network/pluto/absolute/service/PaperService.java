@@ -1,13 +1,15 @@
 package network.pluto.absolute.service;
 
-import network.pluto.bibliotheca.academic.Paper;
-import network.pluto.bibliotheca.academic.PaperRepository;
+import network.pluto.bibliotheca.models.Paper;
+import network.pluto.bibliotheca.repositories.PaperRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Component
+@Transactional(readOnly = true)
+@Service
 public class PaperService {
 
     private final PaperRepository paperRepository;
