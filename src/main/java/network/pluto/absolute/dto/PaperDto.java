@@ -49,6 +49,8 @@ public class PaperDto {
 
     private long fosCount = 0;
 
+    private long urlCount = 0;
+
     private long commentCount = 0;
 
     private List<PaperAuthorDto> authors;
@@ -56,6 +58,8 @@ public class PaperDto {
     private List<PaperKeywordDto> keywords;
 
     private List<FosDto> fosList;
+
+    private List<PaperUrlDto> urls;
 
     private List<CommentDto> comments;
 
@@ -88,6 +92,11 @@ public class PaperDto {
         if (paper.getFosList() != null) {
             this.fosList = paper.getFosList().stream().map(FosDto::new).collect(Collectors.toList());
             this.fosCount = paper.getFosList().size();
+        }
+
+        if (paper.getUrls() != null) {
+            this.urls = paper.getUrls().stream().map(PaperUrlDto::new).collect(Collectors.toList());
+            this.urlCount = paper.getUrls().size();
         }
 
         if (paper.getComments() != null) {
