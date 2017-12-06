@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.bibliotheca.academic.Paper;
+import network.pluto.bibliotheca.models.Paper;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,6 +47,10 @@ public class PaperDto {
 
     private List<PaperAuthorDto> authors;
 
+    private List<CommentDto> comments;
+
+    private long commentCount;
+
     public PaperDto(Paper paper) {
         this.id = paper.getId();
         this.magId = paper.getMagId();
@@ -69,6 +73,10 @@ public class PaperDto {
 
         if (paper.getAuthors() != null) {
             this.authors = paper.getAuthors().stream().map(PaperAuthorDto::new).collect(Collectors.toList());
+        }
+
+        if (paper.getComments() != null) {
+            this.comments = paper.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
         }
     }
 }

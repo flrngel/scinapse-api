@@ -84,7 +84,7 @@ public class MemberFacade {
         }
 
         // send verification email
-        verificationService.sendVerification(saved);
+//        verificationService.sendVerification(saved);
 
         // auto login
         String jwt = tokenHelper.generateToken(saved);
@@ -96,7 +96,7 @@ public class MemberFacade {
     @Transactional
     public void createWallet(Member member) {
         // send transaction
-        transactionService.createWallet(member);
+//        transactionService.createWallet(member);
     }
 
     @Transactional

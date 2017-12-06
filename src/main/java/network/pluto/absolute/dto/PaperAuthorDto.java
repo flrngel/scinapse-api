@@ -3,19 +3,22 @@ package network.pluto.absolute.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.bibliotheca.academic.PaperAuthor;
+import network.pluto.bibliotheca.models.PaperAuthor;
 
 @NoArgsConstructor
 @Getter
 @Setter
 public class PaperAuthorDto {
-    private int ord;
+
+    private long paperId;
+    private int order;
     private String name;
-    private String org;
+    private String organization;
 
     public PaperAuthorDto(PaperAuthor paperAuthor) {
-        this.ord = paperAuthor.getOrd();
+        this.paperId = paperAuthor.getPaper().getId();
+        this.order = paperAuthor.getOrder();
         this.name = paperAuthor.getName();
-        this.org = paperAuthor.getOrg();
+        this.organization = paperAuthor.getOrganization();
     }
 }
