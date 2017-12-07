@@ -6,12 +6,13 @@ import network.pluto.absolute.service.SearchService;
 import network.pluto.bibliotheca.models.Paper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -38,34 +39,34 @@ public class PaperFacade {
     @Transactional(readOnly = true)
     public Page<PaperDto> findReferences(long paperId, Pageable pageable) {
         Page<Long> referenceIds = paperService.findReferences(paperId, pageable);
-        return findIn(referenceIds);
+        List<PaperDto> dtos = findIn(referenceIds.getContent());
+        return new PageImpl<>(dtos, pageable, referenceIds.getTotalElements());
     }
 
     @Transactional(readOnly = true)
     public Page<PaperDto> findCited(long paperId, Pageable pageable) {
         Page<Long> citedIds = paperService.findCited(paperId, pageable);
-        return findIn(citedIds);
+        List<PaperDto> dtos = findIn(citedIds.getContent());
+        return new PageImpl<>(dtos, pageable, citedIds.getTotalElements());
     }
 
     @Transactional(readOnly = true)
     public Page<PaperDto> search(String text, Pageable pageable) {
         Page<Long> paperIds = searchService.search(text, pageable);
-        return findIn(paperIds);
+        List<PaperDto> dtos = findIn(paperIds.getContent());
+        return new PageImpl<>(dtos, pageable, paperIds.getTotalElements());
     }
 
-    private Page<PaperDto> findIn(Page<Long> paperIds) {
-        List<Paper> papers = paperService.findByIdIn(paperIds.getContent());
-        Map<Long, Paper> paperMap = papers.stream().collect(Collectors.toMap(Paper::getId, p -> p));
-
-        return paperIds.map(s -> {
-            Paper paper = paperMap.get(s);
-            if (paper == null) {
-                return null;
-            }
-
-            PaperDto dto = new PaperDto(paper);
-            dto.setReferenceCount(paperService.countReference(paper.getId()));
-            return dto;
-        });
+    private List<PaperDto> findIn(List<Long> paperIds) {
+        List<Paper> papers = paperService.findByIdIn(paperIds);
+        return papers
+                .stream()
+                .filter(Objects::nonNull)
+                .map(paper -> {
+                    PaperDto dto = new PaperDto(paper);
+                    dto.setReferenceCount(paperService.countReference(paper.getId()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 }
