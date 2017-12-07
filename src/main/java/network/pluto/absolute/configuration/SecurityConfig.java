@@ -93,8 +93,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // permit get
                 .antMatchers(
                         HttpMethod.GET,
-                        "/",
-                        "/hello",
                         "/verification",
                         "/members/checkDuplication",
                         "/members/*",
@@ -129,6 +127,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring()
                 .antMatchers(
                         HttpMethod.GET,
+                        "/",
+                        "/hello",
                         "/favicon.ico",
                         "/**/*.html",
                         "/**/*.css",
