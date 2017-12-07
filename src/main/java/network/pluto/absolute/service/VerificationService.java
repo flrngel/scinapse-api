@@ -36,18 +36,15 @@ public class VerificationService {
     @Value("${pluto.server.web.url}")
     private String webServerUrl;
 
+    private AmazonSimpleEmailServiceAsync client = AmazonSimpleEmailServiceAsyncClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
 
     @Transactional
     public void sendVerification(Member member) {
-        AmazonSimpleEmailServiceAsync client = AmazonSimpleEmailServiceAsyncClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
-
-
         String token = UUID.randomUUID().toString();
         Verification verification = new Verification();
         verification.setToken(token);
         verification.setMemberId(member.getId());
         verificationRepository.save(verification);
-
 
         SendEmailRequest request = new SendEmailRequest()
                 .withDestination(new Destination().withToAddresses(member.getEmail()))
