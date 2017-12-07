@@ -116,4 +116,14 @@ public class PaperController {
         commentService.deleteComment(comment);
         return Result.success();
     }
+
+    @RequestMapping(value = "/papers/{paperId}/references", method = RequestMethod.GET)
+    public Page<PaperDto> paperReferences(@PathVariable long paperId, @PageableDefault Pageable pageable) {
+        return paperFacade.findReferences(paperId, pageable);
+    }
+
+    @RequestMapping(value = "/papers/{paperId}/cited", method = RequestMethod.GET)
+    public Page<PaperDto> paperCited(@PathVariable long paperId, @PageableDefault Pageable pageable) {
+        return paperFacade.findCited(paperId, pageable);
+    }
 }

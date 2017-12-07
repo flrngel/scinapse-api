@@ -22,8 +22,6 @@ public class PaperDto {
 
     private int year;
 
-    private Integer citation;
-
     @JsonProperty("abstract")
     private String paperAbstract;
 
@@ -42,6 +40,10 @@ public class PaperDto {
     private String pageStart;
 
     private String pageEnd;
+
+    private long referenceCount = 0;
+
+    private long citedCount = 0;
 
     private long authorCount = 0;
 
@@ -68,7 +70,6 @@ public class PaperDto {
         this.magId = paper.getMagId();
         this.title = paper.getTitle();
         this.year = paper.getYear();
-        this.citation = paper.getCitation();
         this.paperAbstract = paper.getPaperAbstract();
         this.lang = paper.getLang();
         this.doi = paper.getDoi();
@@ -78,6 +79,10 @@ public class PaperDto {
         this.issue = paper.getIssue();
         this.pageStart = paper.getPageStart();
         this.pageEnd = paper.getPageEnd();
+
+        if (paper.getCitedCount() != null) {
+            this.citedCount = paper.getCitedCount();
+        }
 
         if (paper.getAuthors() != null) {
             this.authors = paper.getAuthors().stream().map(PaperAuthorDto::new).collect(Collectors.toList());

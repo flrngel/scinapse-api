@@ -29,21 +29,43 @@ public class PaperFacade {
     @Transactional(readOnly = true)
     public PaperDto find(long paperId) {
         Paper paper = paperService.find(paperId);
-        return new PaperDto(paper);
+
+        PaperDto dto = new PaperDto(paper);
+        dto.setReferenceCount(paperService.countReference(paper.getId()));
+        return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PaperDto> findReferences(long paperId, Pageable pageable) {
+        Page<Long> referenceIds = paperService.findReferences(paperId, pageable);
+        return findIn(referenceIds);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PaperDto> findCited(long paperId, Pageable pageable) {
+        Page<Long> citedIds = paperService.findCited(paperId, pageable);
+        return findIn(citedIds);
     }
 
     @Transactional(readOnly = true)
     public Page<PaperDto> search(String text, Pageable pageable) {
-        Page<Long> search = searchService.search(text, pageable);
-        List<Paper> papers = paperService.findByIdIn(search.getContent());
+        Page<Long> paperIds = searchService.search(text, pageable);
+        return findIn(paperIds);
+    }
+
+    private Page<PaperDto> findIn(Page<Long> paperIds) {
+        List<Paper> papers = paperService.findByIdIn(paperIds.getContent());
         Map<Long, Paper> paperMap = papers.stream().collect(Collectors.toMap(Paper::getId, p -> p));
 
-        return search.map(s -> {
+        return paperIds.map(s -> {
             Paper paper = paperMap.get(s);
             if (paper == null) {
                 return null;
             }
-            return new PaperDto(paper);
+
+            PaperDto dto = new PaperDto(paper);
+            dto.setReferenceCount(paperService.countReference(paper.getId()));
+            return dto;
         });
     }
 }
