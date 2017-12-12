@@ -148,16 +148,6 @@ public class AuthController {
         return new LoginDto(true, jws, memberDto);
     }
 
-    @RequestMapping(value = "/auth/oauth/authenticate", method = RequestMethod.POST)
-    public MemberDto authenticate(@ApiIgnore JwtUser user,
-                                  @RequestBody @Valid OAuthRequest request) {
-//        OrcidDto dto = oAuthOrcidFacade.exchange(request.getCode());
-//        Orcid orcid = oAuthOrcidFacade.saveOrUpdate(dto);
-//
-//        return memberFacade.authenticate(user.getId(), orcid);
-        return null;
-    }
-
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
     public Object hello() {
         Map<String, Object> result = new HashMap<>();

@@ -7,7 +7,6 @@ import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.service.*;
 import network.pluto.bibliotheca.models.Member;
-import network.pluto.bibliotheca.models.Orcid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -23,7 +22,6 @@ public class MemberFacade {
     private final ArticleService articleService;
     private final ReviewService reviewService;
     private final CommentService commentService;
-    private final OAuthOrcidFacade oAuthOrcidFacade;
     private final TransactionService transactionService;
     private final VerificationService verificationService;
     private final TokenHelper tokenHelper;
@@ -34,7 +32,6 @@ public class MemberFacade {
                         ArticleService articleService,
                         ReviewService reviewService,
                         CommentService commentService,
-                        OAuthOrcidFacade oAuthOrcidFacade,
                         TransactionService transactionService,
                         VerificationService verificationService,
                         TokenHelper tokenHelper, OauthFacade oauthFacade) {
@@ -42,7 +39,6 @@ public class MemberFacade {
         this.articleService = articleService;
         this.reviewService = reviewService;
         this.commentService = commentService;
-        this.oAuthOrcidFacade = oAuthOrcidFacade;
         this.transactionService = transactionService;
         this.verificationService = verificationService;
         this.tokenHelper = tokenHelper;
@@ -98,17 +94,6 @@ public class MemberFacade {
     public void createWallet(Member member) {
         // send transaction
         transactionService.createWallet(member);
-    }
-
-    @Transactional
-    public MemberDto authenticate(long memberId, Orcid orcid) {
-        Member member = memberService.getMember(memberId);
-        return authenticate(member, orcid);
-    }
-
-    private MemberDto authenticate(Member member, Orcid orcid) {
-        memberService.updateOrcid(member, orcid);
-        return new MemberDto(member);
     }
 
     private String extractInstitution(String email) {

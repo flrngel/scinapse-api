@@ -85,8 +85,8 @@ public class OauthFacebookService {
             one.setAccessToken(accessToken);
         } else {
             OauthFacebook facebook = new OauthFacebook();
-            facebook.setAccessToken(accessToken);
             facebook.setFacebookId(userData.facebookId);
+            facebook.setAccessToken(accessToken);
             one = facebookRepository.save(facebook);
         }
 

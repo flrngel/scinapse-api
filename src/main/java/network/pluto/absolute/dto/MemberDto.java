@@ -66,8 +66,6 @@ public class MemberDto {
     @ApiModelProperty(readOnly = true)
     private long commentCount;
 
-    private OrcidDto orcid;
-
     private OauthUserDto oauth;
 
 
@@ -83,10 +81,6 @@ public class MemberDto {
         if (member.getWallet() != null) {
             this.wallet = new WalletDto(member.getWallet());
         }
-
-//        if (member.getOrcid() != null) {
-//            this.orcid = new OrcidDto(member.getOrcid());
-//        }
     }
 
     public Member toEntity() {
