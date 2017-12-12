@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import network.pluto.absolute.dto.oauth.OauthUserDto;
 import network.pluto.absolute.validator.Update;
 import network.pluto.bibliotheca.models.Member;
 import org.hibernate.validator.constraints.Email;
@@ -67,6 +68,8 @@ public class MemberDto {
 
     private OrcidDto orcid;
 
+    private OauthUserDto oauth;
+
 
     public MemberDto(Member member) {
         this.id = member.getId();
@@ -81,9 +84,9 @@ public class MemberDto {
             this.wallet = new WalletDto(member.getWallet());
         }
 
-        if (member.getOrcid() != null) {
-            this.orcid = new OrcidDto(member.getOrcid());
-        }
+//        if (member.getOrcid() != null) {
+//            this.orcid = new OrcidDto(member.getOrcid());
+//        }
     }
 
     public Member toEntity() {

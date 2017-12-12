@@ -27,6 +27,7 @@ public class MemberFacade {
     private final TransactionService transactionService;
     private final VerificationService verificationService;
     private final TokenHelper tokenHelper;
+    private final OauthFacade oauthFacade;
 
     @Autowired
     public MemberFacade(MemberService memberService,
@@ -36,7 +37,7 @@ public class MemberFacade {
                         OAuthOrcidFacade oAuthOrcidFacade,
                         TransactionService transactionService,
                         VerificationService verificationService,
-                        TokenHelper tokenHelper) {
+                        TokenHelper tokenHelper, OauthFacade oauthFacade) {
         this.memberService = memberService;
         this.articleService = articleService;
         this.reviewService = reviewService;
@@ -45,6 +46,7 @@ public class MemberFacade {
         this.transactionService = transactionService;
         this.verificationService = verificationService;
         this.tokenHelper = tokenHelper;
+        this.oauthFacade = oauthFacade;
     }
 
     @Cacheable(CacheName.Member.GET_DETAIL)
@@ -78,9 +80,8 @@ public class MemberFacade {
 
         Member saved = memberService.saveMember(memberDto.toEntity());
 
-        if (memberDto.getOrcid() != null) {
-            Orcid orcid = oAuthOrcidFacade.getVerifiedOrcid(memberDto.getOrcid());
-            authenticate(saved, orcid);
+        if (memberDto.getOauth() != null) {
+            oauthFacade.connect(memberDto.getOauth(), saved);
         }
 
         // send verification email
