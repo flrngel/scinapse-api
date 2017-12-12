@@ -27,13 +27,13 @@ public class OauthFacade {
         this.facebookService = facebookService;
     }
 
-    public URI getAuthorizeUri(OAuthVendor vendor) {
+    public URI getAuthorizeUri(OAuthVendor vendor, String redirectUri) {
         switch (vendor) {
             case ORCID:
-                return orcidService.getAuthorizeUri();
+                return orcidService.getAuthorizeUri(redirectUri);
 
             case FACEBOOK:
-                return facebookService.getAuthorizeUri();
+                return facebookService.getAuthorizeUri(redirectUri);
 
             default:
                 return null;
@@ -41,12 +41,12 @@ public class OauthFacade {
     }
 
     @Transactional
-    public OauthUserDto exchange(OAuthVendor vendor, String code) {
+    public OauthUserDto exchange(OAuthVendor vendor, String code, String redirectUri) {
         OauthUserDto dto = new OauthUserDto();
 
         switch (vendor) {
             case ORCID:
-                OauthOrcid oauthOrcid = orcidService.exchange(code);
+                OauthOrcid oauthOrcid = orcidService.exchange(code, redirectUri);
 
                 dto.setVendor(OAuthVendor.ORCID);
                 dto.setOauthId(oauthOrcid.getOrcid());
@@ -56,7 +56,7 @@ public class OauthFacade {
                 break;
 
             case FACEBOOK:
-                OauthFacebook facebook = facebookService.exchange(code);
+                OauthFacebook facebook = facebookService.exchange(code, redirectUri);
 
                 dto.setVendor(OAuthVendor.FACEBOOK);
                 dto.setOauthId(facebook.getFacebookId());
@@ -72,14 +72,14 @@ public class OauthFacade {
     }
 
     @Transactional
-    public Member findMember(OAuthVendor vendor, String code) {
+    public Member findMember(OAuthVendor vendor, String code, String redirectUri) {
         switch (vendor) {
             case ORCID:
-                OauthOrcid oauthOrcid = orcidService.exchange(code);
+                OauthOrcid oauthOrcid = orcidService.exchange(code, redirectUri);
                 return oauthOrcid.getMember();
 
             case FACEBOOK:
-                OauthFacebook facebook = facebookService.exchange(code);
+                OauthFacebook facebook = facebookService.exchange(code, redirectUri);
                 return facebook.getMember();
 
             default:

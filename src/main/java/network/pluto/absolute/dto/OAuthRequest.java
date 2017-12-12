@@ -18,7 +18,9 @@ public class OAuthRequest {
     private OAuthVendor vendor;
 
     @ApiModelProperty(required = true)
-
     @NotNull
     private String code;
+
+    @ApiModelProperty
+    private String redirectUri;
 }

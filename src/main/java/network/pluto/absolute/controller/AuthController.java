@@ -118,8 +118,9 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/auth/oauth/authorize-uri", method = RequestMethod.GET)
-    public OAuthAuthorizeUriDto getAuthorizeUri(@RequestParam OAuthVendor vendor) {
-        URI uri = oauthFacade.getAuthorizeUri(vendor);
+    public OAuthAuthorizeUriDto getAuthorizeUri(@RequestParam OAuthVendor vendor,
+                                                @RequestParam(required = false) String redirectUri) {
+        URI uri = oauthFacade.getAuthorizeUri(vendor, redirectUri);
 
         OAuthAuthorizeUriDto dto = new OAuthAuthorizeUriDto();
         dto.setVendor(vendor);
@@ -130,13 +131,13 @@ public class AuthController {
 
     @RequestMapping(value = "/auth/oauth/exchange", method = RequestMethod.POST)
     public OauthUserDto exchange(@RequestBody @Valid OAuthRequest request) {
-        return oauthFacade.exchange(request.getVendor(), request.getCode());
+        return oauthFacade.exchange(request.getVendor(), request.getCode(), request.getRedirectUri());
     }
 
     @RequestMapping(value = "/auth/oauth/login", method = RequestMethod.POST)
     public LoginDto login(HttpServletResponse response,
                           @RequestBody @Valid OAuthRequest request) {
-        Member member = oauthFacade.findMember(request.getVendor(), request.getCode());
+        Member member = oauthFacade.findMember(request.getVendor(), request.getCode(), request.getRedirectUri());
         if (member == null) {
             throw new BadCredentialsException("Authentication Failed. Member not existence.");
         }

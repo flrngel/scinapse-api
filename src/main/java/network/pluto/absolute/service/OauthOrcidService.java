@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -30,7 +31,7 @@ public class OauthOrcidService {
     private String clientSecret;
 
     @Value("${pluto.oauth.orcid.redirect.uri}")
-    private String redirectUrI;
+    private String redirectUri;
 
     @Value("${pluto.oauth.orcid.endpoint.token}")
     private String tokenEndpoint;
@@ -54,23 +55,23 @@ public class OauthOrcidService {
         return oauthOrcidRepository.findByOrcid(orcid);
     }
 
-    public URI getAuthorizeUri() {
+    public URI getAuthorizeUri(String redirectUri) {
         return UriComponentsBuilder
                 .fromHttpUrl(authorizeEndpoint)
                 .queryParam("client_id", clientId)
                 .queryParam("response_type", "code")
                 .queryParam("scope", "/authenticate")
-                .queryParam("redirect_uri", redirectUrI)
+                .queryParam("redirect_uri", StringUtils.hasText(redirectUri) ? redirectUri : this.redirectUri)
                 .build()
                 .toUri();
     }
 
     @Transactional
-    public OauthOrcid exchange(String code) {
+    public OauthOrcid exchange(String code, String redirectUri) {
         LinkedMultiValueMap<String, String> request = new LinkedMultiValueMap<>();
         request.add("client_id", clientId);
         request.add("client_secret", clientSecret);
-        request.add("redirect_uri", redirectUrI);
+        request.add("redirect_uri", StringUtils.hasText(redirectUri) ? redirectUri : this.redirectUri);
         request.add("grant_type", "authorization_code");
         request.add("code", code);
 

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -25,7 +26,7 @@ public class OauthFacebookService {
     private String clientSecret;
 
     @Value("${pluto.oauth.facebook.redirect.uri}")
-    private String redirectUrI;
+    private String redirectUri;
 
     @Value("${pluto.oauth.facebook.endpoint.authorize}")
     private String authorizeEndpoint;
@@ -55,24 +56,24 @@ public class OauthFacebookService {
         return facebookRepository.findByFacebookId(facebookId);
     }
 
-    public URI getAuthorizeUri() {
+    public URI getAuthorizeUri(String redirectUri) {
         return UriComponentsBuilder
                 .fromHttpUrl(authorizeEndpoint)
                 .queryParam("client_id", clientId)
                 .queryParam("scope", "email")
-                .queryParam("redirect_uri", redirectUrI)
+                .queryParam("redirect_uri", StringUtils.hasText(redirectUri) ? redirectUri : this.redirectUri)
                 .build()
                 .toUri();
     }
 
     @Transactional
-    public OauthFacebook exchange(String code) {
+    public OauthFacebook exchange(String code, String redirectUri) {
         URI uri = UriComponentsBuilder
                 .fromHttpUrl(tokenEndpoint)
                 .queryParam("client_id", clientId)
                 .queryParam("client_secret", clientSecret)
                 .queryParam("code", code)
-                .queryParam("redirect_uri", redirectUrI)
+                .queryParam("redirect_uri", StringUtils.hasText(redirectUri) ? redirectUri : this.redirectUri)
                 .build()
                 .toUri();
 
@@ -99,7 +100,7 @@ public class OauthFacebookService {
                 .fromHttpUrl(apiEndpoint)
                 .queryParam("fields", "id,name,email")
                 .queryParam("access_token", accessToken)
-                .queryParam("redirect_uri", redirectUrI)
+                .queryParam("redirect_uri", redirectUri)
                 .build()
                 .toUri();
 
