@@ -93,8 +93,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // permit get
                 .antMatchers(
                         HttpMethod.GET,
-                        "/",
-                        "/hello",
                         "/verification",
                         "/members/checkDuplication",
                         "/members/*",
@@ -106,7 +104,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/articles/*/reviews",
                         "/articles/*/reviews/*",
                         "/articles/*/reviews/*/vote",
-                        "/articles/*/reviews/*/comments"
+                        "/articles/*/reviews/*/comments",
+                        "/papers",
+                        "/papers/*",
+                        "/papers/*/references",
+                        "/papers/*/cited",
+                        "/papers/search"
                 ).permitAll()
 
                 // permit post
@@ -124,6 +127,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring()
                 .antMatchers(
                         HttpMethod.GET,
+                        "/",
+                        "/hello",
                         "/favicon.ico",
                         "/**/*.html",
                         "/**/*.css",

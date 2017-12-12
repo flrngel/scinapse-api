@@ -7,7 +7,6 @@ import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.service.*;
 import network.pluto.bibliotheca.models.Member;
-import network.pluto.bibliotheca.models.Orcid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -23,28 +22,27 @@ public class MemberFacade {
     private final ArticleService articleService;
     private final ReviewService reviewService;
     private final CommentService commentService;
-    private final OAuthOrcidFacade oAuthOrcidFacade;
     private final TransactionService transactionService;
     private final VerificationService verificationService;
     private final TokenHelper tokenHelper;
+    private final OauthFacade oauthFacade;
 
     @Autowired
     public MemberFacade(MemberService memberService,
                         ArticleService articleService,
                         ReviewService reviewService,
                         CommentService commentService,
-                        OAuthOrcidFacade oAuthOrcidFacade,
                         TransactionService transactionService,
                         VerificationService verificationService,
-                        TokenHelper tokenHelper) {
+                        TokenHelper tokenHelper, OauthFacade oauthFacade) {
         this.memberService = memberService;
         this.articleService = articleService;
         this.reviewService = reviewService;
         this.commentService = commentService;
-        this.oAuthOrcidFacade = oAuthOrcidFacade;
         this.transactionService = transactionService;
         this.verificationService = verificationService;
         this.tokenHelper = tokenHelper;
+        this.oauthFacade = oauthFacade;
     }
 
     @Cacheable(CacheName.Member.GET_DETAIL)
@@ -78,9 +76,8 @@ public class MemberFacade {
 
         Member saved = memberService.saveMember(memberDto.toEntity());
 
-        if (memberDto.getOrcid() != null) {
-            Orcid orcid = oAuthOrcidFacade.getVerifiedOrcid(memberDto.getOrcid());
-            authenticate(saved, orcid);
+        if (memberDto.getOauth() != null) {
+            oauthFacade.connect(memberDto.getOauth(), saved);
         }
 
         // send verification email
@@ -97,17 +94,6 @@ public class MemberFacade {
     public void createWallet(Member member) {
         // send transaction
         transactionService.createWallet(member);
-    }
-
-    @Transactional
-    public MemberDto authenticate(long memberId, Orcid orcid) {
-        Member member = memberService.getMember(memberId);
-        return authenticate(member, orcid);
-    }
-
-    private MemberDto authenticate(Member member, Orcid orcid) {
-        memberService.updateOrcid(member, orcid);
-        return new MemberDto(member);
     }
 
     private String extractInstitution(String email) {
