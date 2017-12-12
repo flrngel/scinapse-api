@@ -1,16 +1,18 @@
 package network.pluto.absolute.controller;
 
-import network.pluto.absolute.dto.*;
+import network.pluto.absolute.dto.LoginDto;
+import network.pluto.absolute.dto.MemberDto;
+import network.pluto.absolute.dto.OAuthAuthorizeUriDto;
+import network.pluto.absolute.dto.OAuthRequest;
+import network.pluto.absolute.dto.oauth.OauthUserDto;
 import network.pluto.absolute.enums.OAuthVendor;
-import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.facade.MemberFacade;
-import network.pluto.absolute.facade.OAuthOrcidFacade;
+import network.pluto.absolute.facade.OauthFacade;
 import network.pluto.absolute.security.LoginRequest;
 import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Member;
-import network.pluto.bibliotheca.models.Orcid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -36,21 +38,21 @@ public class AuthController {
 
     private final TokenHelper tokenHelper;
     private final MemberService memberService;
-    private final OAuthOrcidFacade oAuthOrcidFacade;
     private final MemberFacade memberFacade;
     private final BCryptPasswordEncoder encoder;
+    private final OauthFacade oauthFacade;
 
     @Autowired
     public AuthController(TokenHelper tokenHelper,
                           MemberService memberService,
-                          OAuthOrcidFacade oAuthOrcidFacade,
                           MemberFacade memberFacade,
-                          BCryptPasswordEncoder encoder) {
+                          BCryptPasswordEncoder encoder,
+                          OauthFacade oauthFacade) {
         this.tokenHelper = tokenHelper;
         this.memberService = memberService;
-        this.oAuthOrcidFacade = oAuthOrcidFacade;
         this.memberFacade = memberFacade;
         this.encoder = encoder;
+        this.oauthFacade = oauthFacade;
     }
 
     @RequestMapping(value = "/auth/login", method = RequestMethod.GET)
@@ -116,12 +118,9 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/auth/oauth/authorize-uri", method = RequestMethod.GET)
-    public OAuthAuthorizeUriDto getAuthorizeUri(@RequestParam OAuthVendor vendor) {
-        if (vendor != OAuthVendor.ORCID) {
-            throw new BadRequestException("Vendor not supported: " + vendor);
-        }
-
-        URI uri = oAuthOrcidFacade.getAuthorizeUri();
+    public OAuthAuthorizeUriDto getAuthorizeUri(@RequestParam OAuthVendor vendor,
+                                                @RequestParam(required = false) String redirectUri) {
+        URI uri = oauthFacade.getAuthorizeUri(vendor, redirectUri);
 
         OAuthAuthorizeUriDto dto = new OAuthAuthorizeUriDto();
         dto.setVendor(vendor);
@@ -131,19 +130,14 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/auth/oauth/exchange", method = RequestMethod.POST)
-    public OrcidDto exchange(@RequestBody @Valid OAuthRequest request) {
-        OrcidDto dto = oAuthOrcidFacade.exchange(request.getCode());
-        Orcid orcid = oAuthOrcidFacade.saveOrUpdate(dto);
-        return new OrcidDto(orcid, true);
+    public OauthUserDto exchange(@RequestBody @Valid OAuthRequest request) {
+        return oauthFacade.exchange(request.getVendor(), request.getCode(), request.getRedirectUri());
     }
 
     @RequestMapping(value = "/auth/oauth/login", method = RequestMethod.POST)
     public LoginDto login(HttpServletResponse response,
                           @RequestBody @Valid OAuthRequest request) {
-        OrcidDto dto = oAuthOrcidFacade.exchange(request.getCode());
-        Orcid orcid = oAuthOrcidFacade.saveOrUpdate(dto);
-
-        Member member = orcid.getMember();
+        Member member = oauthFacade.findMember(request.getVendor(), request.getCode(), request.getRedirectUri());
         if (member == null) {
             throw new BadCredentialsException("Authentication Failed. Member not existence.");
         }
@@ -153,15 +147,6 @@ public class AuthController {
 
         MemberDto memberDto = new MemberDto(member);
         return new LoginDto(true, jws, memberDto);
-    }
-
-    @RequestMapping(value = "/auth/oauth/authenticate", method = RequestMethod.POST)
-    public MemberDto authenticate(@ApiIgnore JwtUser user,
-                                  @RequestBody @Valid OAuthRequest request) {
-        OrcidDto dto = oAuthOrcidFacade.exchange(request.getCode());
-        Orcid orcid = oAuthOrcidFacade.saveOrUpdate(dto);
-
-        return memberFacade.authenticate(user.getId(), orcid);
     }
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
