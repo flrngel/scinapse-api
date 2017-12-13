@@ -33,9 +33,9 @@ public class PaperDto {
 
     private String venue;
 
-    private Integer volume;
+    private String volume;
 
-    private Integer issue;
+    private String issue;
 
     private String pageStart;
 
