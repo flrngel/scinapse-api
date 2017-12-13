@@ -1,4 +1,4 @@
-package network.pluto.absolute.service;
+package network.pluto.absolute.service.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import network.pluto.bibliotheca.models.oauth.OauthFacebook;
@@ -47,11 +47,6 @@ public class OauthFacebookService {
         this.restTemplate = restTemplate;
     }
 
-    @Transactional
-    public OauthFacebook create(OauthFacebook facebook) {
-        return facebookRepository.save(facebook);
-    }
-
     public OauthFacebook find(String facebookId) {
         return facebookRepository.findByFacebookId(facebookId);
     }
@@ -95,12 +90,11 @@ public class OauthFacebookService {
         return one;
     }
 
-    public UserDataResponse getUserData(String accessToken) {
+    private UserDataResponse getUserData(String accessToken) {
         URI uri = UriComponentsBuilder
                 .fromHttpUrl(apiEndpoint)
                 .queryParam("fields", "id,name,email")
                 .queryParam("access_token", accessToken)
-                .queryParam("redirect_uri", redirectUri)
                 .build()
                 .toUri();
 
@@ -119,6 +113,7 @@ public class OauthFacebookService {
     }
 
     private static class UserDataResponse {
+
         @JsonProperty("id")
         private String facebookId;
 

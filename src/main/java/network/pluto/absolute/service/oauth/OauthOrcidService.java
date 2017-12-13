@@ -1,4 +1,4 @@
-package network.pluto.absolute.service;
+package network.pluto.absolute.service.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import network.pluto.bibliotheca.models.oauth.OauthOrcid;
@@ -71,9 +71,9 @@ public class OauthOrcidService {
         LinkedMultiValueMap<String, String> request = new LinkedMultiValueMap<>();
         request.add("client_id", clientId);
         request.add("client_secret", clientSecret);
-        request.add("redirect_uri", StringUtils.hasText(redirectUri) ? redirectUri : this.redirectUri);
-        request.add("grant_type", "authorization_code");
         request.add("code", code);
+        request.add("grant_type", "authorization_code");
+        request.add("redirect_uri", StringUtils.hasText(redirectUri) ? redirectUri : this.redirectUri);
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
