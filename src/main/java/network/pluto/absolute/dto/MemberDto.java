@@ -31,9 +31,7 @@ public class MemberDto {
     private String email;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    @ApiModelProperty(required = true)
-    @Size(min = 8, max = 50, message = "password length must be between 8 and 50")
-    @NotNull
+    @ApiModelProperty
     private String password;
 
     @ApiModelProperty(required = true)

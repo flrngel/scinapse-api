@@ -71,6 +71,12 @@ public class MemberFacade {
             throw new BadRequestException("Email already exists");
         }
 
+        if (memberDto.getOauth() == null) {
+            if (!StringUtils.hasText(memberDto.getPassword()) || memberDto.getPassword().length() < 8) {
+                throw new BadRequestException("Password length must be greater than or equal to 8");
+            }
+        }
+
         // extract institution
         memberDto.setInstitution(extractInstitution(memberDto.getEmail()));
 

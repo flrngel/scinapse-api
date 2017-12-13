@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 
@@ -40,7 +41,9 @@ public class MemberService {
 
     @Transactional
     public Member saveMember(@NonNull Member member) {
-        member.setPassword(passwordEncoder.encode(member.getPassword()));
+        if (StringUtils.hasText(member.getPassword())) {
+            member.setPassword(passwordEncoder.encode(member.getPassword()));
+        }
 
         Authority authority = authorityRepository.findByName(AuthorityName.ROLE_UNVERIFIED);
         member.setAuthorities(Collections.singletonList(authority));

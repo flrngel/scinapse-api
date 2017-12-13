@@ -89,6 +89,10 @@ public class AuthController {
             throw new UsernameNotFoundException("Member not found: " + request.getEmail());
         }
 
+        if (member.getPassword() == null) {
+            throw new BadCredentialsException("Authentication Failed. Oauth user did not register password.");
+        }
+
         if (!encoder.matches(request.getPassword(), member.getPassword())) {
             throw new BadCredentialsException("Authentication Failed. Username or Password not valid.");
         }
