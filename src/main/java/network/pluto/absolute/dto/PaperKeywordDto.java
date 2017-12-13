@@ -10,12 +10,10 @@ import network.pluto.bibliotheca.models.PaperKeyword;
 @Setter
 public class PaperKeywordDto {
 
-    private long id;
     private long paperId;
     private String keyword;
 
     public PaperKeywordDto(PaperKeyword paperKeyword) {
-        this.id = paperKeyword.getId();
         this.paperId = paperKeyword.getPaper().getId();
         this.keyword = paperKeyword.getKeyword();
     }
