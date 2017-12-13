@@ -3,10 +3,12 @@ package network.pluto.absolute.facade;
 import network.pluto.absolute.dto.oauth.OauthUserDto;
 import network.pluto.absolute.enums.OAuthVendor;
 import network.pluto.absolute.error.BadRequestException;
-import network.pluto.absolute.service.OauthFacebookService;
-import network.pluto.absolute.service.OauthOrcidService;
+import network.pluto.absolute.service.oauth.OauthFacebookService;
+import network.pluto.absolute.service.oauth.OauthGoogleService;
+import network.pluto.absolute.service.oauth.OauthOrcidService;
 import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.models.oauth.OauthFacebook;
+import network.pluto.bibliotheca.models.oauth.OauthGoogle;
 import network.pluto.bibliotheca.models.oauth.OauthOrcid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,11 +22,15 @@ public class OauthFacade {
 
     private final OauthOrcidService orcidService;
     private final OauthFacebookService facebookService;
+    private final OauthGoogleService googleService;
 
     @Autowired
-    public OauthFacade(OauthOrcidService orcidService, OauthFacebookService facebookService) {
+    public OauthFacade(OauthOrcidService orcidService,
+                       OauthFacebookService facebookService,
+                       OauthGoogleService googleService) {
         this.orcidService = orcidService;
         this.facebookService = facebookService;
+        this.googleService = googleService;
     }
 
     public URI getAuthorizeUri(OAuthVendor vendor, String redirectUri) {
@@ -34,6 +40,9 @@ public class OauthFacade {
 
             case FACEBOOK:
                 return facebookService.getAuthorizeUri(redirectUri);
+
+            case GOOGLE:
+                return googleService.getAuthorizeUri(redirectUri);
 
             default:
                 return null;
@@ -65,6 +74,16 @@ public class OauthFacade {
 
                 break;
 
+            case GOOGLE:
+                OauthGoogle google = googleService.exchange(code, redirectUri);
+
+                dto.setVendor(OAuthVendor.GOOGLE);
+                dto.setOauthId(google.getGoogleId());
+                dto.setUuid(google.getUuid());
+                dto.setUserData(google.getUserData());
+
+                break;
+
             default:
         }
 
@@ -81,6 +100,10 @@ public class OauthFacade {
             case FACEBOOK:
                 OauthFacebook facebook = facebookService.exchange(code, redirectUri);
                 return facebook.getMember();
+
+            case GOOGLE:
+                OauthGoogle google = googleService.exchange(code, redirectUri);
+                return google.getMember();
 
             default:
                 return null;
@@ -112,6 +135,18 @@ public class OauthFacade {
                 }
 
                 facebook.setMember(member);
+                return;
+
+            case GOOGLE:
+                OauthGoogle google = googleService.find(oauth.getOauthId());
+                if (google == null) {
+                    throw new BadRequestException("Invalid Oauth token : token not exist");
+                }
+                if (!google.getUuid().equals(oauth.getUuid())) {
+                    throw new BadRequestException("Invalid Oauth token : token not matched");
+                }
+
+                google.setMember(member);
                 return;
 
             default:
