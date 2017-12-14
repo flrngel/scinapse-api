@@ -35,17 +35,17 @@ public class MemberDto {
     private String password;
 
     @ApiModelProperty(required = true)
-    @Size(max = 250)
+    @Size(max = 250, groups = { Default.class, Update.class })
     @NotNull(groups = { Default.class, Update.class })
     private String name;
 
     @Size(max = 250)
-    @URL(groups = { Default.class, Update.class })
+    @URL
     private String profileImage;
 
-    @Size(max = 250)
-    @NotNull(groups = Update.class)
-    private String institution;
+    @Size(max = 250, groups = { Default.class, Update.class })
+    @NotNull(groups = { Default.class, Update.class })
+    private String affiliation;
 
     @Size(max = 250)
     private String major;
@@ -72,7 +72,7 @@ public class MemberDto {
         this.email = member.getEmail();
         this.name = member.getName();
         this.profileImage = member.getProfileImage();
-        this.institution = member.getInstitution();
+        this.affiliation = member.getAffiliation();
         this.major = member.getMajor();
         this.reputation = member.getReputation();
 
@@ -87,7 +87,7 @@ public class MemberDto {
         member.setPassword(this.password);
         member.setName(this.name);
         member.setProfileImage(this.profileImage);
-        member.setInstitution(this.institution);
+        member.setAffiliation(this.affiliation);
         member.setMajor(this.major);
         return member;
     }

@@ -77,9 +77,6 @@ public class MemberFacade {
             }
         }
 
-        // extract institution
-        memberDto.setInstitution(extractInstitution(memberDto.getEmail()));
-
         Member saved = memberService.saveMember(memberDto.toEntity());
 
         if (memberDto.getOauth() != null) {
@@ -100,25 +97,5 @@ public class MemberFacade {
     public void createWallet(Member member) {
         // send transaction
         transactionService.createWallet(member);
-    }
-
-    private String extractInstitution(String email) {
-        if (StringUtils.isEmpty(email)) {
-            return null;
-        }
-
-        String[] split = email.split("@");
-        if (split.length != 2) {
-            return null;
-        }
-
-        String host = split[1];
-        String institution = host.split("\\.")[0];
-        if (StringUtils.isEmpty(institution)) {
-            return null;
-        }
-
-        // capitalize first letter only
-        return StringUtils.capitalize(institution.toLowerCase());
     }
 }
