@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class Verification {
+public class VerificationController {
 
     private final VerificationService verificationService;
 
     @Autowired
-    public Verification(VerificationService verificationService) {
+    public VerificationController(VerificationService verificationService) {
         this.verificationService = verificationService;
     }
 

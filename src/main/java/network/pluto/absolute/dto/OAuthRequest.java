@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.absolute.enums.OAuthVendor;
+import network.pluto.absolute.enums.OauthVendor;
 
 import javax.validation.constraints.NotNull;
 
@@ -15,7 +15,7 @@ public class OAuthRequest {
 
     @ApiModelProperty(required = true)
     @NotNull
-    private OAuthVendor vendor;
+    private OauthVendor vendor;
 
     @ApiModelProperty(required = true)
     @NotNull

@@ -1,7 +1,7 @@
 package network.pluto.absolute.facade;
 
 import network.pluto.absolute.dto.oauth.OauthUserDto;
-import network.pluto.absolute.enums.OAuthVendor;
+import network.pluto.absolute.enums.OauthVendor;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.service.oauth.OauthFacebookService;
 import network.pluto.absolute.service.oauth.OauthGoogleService;
@@ -33,7 +33,7 @@ public class OauthFacade {
         this.googleService = googleService;
     }
 
-    public URI getAuthorizeUri(OAuthVendor vendor, String redirectUri) {
+    public URI getAuthorizeUri(OauthVendor vendor, String redirectUri) {
         switch (vendor) {
             case ORCID:
                 return orcidService.getAuthorizeUri(redirectUri);
@@ -50,14 +50,14 @@ public class OauthFacade {
     }
 
     @Transactional
-    public OauthUserDto exchange(OAuthVendor vendor, String code, String redirectUri) {
+    public OauthUserDto exchange(OauthVendor vendor, String code, String redirectUri) {
         OauthUserDto dto = new OauthUserDto();
 
         switch (vendor) {
             case ORCID:
                 OauthOrcid oauthOrcid = orcidService.exchange(code, redirectUri);
 
-                dto.setVendor(OAuthVendor.ORCID);
+                dto.setVendor(OauthVendor.ORCID);
                 dto.setOauthId(oauthOrcid.getOrcid());
                 dto.setUuid(oauthOrcid.getUuid());
                 dto.setUserData(oauthOrcid.getUserData());
@@ -67,7 +67,7 @@ public class OauthFacade {
             case FACEBOOK:
                 OauthFacebook facebook = facebookService.exchange(code, redirectUri);
 
-                dto.setVendor(OAuthVendor.FACEBOOK);
+                dto.setVendor(OauthVendor.FACEBOOK);
                 dto.setOauthId(facebook.getFacebookId());
                 dto.setUuid(facebook.getUuid());
                 dto.setUserData(facebook.getUserData());
@@ -77,7 +77,7 @@ public class OauthFacade {
             case GOOGLE:
                 OauthGoogle google = googleService.exchange(code, redirectUri);
 
-                dto.setVendor(OAuthVendor.GOOGLE);
+                dto.setVendor(OauthVendor.GOOGLE);
                 dto.setOauthId(google.getGoogleId());
                 dto.setUuid(google.getUuid());
                 dto.setUserData(google.getUserData());
@@ -91,7 +91,7 @@ public class OauthFacade {
     }
 
     @Transactional
-    public Member findMember(OAuthVendor vendor, String code, String redirectUri) {
+    public Member findMember(OauthVendor vendor, String code, String redirectUri) {
         switch (vendor) {
             case ORCID:
                 OauthOrcid oauthOrcid = orcidService.exchange(code, redirectUri);

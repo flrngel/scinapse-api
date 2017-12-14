@@ -3,7 +3,7 @@ package network.pluto.absolute.dto.oauth;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.absolute.enums.OAuthVendor;
+import network.pluto.absolute.enums.OauthVendor;
 
 import java.util.Map;
 
@@ -12,7 +12,7 @@ import java.util.Map;
 @Setter
 public class OauthUserDto {
 
-    private OAuthVendor vendor;
+    private OauthVendor vendor;
     private String uuid;
     private String oauthId;
     private Map<String, Object> userData;

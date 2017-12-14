@@ -1,6 +1,6 @@
 package network.pluto.absolute.enums;
 
-public enum OAuthVendor {
+public enum OauthVendor {
     ORCID,
     FACEBOOK,
     GOOGLE

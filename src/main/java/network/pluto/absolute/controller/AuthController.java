@@ -5,7 +5,7 @@ import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.OAuthAuthorizeUriDto;
 import network.pluto.absolute.dto.OAuthRequest;
 import network.pluto.absolute.dto.oauth.OauthUserDto;
-import network.pluto.absolute.enums.OAuthVendor;
+import network.pluto.absolute.enums.OauthVendor;
 import network.pluto.absolute.facade.MemberFacade;
 import network.pluto.absolute.facade.OauthFacade;
 import network.pluto.absolute.security.LoginRequest;
@@ -122,7 +122,7 @@ public class AuthController {
     }
 
     @RequestMapping(value = "/auth/oauth/authorize-uri", method = RequestMethod.GET)
-    public OAuthAuthorizeUriDto getAuthorizeUri(@RequestParam OAuthVendor vendor,
+    public OAuthAuthorizeUriDto getAuthorizeUri(@RequestParam OauthVendor vendor,
                                                 @RequestParam(required = false) String redirectUri) {
         URI uri = oauthFacade.getAuthorizeUri(vendor, redirectUri);
 
