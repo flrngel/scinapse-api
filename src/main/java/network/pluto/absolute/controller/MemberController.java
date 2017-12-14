@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -80,15 +79,10 @@ public class MemberController {
         return reviewService.findByCreatedBy(member, pageable).map(ReviewDto::new);
     }
 
-    @RequestMapping(value = "/members/{memberId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/members/me", method = RequestMethod.PUT)
     public MemberDto updateArticle(@ApiIgnore JwtUser user,
-                                   @PathVariable long memberId,
                                    @RequestBody @Validated(Update.class) MemberDto memberDto) {
-        if (memberId != user.getId()) {
-            throw new AuthorizationServiceException("Members can update their own profile only");
-        }
-
-        Member old = memberService.findMember(memberId);
+        Member old = memberService.findMember(user.getId());
         if (old == null) {
             throw new ResourceNotFoundException("Member not found");
         }
@@ -99,15 +93,10 @@ public class MemberController {
         return new MemberDto(saved);
     }
 
-    @RequestMapping(value = "/members/{memberId}/password", method = RequestMethod.PUT)
+    @RequestMapping(value = "/members/me/password", method = RequestMethod.PUT)
     public Result updatePassword(@ApiIgnore JwtUser user,
-                                 @PathVariable long memberId,
                                  @RequestBody @Valid MemberDto.PasswordWrapper password) {
-        if (memberId != user.getId()) {
-            throw new AuthorizationServiceException("Members can update their own password only");
-        }
-
-        Member old = memberService.findMember(memberId);
+        Member old = memberService.findMember(user.getId());
         if (old == null) {
             throw new ResourceNotFoundException("Member not found");
         }
