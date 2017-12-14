@@ -2,9 +2,9 @@ package network.pluto.absolute.security;
 
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
+import network.pluto.bibliotheca.models.Authority;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.WebUtils;
 
@@ -49,7 +49,7 @@ public class TokenHelper {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", member.getId());
         claims.put("name", member.getName());
-        claims.put("roles", member.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+        claims.put("roles", member.getAuthorities().stream().map(Authority::getName).collect(Collectors.toList()));
 
         return Jwts.builder()
                 .setClaims(claims)
