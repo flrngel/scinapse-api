@@ -17,7 +17,7 @@ import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
 
 @NoArgsConstructor
-@ToString(exclude = { "wallet" })
+@ToString
 @Getter
 @Setter
 public class MemberDto {
@@ -53,9 +53,6 @@ public class MemberDto {
     private long reputation;
 
     @ApiModelProperty(readOnly = true)
-    private WalletDto wallet;
-
-    @ApiModelProperty(readOnly = true)
     private long articleCount;
 
     @ApiModelProperty(readOnly = true)
@@ -75,10 +72,6 @@ public class MemberDto {
         this.affiliation = member.getAffiliation();
         this.major = member.getMajor();
         this.reputation = member.getReputation();
-
-        if (member.getWallet() != null) {
-            this.wallet = new WalletDto(member.getWallet());
-        }
     }
 
     public Member toEntity() {
