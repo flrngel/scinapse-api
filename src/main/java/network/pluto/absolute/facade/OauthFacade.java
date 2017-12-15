@@ -55,12 +55,13 @@ public class OauthFacade {
 
         switch (vendor) {
             case ORCID:
-                OauthOrcid oauthOrcid = orcidService.exchange(code, redirectUri);
+                OauthOrcid orcid = orcidService.exchange(code, redirectUri);
 
                 dto.setVendor(OauthVendor.ORCID);
-                dto.setOauthId(oauthOrcid.getOrcid());
-                dto.setUuid(oauthOrcid.getUuid());
-                dto.setUserData(oauthOrcid.getUserData());
+                dto.setOauthId(orcid.getOrcid());
+                dto.setUuid(orcid.getUuid());
+                dto.setUserData(orcid.getUserData());
+                dto.setConnected(orcid.isConnected());
 
                 break;
 
@@ -71,6 +72,7 @@ public class OauthFacade {
                 dto.setOauthId(facebook.getFacebookId());
                 dto.setUuid(facebook.getUuid());
                 dto.setUserData(facebook.getUserData());
+                dto.setConnected(facebook.isConnected());
 
                 break;
 
@@ -81,6 +83,7 @@ public class OauthFacade {
                 dto.setOauthId(google.getGoogleId());
                 dto.setUuid(google.getUuid());
                 dto.setUserData(google.getUserData());
+                dto.setConnected(google.isConnected());
 
                 break;
 
@@ -114,42 +117,82 @@ public class OauthFacade {
     public void connect(OauthUserDto oauth, Member member) {
         switch (oauth.getVendor()) {
             case ORCID:
-                OauthOrcid oauthOrcid = orcidService.find(oauth.getOauthId());
-                if (oauthOrcid == null) {
-                    throw new BadRequestException("Invalid Oauth token : token not exist");
+                OauthOrcid orcid = orcidService.find(oauth.getOauthId());
+                if (orcid == null) {
+                    throw new BadRequestException("Invalid Oauth token: token not exist");
                 }
-                if (!oauthOrcid.getUuid().equals(oauth.getUuid())) {
-                    throw new BadRequestException("Invalid Oauth token : token not matched");
+                if (orcid.isConnected()) {
+                    throw new BadRequestException("Invalid Connection: already connected");
+                }
+                if (!orcid.getUuid().equals(oauth.getUuid())) {
+                    throw new BadRequestException("Invalid Oauth token: token not matched");
                 }
 
-                oauthOrcid.setMember(member);
+                orcid.setMember(member);
+                orcid.setConnected(true);
                 return;
 
             case FACEBOOK:
                 OauthFacebook facebook = facebookService.find(oauth.getOauthId());
                 if (facebook == null) {
-                    throw new BadRequestException("Invalid Oauth token : token not exist");
+                    throw new BadRequestException("Invalid Oauth token: token not exist");
+                }
+                if (facebook.isConnected()) {
+                    throw new BadRequestException("Invalid Connection: already connected");
                 }
                 if (!facebook.getUuid().equals(oauth.getUuid())) {
-                    throw new BadRequestException("Invalid Oauth token : token not matched");
+                    throw new BadRequestException("Invalid Oauth token: token not matched");
                 }
 
                 facebook.setMember(member);
+                facebook.setConnected(true);
                 return;
 
             case GOOGLE:
                 OauthGoogle google = googleService.find(oauth.getOauthId());
                 if (google == null) {
-                    throw new BadRequestException("Invalid Oauth token : token not exist");
+                    throw new BadRequestException("Invalid Oauth token: token not exist");
+                }
+                if (google.isConnected()) {
+                    throw new BadRequestException("Invalid Connection: already connected");
                 }
                 if (!google.getUuid().equals(oauth.getUuid())) {
-                    throw new BadRequestException("Invalid Oauth token : token not matched");
+                    throw new BadRequestException("Invalid Oauth token: token not matched");
                 }
 
                 google.setMember(member);
+                google.setConnected(true);
                 return;
 
             default:
+        }
+    }
+
+    public boolean isConnected(OauthUserDto oauth) {
+        switch (oauth.getVendor()) {
+            case ORCID:
+                OauthOrcid orcid = orcidService.find(oauth.getOauthId());
+                if (orcid == null) {
+                    throw new BadRequestException("Invalid Oauth token: token not exist");
+                }
+                return orcid.isConnected();
+
+            case FACEBOOK:
+                OauthFacebook facebook = facebookService.find(oauth.getOauthId());
+                if (facebook == null) {
+                    throw new BadRequestException("Invalid Oauth token: token not exist");
+                }
+                return facebook.isConnected();
+
+            case GOOGLE:
+                OauthGoogle google = googleService.find(oauth.getOauthId());
+                if (google == null) {
+                    throw new BadRequestException("Invalid Oauth token: token not exist");
+                }
+                return google.isConnected();
+
+            default:
+                return false;
         }
     }
 }

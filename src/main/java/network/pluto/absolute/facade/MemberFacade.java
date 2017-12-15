@@ -75,6 +75,10 @@ public class MemberFacade {
             if (!StringUtils.hasText(memberDto.getPassword()) || memberDto.getPassword().length() < 8) {
                 throw new BadRequestException("Password length must be greater than or equal to 8");
             }
+        } else {
+            if (oauthFacade.isConnected(memberDto.getOauth())) {
+                throw new BadRequestException("Invalid Connection: already connected");
+            }
         }
 
         Member saved = memberService.saveMember(memberDto.toEntity());

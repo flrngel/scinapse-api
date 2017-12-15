@@ -45,7 +45,6 @@ public class MemberController {
     @RequestMapping(value = "/members", method = RequestMethod.POST)
     public MemberDto create(HttpServletResponse response, @RequestBody @Valid MemberDto memberDto) {
         Member member = memberFacade.create(response, memberDto);
-//        memberFacade.createWallet(member);
         return new MemberDto(member);
     }
 
