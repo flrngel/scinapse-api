@@ -3,6 +3,7 @@ package network.pluto.absolute.configuration;
 import network.pluto.absolute.security.jwt.JwtAuthenticationFilter;
 import network.pluto.absolute.security.rest.RestAccessDeniedHandler;
 import network.pluto.absolute.security.rest.RestAuthExceptionHandler;
+import network.pluto.bibliotheca.enums.AuthorityName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
@@ -93,7 +94,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // permit get
                 .antMatchers(
                         HttpMethod.GET,
-                        "/verification",
+                        "/email-verification",
                         "/members/checkDuplication",
                         "/members/*",
                         "/members/*/articles",
@@ -120,7 +121,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 ).permitAll()
 
                 .anyRequest()
-                .authenticated();
+                .hasAnyAuthority(AuthorityName.ROLE_ADMIN.name(), AuthorityName.ROLE_USER.name());
     }
 
     @Override

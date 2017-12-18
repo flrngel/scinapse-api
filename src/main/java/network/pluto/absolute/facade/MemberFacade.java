@@ -23,7 +23,7 @@ public class MemberFacade {
     private final ReviewService reviewService;
     private final CommentService commentService;
     private final TransactionService transactionService;
-    private final VerificationService verificationService;
+    private final EmailVerificationService emailVerificationService;
     private final TokenHelper tokenHelper;
     private final OauthFacade oauthFacade;
 
@@ -33,14 +33,14 @@ public class MemberFacade {
                         ReviewService reviewService,
                         CommentService commentService,
                         TransactionService transactionService,
-                        VerificationService verificationService,
+                        EmailVerificationService emailVerificationService,
                         TokenHelper tokenHelper, OauthFacade oauthFacade) {
         this.memberService = memberService;
         this.articleService = articleService;
         this.reviewService = reviewService;
         this.commentService = commentService;
         this.transactionService = transactionService;
-        this.verificationService = verificationService;
+        this.emailVerificationService = emailVerificationService;
         this.tokenHelper = tokenHelper;
         this.oauthFacade = oauthFacade;
     }
@@ -88,7 +88,7 @@ public class MemberFacade {
         }
 
         // send verification email
-        verificationService.sendVerification(saved);
+        emailVerificationService.sendVerification(saved);
 
         // auto login
         String jwt = tokenHelper.generateToken(saved);

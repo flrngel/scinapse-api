@@ -30,6 +30,9 @@ public class MemberDto {
     @NotNull
     private String email;
 
+    @ApiModelProperty(readOnly = true)
+    private boolean emailVerified = false;
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @ApiModelProperty
     private String password;
@@ -67,6 +70,7 @@ public class MemberDto {
     public MemberDto(Member member) {
         this.id = member.getId();
         this.email = member.getEmail();
+        this.emailVerified = member.isEmailVerified();
         this.name = member.getName();
         this.profileImage = member.getProfileImage();
         this.affiliation = member.getAffiliation();
