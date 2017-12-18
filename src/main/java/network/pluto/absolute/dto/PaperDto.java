@@ -89,10 +89,11 @@ public class PaperDto {
             this.authorCount = paper.getAuthors().size();
         }
 
-        if (paper.getKeywords() != null) {
-            this.keywords = paper.getKeywords().stream().map(PaperKeywordDto::new).collect(Collectors.toList());
-            this.keywordCount = paper.getKeywords().size();
-        }
+        // temporary disable due to db maintenance
+//        if (paper.getKeywords() != null) {
+//            this.keywords = paper.getKeywords().stream().map(PaperKeywordDto::new).collect(Collectors.toList());
+//            this.keywordCount = paper.getKeywords().size();
+//        }
 
         if (paper.getFosList() != null) {
             this.fosList = paper.getFosList().stream().map(FosDto::new).collect(Collectors.toList());
