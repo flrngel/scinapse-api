@@ -117,7 +117,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // permit post
                 .antMatchers(
                         HttpMethod.POST,
-                        "/members"
+                        "/members",
+                        "/members/oauth"
                 ).permitAll()
 
                 .anyRequest()

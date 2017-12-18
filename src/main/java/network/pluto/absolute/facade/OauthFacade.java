@@ -122,7 +122,7 @@ public class OauthFacade {
                     throw new BadRequestException("Invalid Oauth token: token not exist");
                 }
                 if (orcid.isConnected()) {
-                    throw new BadRequestException("Invalid Connection: already connected");
+                    throw new BadRequestException("Invalid Oauth Connection: already connected");
                 }
                 if (!orcid.getUuid().equals(oauth.getUuid())) {
                     throw new BadRequestException("Invalid Oauth token: token not matched");
@@ -138,7 +138,7 @@ public class OauthFacade {
                     throw new BadRequestException("Invalid Oauth token: token not exist");
                 }
                 if (facebook.isConnected()) {
-                    throw new BadRequestException("Invalid Connection: already connected");
+                    throw new BadRequestException("Invalid Oauth Connection: already connected");
                 }
                 if (!facebook.getUuid().equals(oauth.getUuid())) {
                     throw new BadRequestException("Invalid Oauth token: token not matched");
@@ -154,7 +154,7 @@ public class OauthFacade {
                     throw new BadRequestException("Invalid Oauth token: token not exist");
                 }
                 if (google.isConnected()) {
-                    throw new BadRequestException("Invalid Connection: already connected");
+                    throw new BadRequestException("Invalid Oauth Connection: already connected");
                 }
                 if (!google.getUuid().equals(oauth.getUuid())) {
                     throw new BadRequestException("Invalid Oauth token: token not matched");
