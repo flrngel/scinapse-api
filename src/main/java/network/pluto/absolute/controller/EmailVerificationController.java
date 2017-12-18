@@ -1,5 +1,6 @@
 package network.pluto.absolute.controller;
 
+import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.EmailVerificationService;
@@ -31,7 +32,7 @@ public class EmailVerificationController {
         this.tokenHelper = tokenHelper;
     }
 
-    @RequestMapping(value = "/email-verification", method = RequestMethod.GET)
+    @RequestMapping(value = "/email-verification", method = RequestMethod.POST)
     public Result verify(HttpServletResponse response,
                          @ApiIgnore JwtUser user,
                          @RequestParam String token) {
@@ -49,6 +50,18 @@ public class EmailVerificationController {
             String jws = tokenHelper.generateToken(member);
             tokenHelper.addCookie(response, jws);
         }
+
+        return Result.success();
+    }
+
+    @RequestMapping(value = "/email-verification/resend", method = RequestMethod.POST)
+    public Result resend(@RequestParam String email) {
+        Member member = memberService.findByEmail(email);
+        if (member == null) {
+            throw new ResourceNotFoundException("Member not found");
+        }
+
+        emailVerificationService.sendVerification(member);
 
         return Result.success();
     }
