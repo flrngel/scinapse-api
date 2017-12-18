@@ -94,7 +94,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // permit get
                 .antMatchers(
                         HttpMethod.GET,
-                        "/email-verification",
                         "/members/checkDuplication",
                         "/members/*",
                         "/members/*/articles",
@@ -117,6 +116,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // permit post
                 .antMatchers(
                         HttpMethod.POST,
+                        "/email-verification",
+                        "/email-verification/resend",
                         "/members",
                         "/members/oauth"
                 ).permitAll()
