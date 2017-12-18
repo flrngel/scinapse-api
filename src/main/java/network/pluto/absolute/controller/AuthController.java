@@ -150,7 +150,11 @@ public class AuthController {
         tokenHelper.addCookie(response, jws);
 
         MemberDto memberDto = new MemberDto(member);
-        return new LoginDto(true, jws, memberDto);
+
+        LoginDto loginDto = new LoginDto(true, jws, memberDto);
+        loginDto.setOauthLoggedIn(true);
+
+        return loginDto;
     }
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)

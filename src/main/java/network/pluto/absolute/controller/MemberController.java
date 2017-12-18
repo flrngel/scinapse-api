@@ -48,6 +48,12 @@ public class MemberController {
         return new MemberDto(member);
     }
 
+    @RequestMapping(value = "/members/oauth", method = RequestMethod.POST)
+    public MemberDto createOauthMember(HttpServletResponse response, @RequestBody @Valid MemberDto memberDto) {
+        Member member = memberFacade.createOauthMember(response, memberDto);
+        return new MemberDto(member);
+    }
+
     @RequestMapping(value = "/members/{memberId}", method = RequestMethod.GET)
     public MemberDto getMembers(@ApiIgnore JwtUser user,
                                 @PathVariable long memberId) {

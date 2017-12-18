@@ -23,7 +23,7 @@ public class MemberFacade {
     private final ReviewService reviewService;
     private final CommentService commentService;
     private final TransactionService transactionService;
-    private final VerificationService verificationService;
+    private final EmailVerificationService emailVerificationService;
     private final TokenHelper tokenHelper;
     private final OauthFacade oauthFacade;
 
@@ -33,14 +33,14 @@ public class MemberFacade {
                         ReviewService reviewService,
                         CommentService commentService,
                         TransactionService transactionService,
-                        VerificationService verificationService,
+                        EmailVerificationService emailVerificationService,
                         TokenHelper tokenHelper, OauthFacade oauthFacade) {
         this.memberService = memberService;
         this.articleService = articleService;
         this.reviewService = reviewService;
         this.commentService = commentService;
         this.transactionService = transactionService;
-        this.verificationService = verificationService;
+        this.emailVerificationService = emailVerificationService;
         this.tokenHelper = tokenHelper;
         this.oauthFacade = oauthFacade;
     }
@@ -71,24 +71,40 @@ public class MemberFacade {
             throw new BadRequestException("Email already exists");
         }
 
-        if (memberDto.getOauth() == null) {
-            if (!StringUtils.hasText(memberDto.getPassword()) || memberDto.getPassword().length() < 8) {
-                throw new BadRequestException("Password length must be greater than or equal to 8");
-            }
-        } else {
-            if (oauthFacade.isConnected(memberDto.getOauth())) {
-                throw new BadRequestException("Invalid Connection: already connected");
-            }
+        if (!StringUtils.hasText(memberDto.getPassword()) || memberDto.getPassword().length() < 8) {
+            throw new BadRequestException("Password length must be greater than or equal to 8");
         }
 
         Member saved = memberService.saveMember(memberDto.toEntity());
 
-        if (memberDto.getOauth() != null) {
-            oauthFacade.connect(memberDto.getOauth(), saved);
+        // send verification email
+        emailVerificationService.sendVerification(saved);
+
+        // auto login
+        String jwt = tokenHelper.generateToken(saved);
+        tokenHelper.addCookie(response, jwt);
+
+        return saved;
+    }
+
+    @Transactional
+    public Member createOauthMember(HttpServletResponse response, MemberDto memberDto) {
+        Member exist = memberService.findByEmail(memberDto.getEmail());
+        if (exist != null) {
+            throw new BadRequestException("Email already exists");
         }
 
-        // send verification email
-        verificationService.sendVerification(saved);
+        if (memberDto.getOauth() == null) {
+            throw new BadRequestException("Invalid Oauth Information: not exist");
+        }
+
+        if (oauthFacade.isConnected(memberDto.getOauth())) {
+            throw new BadRequestException("Invalid Connection: already connected");
+        }
+
+        Member saved = memberService.saveMember(memberDto.toEntity());
+
+        oauthFacade.connect(memberDto.getOauth(), saved);
 
         // auto login
         String jwt = tokenHelper.generateToken(saved);
