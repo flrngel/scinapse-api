@@ -11,7 +11,10 @@ import lombok.ToString;
 public class LoginDto {
 
     @ApiModelProperty(readOnly = true)
-    private boolean loggedIn;
+    private boolean loggedIn = false;
+
+    @ApiModelProperty(readOnly = true)
+    private boolean oauthLoggedIn = false;
 
     @ApiModelProperty(readOnly = true)
     private String token;
