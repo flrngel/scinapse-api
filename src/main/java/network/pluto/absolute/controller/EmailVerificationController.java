@@ -1,5 +1,6 @@
 package network.pluto.absolute.controller;
 
+import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.security.jwt.JwtUser;
@@ -59,6 +60,10 @@ public class EmailVerificationController {
         Member member = memberService.findByEmail(email);
         if (member == null) {
             throw new ResourceNotFoundException("Member not found");
+        }
+
+        if (member.isEmailVerified()) {
+            throw new BadRequestException("Member already verified email");
         }
 
         emailVerificationService.sendVerification(member);

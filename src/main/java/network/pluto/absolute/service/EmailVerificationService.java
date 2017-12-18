@@ -52,8 +52,8 @@ public class EmailVerificationService {
                         .withBody(new Body()
                                 .withText(new Content()
                                         .withData("Hello, " + member.getName() + ".\n\n" +
-                                                "Please visit below link to verify your email address:\n\n"
-                                                + webEmailVerificationUrl + "?token=" + token + "\n\n" +
+                                                "Please visit below link to verify your email address:\n" +
+                                                webEmailVerificationUrl + "?email=" + member.getEmail() + "&token=" + token + "\n\n" +
                                                 "Thank you for joining Pluto Network!"))))
                 .withSource("no-reply@pluto.network");
 
