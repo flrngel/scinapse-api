@@ -82,7 +82,7 @@ public class MemberFacade {
         emailVerificationService.sendVerification(saved);
 
         // auto login
-        String jwt = tokenHelper.generateToken(saved);
+        String jwt = tokenHelper.generateToken(saved, false);
         tokenHelper.addCookie(response, jwt);
 
         return saved;
@@ -109,7 +109,7 @@ public class MemberFacade {
         oauthFacade.connect(memberDto.getOauth(), saved);
 
         // auto login
-        String jwt = tokenHelper.generateToken(saved);
+        String jwt = tokenHelper.generateToken(saved, true);
         tokenHelper.addCookie(response, jwt);
 
         return saved;

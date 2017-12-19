@@ -45,10 +45,11 @@ public class TokenHelper {
                 .compact();
     }
 
-    public String generateToken(Member member) {
+    public String generateToken(Member member, boolean oauthLogin) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", member.getId());
         claims.put("name", member.getName());
+        claims.put("oauth", oauthLogin);
         claims.put("roles", member.getAuthorities().stream().map(Authority::getName).collect(Collectors.toList()));
 
         return Jwts.builder()

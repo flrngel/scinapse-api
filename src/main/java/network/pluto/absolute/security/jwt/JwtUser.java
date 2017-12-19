@@ -18,6 +18,7 @@ public class JwtUser extends AbstractAuthenticationToken {
     private long id;
     private String email;
     private String name;
+    private boolean oauthLogin;
     private String token;
 
     public JwtUser(Collection<? extends GrantedAuthority> authorities) {

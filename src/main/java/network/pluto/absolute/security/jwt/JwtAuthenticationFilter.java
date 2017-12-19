@@ -47,6 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Claims claims = tokenHelper.getAllClaimsFromToken(refreshedToken);
                 Integer memberId = claims.get("id", Integer.class);
                 String name = claims.get("name", String.class);
+                Boolean oauthLogin = claims.get("oauth", Boolean.class);
                 List<String> roles = claims.get("roles", List.class);
                 List<GrantedAuthority> authorities = roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
 
@@ -55,6 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 jwtUser.setId(memberId);
                 jwtUser.setEmail(claims.getSubject());
                 jwtUser.setName(name);
+                jwtUser.setOauthLogin(oauthLogin);
                 jwtUser.setToken(refreshedToken);
 
                 // set authentication

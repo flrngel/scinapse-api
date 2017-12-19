@@ -49,7 +49,7 @@ public class EmailVerificationController {
                 throw new InsufficientAuthenticationException("Member has no roles assigned");
             }
 
-            String jws = tokenHelper.generateToken(member);
+            String jws = tokenHelper.generateToken(member, user.isOauthLogin());
             tokenHelper.addCookie(response, jws);
         }
 

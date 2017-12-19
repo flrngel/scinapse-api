@@ -72,6 +72,7 @@ public class AuthController {
 
         // now token is valid
         loginDto.setLoggedIn(true);
+        loginDto.setOauthLoggedIn(user.isOauthLogin());
         loginDto.setToken(user.getToken());
         loginDto.setMember(new MemberDto(member));
 
@@ -101,7 +102,7 @@ public class AuthController {
             throw new InsufficientAuthenticationException("Member has no roles assigned");
         }
 
-        String jws = tokenHelper.generateToken(member);
+        String jws = tokenHelper.generateToken(member, false);
         tokenHelper.addCookie(response, jws);
 
         MemberDto memberDto = new MemberDto(member);
@@ -146,7 +147,7 @@ public class AuthController {
             throw new BadCredentialsException("Authentication Failed. Member not existence.");
         }
 
-        String jws = tokenHelper.generateToken(member);
+        String jws = tokenHelper.generateToken(member, true);
         tokenHelper.addCookie(response, jws);
 
         MemberDto memberDto = new MemberDto(member);
