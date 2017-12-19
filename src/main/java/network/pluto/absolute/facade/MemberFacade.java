@@ -6,6 +6,7 @@ import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.service.*;
+import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -103,6 +104,7 @@ public class MemberFacade {
         }
 
         Member saved = memberService.saveMember(memberDto.toEntity());
+        memberService.updateAuthority(saved, AuthorityName.ROLE_USER);
 
         oauthFacade.connect(memberDto.getOauth(), saved);
 

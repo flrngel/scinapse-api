@@ -64,6 +64,12 @@ public class MemberService {
         old.setPassword(passwordEncoder.encode(password));
     }
 
+    @Transactional
+    public void updateAuthority(Member member, AuthorityName name) {
+        Authority authority = authorityRepository.findByName(name);
+        member.setAuthorities(Collections.singletonList(authority));
+    }
+
     public Page<Member> findAll(Pageable pageable) {
         return memberRepository.findAll(pageable);
     }
