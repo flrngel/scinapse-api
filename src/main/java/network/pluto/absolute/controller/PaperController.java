@@ -2,6 +2,7 @@ package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.PaperDto;
+import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.facade.PaperFacade;
 import network.pluto.absolute.security.jwt.JwtUser;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.AuthorizationServiceException;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -45,13 +47,11 @@ public class PaperController {
         return paperFacade.find(paperId);
     }
 
-    @RequestMapping(value = "/papers/search", method = RequestMethod.GET)
-    public Page<PaperDto> searchDeprecated(@RequestParam String text, @PageableDefault Pageable pageable) {
-        return paperFacade.search(text, pageable);
-    }
-
     @RequestMapping(value = "/papers", method = RequestMethod.GET)
     public Page<PaperDto> search(@RequestParam String query, @PageableDefault Pageable pageable) {
+        if (!StringUtils.hasText(query) || query.length() < 2) {
+            throw new BadRequestException("Search query is too short");
+        }
         return paperFacade.search(query, pageable);
     }
 
