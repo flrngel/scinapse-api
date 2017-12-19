@@ -47,9 +47,6 @@ public class SearchService {
                         .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
                         .tieBreaker(0.5f));
 
-        // set minimum score
-        builder.minScore(5);
-
         // do not retrieve source
         builder.fetchSource(false);
 
