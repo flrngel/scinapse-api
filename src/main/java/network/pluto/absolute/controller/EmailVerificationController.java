@@ -1,5 +1,6 @@
 package network.pluto.absolute.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.TokenHelper;
@@ -9,9 +10,9 @@ import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -36,9 +37,9 @@ public class EmailVerificationController {
     @RequestMapping(value = "/email-verification", method = RequestMethod.POST)
     public Result verify(HttpServletResponse response,
                          @ApiIgnore JwtUser user,
-                         @RequestParam String token) {
+                         @RequestBody TokenWrapper token) {
         // verify email
-        emailVerificationService.verify(token);
+        emailVerificationService.verify(token.token);
 
         if (user != null) {
             // jwt token role update if member already signed in
@@ -56,8 +57,8 @@ public class EmailVerificationController {
     }
 
     @RequestMapping(value = "/email-verification/resend", method = RequestMethod.POST)
-    public Result resend(@RequestParam String email) {
-        Member member = memberService.findByEmail(email);
+    public Result resend(@RequestBody EmailWrapper email) {
+        Member member = memberService.findByEmail(email.email);
         if (member == null) {
             throw new ResourceNotFoundException("Member not found");
         }
@@ -69,5 +70,15 @@ public class EmailVerificationController {
         emailVerificationService.sendVerification(member);
 
         return Result.success();
+    }
+
+    private static class EmailWrapper {
+        @JsonProperty
+        private String email;
+    }
+
+    private static class TokenWrapper {
+        @JsonProperty
+        private String token;
     }
 }
