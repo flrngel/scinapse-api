@@ -44,7 +44,11 @@ public class SearchService {
                 QueryBuilders.multiMatchQuery(text, "title", "abstract")
                         .operator(Operator.AND)
                         .analyzer("standard")
-                        .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS));
+                        .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
+                        .tieBreaker(0.5f));
+
+        // set minimum score
+        builder.minScore(5);
 
         // do not retrieve source
         builder.fetchSource(false);
