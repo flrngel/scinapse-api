@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.MultiMatchQueryBuilder;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -38,7 +40,11 @@ public class SearchService {
         SearchSourceBuilder builder = new SearchSourceBuilder();
 
         // search specific fields
-        builder.query(QueryBuilders.multiMatchQuery(text, "title", "abstract"));
+        builder.query(
+                QueryBuilders.multiMatchQuery(text, "title", "abstract")
+                        .operator(Operator.AND)
+                        .analyzer("standard")
+                        .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS));
 
         // do not retrieve source
         builder.fetchSource(false);
