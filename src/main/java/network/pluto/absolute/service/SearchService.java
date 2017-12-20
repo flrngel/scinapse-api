@@ -41,7 +41,8 @@ public class SearchService {
 
         // search specific fields
         builder.query(
-                QueryBuilders.multiMatchQuery(text, "title", "abstract")
+                QueryBuilders.multiMatchQuery(text, "title")
+                        .field("abstract", 2)
                         .operator(Operator.AND)
                         .analyzer("standard")
                         .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
