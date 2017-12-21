@@ -11,7 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -39,25 +41,37 @@ public class PaperFacade {
     @Transactional(readOnly = true)
     public Page<PaperDto> findReferences(long paperId, Pageable pageable) {
         Page<Long> referenceIds = paperService.findReferences(paperId, pageable);
-        List<PaperDto> dtos = findIn(referenceIds.getContent());
+        Map<Long, PaperDto> paperMap = findIn(referenceIds.getContent());
+
+        List<PaperDto> dtos = new ArrayList<>();
+        referenceIds.getContent().forEach(id -> dtos.add(paperMap.get(id)));
+
         return new PageImpl<>(dtos, pageable, referenceIds.getTotalElements());
     }
 
     @Transactional(readOnly = true)
     public Page<PaperDto> findCited(long paperId, Pageable pageable) {
         Page<Long> citedIds = paperService.findCited(paperId, pageable);
-        List<PaperDto> dtos = findIn(citedIds.getContent());
+        Map<Long, PaperDto> paperMap = findIn(citedIds.getContent());
+
+        List<PaperDto> dtos = new ArrayList<>();
+        citedIds.getContent().forEach(id -> dtos.add(paperMap.get(id)));
+
         return new PageImpl<>(dtos, pageable, citedIds.getTotalElements());
     }
 
     @Transactional(readOnly = true)
     public Page<PaperDto> search(String text, Pageable pageable) {
         Page<Long> paperIds = searchService.search(text, pageable);
-        List<PaperDto> dtos = findIn(paperIds.getContent());
+        Map<Long, PaperDto> paperMap = findIn(paperIds.getContent());
+
+        List<PaperDto> dtos = new ArrayList<>();
+        paperIds.getContent().forEach(id -> dtos.add(paperMap.get(id)));
+
         return new PageImpl<>(dtos, pageable, paperIds.getTotalElements());
     }
 
-    private List<PaperDto> findIn(List<Long> paperIds) {
+    private Map<Long, PaperDto> findIn(List<Long> paperIds) {
         List<Paper> papers = paperService.findByIdIn(paperIds);
         return papers
                 .stream()
@@ -67,6 +81,9 @@ public class PaperFacade {
                     dto.setReferenceCount(paperService.countReference(paper.getId()));
                     return dto;
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.toMap(
+                        PaperDto::getId,
+                        p -> p
+                ));
     }
 }
