@@ -1,15 +1,10 @@
 package network.pluto.absolute.service;
 
 import lombok.extern.slf4j.Slf4j;
+import network.pluto.absolute.util.Query;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.ExistsQueryBuilder;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
-import org.elasticsearch.index.query.functionscore.WeightBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,27 +32,13 @@ public class SearchService {
     @Value("${pluto.server.es.index}")
     private String indexName;
 
-    public Page<Long> search(String text, Pageable pageable) {
+    public Page<Long> search(Query query, Pageable pageable) {
         SearchRequest request = new SearchRequest(indexName);
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
 
-        // search specific fields
-        MultiMatchQueryBuilder query = QueryBuilders.multiMatchQuery(text, "title")
-                .field("abstract", 3)
-                .operator(Operator.AND)
-                .analyzer("standard")
-                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .tieBreaker(0.5f);
-
-        // venue booster
-        ExistsQueryBuilder venueExistsQuery = QueryBuilders.existsQuery("venue");
-        WeightBuilder weight = new WeightBuilder().setWeight(2);
-        FunctionScoreQueryBuilder.FilterFunctionBuilder function = new FunctionScoreQueryBuilder.FilterFunctionBuilder(venueExistsQuery, weight);
-
         // set query
-        FunctionScoreQueryBuilder scoredQuery = QueryBuilders.functionScoreQuery(query, new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { function });
-        builder.query(scoredQuery);
+        builder.query(query.toQuery());
 
         // do not retrieve source
         builder.fetchSource(false);
