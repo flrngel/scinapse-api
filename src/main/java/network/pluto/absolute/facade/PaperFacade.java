@@ -3,6 +3,7 @@ package network.pluto.absolute.facade;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.service.PaperService;
 import network.pluto.absolute.service.SearchService;
+import network.pluto.absolute.util.Query;
 import network.pluto.bibliotheca.models.Paper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -61,8 +62,8 @@ public class PaperFacade {
     }
 
     @Transactional(readOnly = true)
-    public Page<PaperDto> search(String text, Pageable pageable) {
-        Page<Long> paperIds = searchService.search(text, pageable);
+    public Page<PaperDto> search(Query query, Pageable pageable) {
+        Page<Long> paperIds = searchService.search(query, pageable);
         Map<Long, PaperDto> paperMap = findIn(paperIds.getContent());
 
         List<PaperDto> dtos = new ArrayList<>();

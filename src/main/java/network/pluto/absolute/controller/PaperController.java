@@ -9,6 +9,8 @@ import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.absolute.service.PaperService;
+import network.pluto.absolute.util.Query;
+import network.pluto.absolute.util.QueryParser;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.models.Paper;
@@ -48,10 +50,16 @@ public class PaperController {
     }
 
     @RequestMapping(value = "/papers", method = RequestMethod.GET)
-    public Page<PaperDto> search(@RequestParam String query, @PageableDefault Pageable pageable) {
-        if (!StringUtils.hasText(query) || query.length() < 2) {
-            throw new BadRequestException("Search query is too short");
+    public Page<PaperDto> search(@RequestParam("query") String queryStr, @PageableDefault Pageable pageable) {
+        if (!StringUtils.hasText(queryStr)) {
+            throw new BadRequestException("Invalid query: query not exists");
         }
+
+        Query query = QueryParser.parse(queryStr);
+        if (!query.isValid()) {
+            throw new BadRequestException("Invalid query: too short query text");
+        }
+
         return paperFacade.search(query, pageable);
     }
 
