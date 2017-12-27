@@ -80,10 +80,6 @@ public class PaperDto {
         this.pageStart = paper.getPageStart();
         this.pageEnd = paper.getPageEnd();
 
-        if (paper.getCitedCount() != null) {
-            this.citedCount = paper.getCitedCount();
-        }
-
         if (paper.getAuthors() != null) {
             this.authors = paper.getAuthors().stream().map(PaperAuthorDto::new).collect(Collectors.toList());
             this.authorCount = paper.getAuthors().size();

@@ -80,6 +80,7 @@ public class PaperFacade {
                 .map(paper -> {
                     PaperDto dto = new PaperDto(paper);
                     dto.setReferenceCount(paperService.countReference(paper.getId()));
+                    dto.setCitedCount(paperService.countCited(paper.getId()));
                     return dto;
                 })
                 .collect(Collectors.toMap(
