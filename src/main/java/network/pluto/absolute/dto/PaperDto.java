@@ -102,7 +102,7 @@ public class PaperDto {
         }
 
         if (paper.getComments() != null) {
-            this.comments = paper.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
+//            this.comments = paper.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
             this.commentCount = paper.getComments().size();
         }
     }

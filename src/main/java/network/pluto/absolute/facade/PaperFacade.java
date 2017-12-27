@@ -1,6 +1,8 @@
 package network.pluto.absolute.facade;
 
+import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.PaperDto;
+import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.PaperService;
 import network.pluto.absolute.service.SearchService;
 import network.pluto.absolute.util.Query;
@@ -8,6 +10,7 @@ import network.pluto.bibliotheca.models.Paper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,11 +26,15 @@ public class PaperFacade {
 
     private final PaperService paperService;
     private final SearchService searchService;
+    private final CommentService commentService;
 
     @Autowired
-    public PaperFacade(PaperService paperService, SearchService searchService) {
+    public PaperFacade(PaperService paperService,
+                       SearchService searchService,
+                       CommentService commentService) {
         this.paperService = paperService;
         this.searchService = searchService;
+        this.commentService = commentService;
     }
 
     @Transactional(readOnly = true)
@@ -81,6 +88,15 @@ public class PaperFacade {
                     PaperDto dto = new PaperDto(paper);
                     dto.setReferenceCount(paperService.countReference(paper.getId()));
                     dto.setCitedCount(paperService.countCited(paper.getId()));
+
+                    PageRequest pageRequest = new PageRequest(0, 10);
+                    List<CommentDto> commentDtos = commentService.findByPaper(paper, pageRequest)
+                            .getContent()
+                            .stream()
+                            .map(CommentDto::new)
+                            .collect(Collectors.toList());
+                    dto.setComments(commentDtos);
+
                     return dto;
                 })
                 .collect(Collectors.toMap(
