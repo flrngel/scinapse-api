@@ -43,6 +43,16 @@ public class PaperFacade {
 
         PaperDto dto = new PaperDto(paper);
         dto.setReferenceCount(paperService.countReference(paper.getId()));
+        dto.setCitedCount(paperService.countCited(paper.getId()));
+
+        PageRequest pageRequest = new PageRequest(0, 10);
+        List<CommentDto> commentDtos = commentService.findByPaper(paper, pageRequest)
+                .getContent()
+                .stream()
+                .map(CommentDto::new)
+                .collect(Collectors.toList());
+        dto.setComments(commentDtos);
+
         return dto;
     }
 

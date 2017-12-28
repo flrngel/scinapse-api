@@ -47,7 +47,7 @@ public class CommentService {
     }
 
     public Page<Comment> findByPaper(Paper paper, Pageable pageable) {
-        return commentRepository.findByPaper(paper, pageable);
+        return commentRepository.findByPaperOrderByIdDesc(paper, pageable);
     }
 
     @Transactional
