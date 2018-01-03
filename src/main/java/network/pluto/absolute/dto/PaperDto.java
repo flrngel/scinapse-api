@@ -55,6 +55,8 @@ public class PaperDto {
 
     private long commentCount = 0;
 
+    private JournalDto journal;
+
     private List<PaperAuthorDto> authors;
 
     private List<PaperKeywordDto> keywords;
@@ -79,6 +81,10 @@ public class PaperDto {
         this.issue = paper.getIssue();
         this.pageStart = paper.getPageStart();
         this.pageEnd = paper.getPageEnd();
+
+        if (paper.getJournal() != null) {
+            this.journal = new JournalDto(paper.getJournal());
+        }
 
         if (paper.getAuthors() != null) {
             this.authors = paper.getAuthors().stream().map(PaperAuthorDto::new).collect(Collectors.toList());
