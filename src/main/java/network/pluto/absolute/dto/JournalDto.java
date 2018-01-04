@@ -19,7 +19,7 @@ public class JournalDto {
     private String country;
     private String edition;
     private Boolean isOpenAccess;
-    private Double journalImpactFactor;
+    private Double impactFactor;
     private Integer issues;
     private Integer totalCites;
     private Double fiveYearImpactFactor;
@@ -44,7 +44,7 @@ public class JournalDto {
         this.country = journal.getCountry();
         this.edition = journal.getEdition();
         this.isOpenAccess = journal.getIsOpenAccess();
-        this.journalImpactFactor = journal.getJournalImpactFactor();
+        this.impactFactor = journal.getJournalImpactFactor();
         this.issues = journal.getIssues();
         this.totalCites = journal.getTotalCites();
         this.fiveYearImpactFactor = journal.getFiveYearImpactFactor();
