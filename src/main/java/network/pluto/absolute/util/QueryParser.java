@@ -41,6 +41,23 @@ public class QueryParser {
             }
         }
 
+        String impactFactor = queryMap.get("if");
+        if (StringUtils.hasText(impactFactor)) {
+            List<String> ifs = Splitter.on(":").trimResults().splitToList(impactFactor);
+            try {
+                if (ifs.size() == 2) {
+                    if (StringUtils.hasText(ifs.get(0))) {
+                        query.setIfStart(Integer.parseInt(ifs.get(0)));
+                    }
+                    if (StringUtils.hasText(ifs.get(1))) {
+                        query.setIfEnd(Integer.parseInt(ifs.get(1)));
+                    }
+                }
+            } catch (NumberFormatException ignore) {
+                // ignore
+            }
+        }
+
         return query;
     }
 }

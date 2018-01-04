@@ -13,6 +13,8 @@ public class Query {
     private String text;
     private Integer yearStart;
     private Integer yearEnd;
+    private Integer ifStart;
+    private Integer ifEnd;
 
     public Query(String text) {
         this.text = text;
@@ -43,13 +45,25 @@ public class Query {
             boolQuery.filter(QueryBuilders.rangeQuery("year").lte(yearEnd));
         }
 
+        if (ifStart != null) {
+            boolQuery.filter(QueryBuilders.rangeQuery("journal.impact_factor").gte(ifStart));
+        }
+
+        if (ifEnd != null) {
+            boolQuery.filter(QueryBuilders.rangeQuery("journal.impact_factor").lte(ifEnd));
+        }
+
+        // journal booster
+        ExistsQueryBuilder journalExistsQuery = QueryBuilders.existsQuery("journal.full_title");
+        FunctionScoreQueryBuilder.FilterFunctionBuilder journalBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(journalExistsQuery, new WeightBuilder().setWeight(3));
+
         // venue booster
         ExistsQueryBuilder venueExistsQuery = QueryBuilders.existsQuery("venue");
-        WeightBuilder weight = new WeightBuilder().setWeight(2);
-        FunctionScoreQueryBuilder.FilterFunctionBuilder function = new FunctionScoreQueryBuilder.FilterFunctionBuilder(venueExistsQuery, weight);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder venueBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(venueExistsQuery, new WeightBuilder().setWeight(2));
 
         return QueryBuilders.functionScoreQuery(
                 boolQuery,
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { function });
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { journalBooster, venueBooster })
+                .maxBoost(4); // limit boosting
     }
 }
