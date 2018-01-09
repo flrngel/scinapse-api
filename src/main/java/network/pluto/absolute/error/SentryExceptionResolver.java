@@ -3,6 +3,7 @@ package network.pluto.absolute.error;
 import io.sentry.Sentry;
 import org.springframework.core.Ordered;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -17,6 +18,7 @@ public class SentryExceptionResolver implements HandlerExceptionResolver, Ordere
                                          Object handler,
                                          Exception ex) {
         if (ex instanceof ResourceNotFoundException ||
+                ex instanceof MethodArgumentNotValidException ||
                 ex instanceof BadRequestException ||
                 ex instanceof AuthenticationException) {
 
