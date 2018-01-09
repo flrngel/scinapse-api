@@ -73,6 +73,8 @@ dependencies {
 
     compile('com.amazonaws:aws-java-sdk-ses')
 
+    compile('io.sentry:sentry-spring:1.6.4')
+
     runtime('org.springframework.boot:spring-boot-devtools')
     runtime('com.h2database:h2')
     runtime('org.postgresql:postgresql')
