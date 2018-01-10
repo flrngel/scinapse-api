@@ -34,6 +34,10 @@ public class OauthFacade {
     }
 
     public URI getAuthorizeUri(OauthVendor vendor, String redirectUri) {
+        if (vendor == null) {
+            throw new BadRequestException("Invalid Oauth: vendor not exist");
+        }
+
         switch (vendor) {
             case ORCID:
                 return orcidService.getAuthorizeUri(redirectUri);
@@ -51,6 +55,10 @@ public class OauthFacade {
 
     @Transactional
     public OauthUserDto exchange(OauthVendor vendor, String code, String redirectUri) {
+        if (vendor == null) {
+            throw new BadRequestException("Invalid Oauth: vendor not exist");
+        }
+
         OauthUserDto dto = new OauthUserDto();
 
         switch (vendor) {
@@ -95,6 +103,10 @@ public class OauthFacade {
 
     @Transactional
     public Member findMember(OauthVendor vendor, String code, String redirectUri) {
+        if (vendor == null) {
+            throw new BadRequestException("Invalid Oauth: vendor not exist");
+        }
+
         switch (vendor) {
             case ORCID:
                 OauthOrcid oauthOrcid = orcidService.exchange(code, redirectUri);
@@ -115,6 +127,10 @@ public class OauthFacade {
 
     @Transactional
     public void connect(OauthUserDto oauth, Member member) {
+        if (oauth.getVendor() == null) {
+            throw new BadRequestException("Invalid Oauth: vendor not exist");
+        }
+
         switch (oauth.getVendor()) {
             case ORCID:
                 OauthOrcid orcid = orcidService.find(oauth.getOauthId());
@@ -169,6 +185,10 @@ public class OauthFacade {
     }
 
     public boolean isConnected(OauthUserDto oauth) {
+        if (oauth.getVendor() == null) {
+            throw new BadRequestException("Invalid Oauth: vendor not exist");
+        }
+
         switch (oauth.getVendor()) {
             case ORCID:
                 OauthOrcid orcid = orcidService.find(oauth.getOauthId());
