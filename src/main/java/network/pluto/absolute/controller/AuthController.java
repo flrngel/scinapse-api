@@ -6,7 +6,6 @@ import network.pluto.absolute.dto.OAuthAuthorizeUriDto;
 import network.pluto.absolute.dto.OAuthRequest;
 import network.pluto.absolute.dto.oauth.OauthUserDto;
 import network.pluto.absolute.enums.OauthVendor;
-import network.pluto.absolute.facade.MemberFacade;
 import network.pluto.absolute.facade.OauthFacade;
 import network.pluto.absolute.security.LoginRequest;
 import network.pluto.absolute.security.TokenHelper;
@@ -14,11 +13,9 @@ import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -29,28 +26,22 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 public class AuthController {
 
     private final TokenHelper tokenHelper;
     private final MemberService memberService;
-    private final MemberFacade memberFacade;
     private final BCryptPasswordEncoder encoder;
     private final OauthFacade oauthFacade;
 
     @Autowired
     public AuthController(TokenHelper tokenHelper,
                           MemberService memberService,
-                          MemberFacade memberFacade,
                           BCryptPasswordEncoder encoder,
                           OauthFacade oauthFacade) {
         this.tokenHelper = tokenHelper;
         this.memberService = memberService;
-        this.memberFacade = memberFacade;
         this.encoder = encoder;
         this.oauthFacade = oauthFacade;
     }
@@ -98,7 +89,7 @@ public class AuthController {
             throw new BadCredentialsException("Authentication Failed. Username or Password not valid.");
         }
 
-        if (member.getAuthorities() == null) {
+        if (member.getAuthorities().isEmpty()) {
             throw new InsufficientAuthenticationException("Member has no roles assigned");
         }
 
@@ -144,7 +135,7 @@ public class AuthController {
                           @RequestBody @Valid OAuthRequest request) {
         Member member = oauthFacade.findMember(request.getVendor(), request.getCode(), request.getRedirectUri());
         if (member == null) {
-            throw new BadCredentialsException("Authentication Failed. Member not existence.");
+            throw new BadCredentialsException("Authentication Failed. Member not exists.");
         }
 
         String jws = tokenHelper.generateToken(member, true);
@@ -158,32 +149,4 @@ public class AuthController {
         return loginDto;
     }
 
-    @RequestMapping(value = "/hello", method = RequestMethod.GET)
-    public Object hello() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("message", "hello, world.");
-        return result;
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    @RequestMapping(value = "/user", method = RequestMethod.GET)
-    public Object user(@ApiIgnore JwtUser user) {
-        return getMessage(user);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @RequestMapping(value = "/admin", method = RequestMethod.GET)
-    public Object admin(@ApiIgnore JwtUser user) {
-        return getMessage(user);
-    }
-
-    private Object getMessage(JwtUser user) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("message", "hello, " + user.getName() + ".");
-        result.put("id", user.getId());
-        result.put("email", user.getEmail());
-        result.put("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
-        result.put("name", user.getName());
-        return result;
-    }
 }

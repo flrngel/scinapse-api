@@ -85,7 +85,7 @@ public class MemberController {
     }
 
     @RequestMapping(value = "/members/me", method = RequestMethod.PUT)
-    public MemberDto updateArticle(@ApiIgnore JwtUser user,
+    public MemberDto updateMember(@ApiIgnore JwtUser user,
                                    @RequestBody @Validated(Update.class) MemberDto memberDto) {
         Member old = memberService.findMember(user.getId());
         if (old == null) {

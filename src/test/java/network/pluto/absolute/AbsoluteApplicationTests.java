@@ -1,14 +1,14 @@
 package network.pluto.absolute;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
+@ActiveProfiles("test")
 @SpringBootTest
-@Ignore
+@RunWith(SpringRunner.class)
 public class AbsoluteApplicationTests {
 
     @Test
