@@ -23,7 +23,7 @@ public class CommentDto {
     @NotNull
     private String comment;
 
-    @ApiModelProperty(readOnly = true)
+    @ApiModelProperty(required = true)
     private long paperId;
 
     @ApiModelProperty(readOnly = true)

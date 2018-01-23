@@ -108,6 +108,7 @@ public class PaperDto {
         }
 
         if (paper.getComments() != null) {
+            // first 10 comments have been set from PaperFacade
 //            this.comments = paper.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
             this.commentCount = paper.getComments().size();
         }
