@@ -30,8 +30,7 @@ import java.util.List;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -95,7 +94,7 @@ public class CommentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.comment", String.class).value(commentMessage))
                 .andExpect(jsonPath("$.paperId", Long.class).value(paperId))
-                .andExpect(jsonPath("$.createdBys.id", Long.class).value(memberId));
+                .andExpect(jsonPath("$.createdBy.id", Long.class).value(memberId));
 
         verify(paperService, only()).find(paperId);
         verify(memberService, only()).getMember(memberId);
@@ -139,7 +138,6 @@ public class CommentControllerTest {
         verifyZeroInteractions(commentService);
     }
 
-    @WithMockJwtUser
     @Test
     public void findComments() throws Exception {
         long paperId = 1;
@@ -175,10 +173,28 @@ public class CommentControllerTest {
         verify(commentService, only()).findByPaper(eq(paper), any(Pageable.class));
     }
 
-
+    @WithMockJwtUser
     @Test
     public void deleteComment() throws Exception {
+        long memberId = 1;
+        Member member = new Member();
+        member.setId(memberId);
 
+        Comment comment = new Comment();
+        comment.setCreatedBy(member);
+
+        long commentId = 1;
+        when(commentService.find(commentId)).thenReturn(comment);
+
+        mvc
+                .perform(delete("/comments/" + commentId))
+
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Boolean.class).value(true));
+
+        verify(commentService).find(commentId);
+        verify(commentService).deleteComment(comment);
+        verifyNoMoreInteractions(commentService);
     }
 
 }
