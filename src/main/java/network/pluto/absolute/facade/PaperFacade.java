@@ -2,6 +2,7 @@ package network.pluto.absolute.facade;
 
 import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.PaperDto;
+import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.PaperService;
 import network.pluto.absolute.service.SearchService;
@@ -40,6 +41,9 @@ public class PaperFacade {
     @Transactional(readOnly = true)
     public PaperDto find(long paperId) {
         Paper paper = paperService.find(paperId);
+        if (paper == null) {
+            throw new ResourceNotFoundException("Paper not found");
+        }
 
         PaperDto dto = new PaperDto(paper);
         dto.setReferenceCount(paperService.countReference(paper.getId()));
