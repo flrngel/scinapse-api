@@ -28,11 +28,11 @@ public class Query {
 
         // search specific fields
         MultiMatchQueryBuilder query = QueryBuilders.multiMatchQuery(text, "title")
+                .field("title.en_stemmed")
                 .field("abstract", 3)
-                .operator(Operator.AND)
-                .analyzer("standard")
-                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .tieBreaker(0.5f);
+                .field("abstract.en_stemmed", 3)
+                .type(MultiMatchQueryBuilder.Type.MOST_FIELDS)
+                .minimumShouldMatch("3<75%");
 
         // bool query for bool filter
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().must(query);
@@ -64,6 +64,6 @@ public class Query {
         return QueryBuilders.functionScoreQuery(
                 boolQuery,
                 new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { journalBooster, venueBooster })
-                .maxBoost(4); // limit boosting
+                .maxBoost(3); // limit boosting
     }
 }
