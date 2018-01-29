@@ -2,6 +2,7 @@ package network.pluto.absolute.util;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.WeightBuilder;
@@ -32,7 +33,9 @@ public class Query {
                 .field("abstract", 3)
                 .field("abstract.en_stemmed", 3)
                 .type(MultiMatchQueryBuilder.Type.MOST_FIELDS)
-                .minimumShouldMatch("3<75%");
+                .minimumShouldMatch("3<75%")
+                .cutoffFrequency(0.01f)
+                .fuzziness(Fuzziness.AUTO);
 
         // bool query for bool filter
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().must(query);
