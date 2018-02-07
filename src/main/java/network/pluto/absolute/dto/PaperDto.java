@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import network.pluto.bibliotheca.models.Paper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,7 +17,7 @@ public class PaperDto {
 
     private long id;
 
-    private String magId;
+    private long cognitivePaperId;
 
     private String title;
 
@@ -57,19 +58,18 @@ public class PaperDto {
 
     private JournalDto journal;
 
-    private List<PaperAuthorDto> authors;
+    private List<PaperAuthorDto> authors = new ArrayList<>();
 
-    private List<PaperKeywordDto> keywords;
+    private List<PaperKeywordDto> keywords = new ArrayList<>();
 
-    private List<FosDto> fosList;
+    private List<FosDto> fosList = new ArrayList<>();
 
-    private List<PaperUrlDto> urls;
+    private List<PaperUrlDto> urls = new ArrayList<>();
 
-    private List<CommentDto> comments;
+    private List<CommentDto> comments = new ArrayList<>();
 
     public PaperDto(Paper paper) {
         this.id = paper.getId();
-        this.magId = paper.getMagId();
         this.title = paper.getTitle();
         this.year = paper.getYear();
         this.paperAbstract = paper.getPaperAbstract();
@@ -91,12 +91,6 @@ public class PaperDto {
             this.authorCount = paper.getAuthors().size();
         }
 
-        // temporary disable due to db maintenance
-//        if (paper.getKeywords() != null) {
-//            this.keywords = paper.getKeywords().stream().map(PaperKeywordDto::new).collect(Collectors.toList());
-//            this.keywordCount = paper.getKeywords().size();
-//        }
-
         if (paper.getFosList() != null) {
             this.fosList = paper.getFosList().stream().map(FosDto::new).collect(Collectors.toList());
             this.fosCount = paper.getFosList().size();
@@ -105,12 +99,6 @@ public class PaperDto {
         if (paper.getUrls() != null) {
             this.urls = paper.getUrls().stream().map(PaperUrlDto::new).collect(Collectors.toList());
             this.urlCount = paper.getUrls().size();
-        }
-
-        if (paper.getComments() != null) {
-            // first 10 comments have been set from PaperFacade
-//            this.comments = paper.getComments().stream().map(CommentDto::new).collect(Collectors.toList());
-            this.commentCount = paper.getComments().size();
         }
     }
 }

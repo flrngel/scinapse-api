@@ -105,7 +105,7 @@ public class CommentControllerTest {
     public void createComment_unauthenticated_user_cannot_access() throws Exception {
         CommentDto commentDto = new CommentDto();
         commentDto.setComment("test comment");
-        commentDto.setPaperId(1);
+        commentDto.setPaperId(1L);
 
         mvc
                 .perform(post("/comments")
@@ -124,7 +124,7 @@ public class CommentControllerTest {
     public void createComment_unverified_user_cannot_access() throws Exception {
         CommentDto commentDto = new CommentDto();
         commentDto.setComment("test comment");
-        commentDto.setPaperId(1);
+        commentDto.setPaperId(1L);
 
         mvc
                 .perform(post("/comments")

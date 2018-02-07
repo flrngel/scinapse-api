@@ -1,6 +1,7 @@
 package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.CommentDto;
+import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.CommentService;
@@ -38,9 +39,9 @@ public class CommentController {
     @RequestMapping(value = "/comments", method = RequestMethod.POST)
     public CommentDto createComment(@ApiIgnore JwtUser user,
                                     @RequestBody @Valid CommentDto commentDto) {
-        Paper paper = paperService.find(commentDto.getPaperId());
-        if (paper == null) {
-            throw new ResourceNotFoundException("Paper not found");
+        if ((commentDto.getPaperId() == null || commentDto.getPaperId() <= 0)
+                && (commentDto.getCognitivePaperId() == null || commentDto.getCognitivePaperId() <= 0)) {
+            throw new BadRequestException("Paper ID is required");
         }
 
         Member member = memberService.getMember(user.getId());
@@ -48,13 +49,27 @@ public class CommentController {
         Comment comment = commentDto.toEntity();
         comment.setCreatedBy(member);
 
-        comment = commentService.saveComment(paper, comment);
+        if (commentDto.getPaperId() != null && commentDto.getPaperId() > 0) {
+            Paper paper = paperService.find(commentDto.getPaperId());
+            if (paper == null) {
+                throw new ResourceNotFoundException("Paper not found");
+            }
+            comment = commentService.saveComment(paper, comment);
+        } else {
+            comment = commentService.saveComment(commentDto.getCognitivePaperId(), comment);
+        }
+
         return new CommentDto(comment);
     }
 
     @RequestMapping(value = "/comments", method = RequestMethod.GET)
     public Page<CommentDto> findComments(@RequestParam Long paperId,
+                                         @RequestParam(defaultValue = "false") boolean cognitive,
                                          @PageableDefault Pageable pageable) {
+        if (cognitive) {
+            return commentService.findByCognitivePaperId(paperId, pageable).map(CommentDto::new);
+        }
+
         Paper paper = paperService.find(paperId);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");

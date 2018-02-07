@@ -23,8 +23,9 @@ public class CommentDto {
     @NotNull
     private String comment;
 
-    @ApiModelProperty(required = true)
-    private long paperId;
+    private Long paperId;
+
+    private Long cognitivePaperId;
 
     @ApiModelProperty(readOnly = true)
     private MemberDto createdBy;
@@ -35,9 +36,13 @@ public class CommentDto {
     public CommentDto(Comment comment) {
         this.id = comment.getId();
         this.comment = comment.getComment();
-        this.paperId = comment.getPaper().getId();
+        this.cognitivePaperId = comment.getCognitivePaperId();
         this.createdBy = new MemberDto(comment.getCreatedBy());
         this.createdAt = comment.getCreatedAt();
+
+        if (comment.getPaper() != null) {
+            this.paperId = comment.getPaper().getId();
+        }
     }
 
     public Comment toEntity() {

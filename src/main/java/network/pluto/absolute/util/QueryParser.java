@@ -22,7 +22,10 @@ public class QueryParser {
         }
 
         String text = queryMap.get("text");
-        Query query = new Query(text);
+        Query query = Query.parse(text);
+
+        // parse query filter
+        QueryFilter queryFilter = new QueryFilter();
 
         String year = queryMap.get("year");
         if (StringUtils.hasText(year)) {
@@ -30,10 +33,10 @@ public class QueryParser {
             try {
                 if (years.size() == 2) {
                     if (StringUtils.hasText(years.get(0))) {
-                        query.setYearStart(Integer.parseInt(years.get(0)));
+                        queryFilter.setYearStart(Integer.parseInt(years.get(0)));
                     }
                     if (StringUtils.hasText(years.get(1))) {
-                        query.setYearEnd(Integer.parseInt(years.get(1)));
+                        queryFilter.setYearEnd(Integer.parseInt(years.get(1)));
                     }
                 }
             } catch (NumberFormatException ignore) {
@@ -47,10 +50,10 @@ public class QueryParser {
             try {
                 if (ifs.size() == 2) {
                     if (StringUtils.hasText(ifs.get(0))) {
-                        query.setIfStart(Integer.parseInt(ifs.get(0)));
+                        queryFilter.setIfStart(Integer.parseInt(ifs.get(0)));
                     }
                     if (StringUtils.hasText(ifs.get(1))) {
-                        query.setIfEnd(Integer.parseInt(ifs.get(1)));
+                        queryFilter.setIfEnd(Integer.parseInt(ifs.get(1)));
                     }
                 }
             } catch (NumberFormatException ignore) {
@@ -58,6 +61,7 @@ public class QueryParser {
             }
         }
 
+        query.setFilter(queryFilter);
         return query;
     }
 }

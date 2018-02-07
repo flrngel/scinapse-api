@@ -23,7 +23,12 @@ public class PaperController {
     }
 
     @RequestMapping(value = "/papers/{paperId}", method = RequestMethod.GET)
-    public PaperDto find(@PathVariable long paperId) {
+    public PaperDto find(@PathVariable long paperId,
+                         @RequestParam(defaultValue = "false") boolean cognitive) {
+        if (cognitive) {
+            return paperFacade.findFromCognitive(paperId);
+        }
+
         return paperFacade.find(paperId);
     }
 
@@ -41,13 +46,38 @@ public class PaperController {
         return paperFacade.search(query, pageable);
     }
 
+    @RequestMapping(value = "/papers", method = RequestMethod.GET, params = "filter")
+    public Page<PaperDto> search(@RequestParam("query") String queryStr,
+                                 @RequestParam("filter") String filterStr, // TODO not required
+                                 @PageableDefault Pageable pageable) {
+        Query query = Query.parse(queryStr, filterStr);
+        if (!query.isValid()) {
+            throw new BadRequestException("Invalid query: too short query text");
+        }
+
+        return paperFacade.search(query, pageable);
+    }
+
     @RequestMapping(value = "/papers/{paperId}/references", method = RequestMethod.GET)
-    public Page<PaperDto> paperReferences(@PathVariable long paperId, @PageableDefault Pageable pageable) {
+    public Page<PaperDto> paperReferences(@PathVariable long paperId,
+                                          @RequestParam(defaultValue = "false") boolean cognitive,
+                                          @PageableDefault Pageable pageable) {
+        if (cognitive) {
+            return paperFacade.findReferencesFromCognitive(paperId, pageable);
+        }
+
         return paperFacade.findReferences(paperId, pageable);
     }
 
     @RequestMapping(value = "/papers/{paperId}/cited", method = RequestMethod.GET)
-    public Page<PaperDto> paperCited(@PathVariable long paperId, @PageableDefault Pageable pageable) {
+    public Page<PaperDto> paperCited(@PathVariable long paperId,
+                                     @RequestParam(defaultValue = "false") boolean cognitive,
+                                     @PageableDefault Pageable pageable) {
+        if (cognitive) {
+            return paperFacade.findCitedFromCognitive(paperId, pageable);
+        }
+
         return paperFacade.findCited(paperId, pageable);
     }
+
 }

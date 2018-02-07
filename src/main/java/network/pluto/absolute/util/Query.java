@@ -2,7 +2,6 @@ package network.pluto.absolute.util;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.WeightBuilder;
@@ -12,13 +11,20 @@ import org.springframework.util.StringUtils;
 @Setter
 public class Query {
     private String text;
-    private Integer yearStart;
-    private Integer yearEnd;
-    private Integer ifStart;
-    private Integer ifEnd;
+    private QueryFilter filter = new QueryFilter();
 
-    public Query(String text) {
-        this.text = text;
+    public static Query parse(String queryStr) {
+        Query query = new Query();
+        if (StringUtils.hasText(queryStr)) {
+            query.setText(queryStr.trim());
+        }
+        return query;
+    }
+
+    public static Query parse(String queryStr, String filterStr) {
+        Query query = Query.parse(queryStr);
+        query.setFilter(QueryFilter.parse(filterStr));
+        return query;
     }
 
     public boolean isValid() {
@@ -34,27 +40,12 @@ public class Query {
                 .field("abstract.en_stemmed", 3)
                 .type(MultiMatchQueryBuilder.Type.MOST_FIELDS)
                 .minimumShouldMatch("3<75%")
-                .cutoffFrequency(0.01f)
-                .fuzziness(Fuzziness.AUTO);
+                .cutoffFrequency(0.01f);
+//                .fuzziness(Fuzziness.AUTO); // turn off fuzziness temporary to improve precision
 
         // bool query for bool filter
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().must(query);
-
-        if (yearStart != null) {
-            boolQuery.filter(QueryBuilders.rangeQuery("year").gte(yearStart));
-        }
-
-        if (yearEnd != null) {
-            boolQuery.filter(QueryBuilders.rangeQuery("year").lte(yearEnd));
-        }
-
-        if (ifStart != null) {
-            boolQuery.filter(QueryBuilders.rangeQuery("journal.impact_factor").gte(ifStart));
-        }
-
-        if (ifEnd != null) {
-            boolQuery.filter(QueryBuilders.rangeQuery("journal.impact_factor").lte(ifEnd));
-        }
+        filter.filter(boolQuery);
 
         // journal booster
         ExistsQueryBuilder journalExistsQuery = QueryBuilders.existsQuery("journal.full_title");

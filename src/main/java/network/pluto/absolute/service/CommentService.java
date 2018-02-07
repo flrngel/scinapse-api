@@ -12,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nonnull;
+
 @Transactional(readOnly = true)
 @Service
 public class CommentService {
@@ -38,6 +40,12 @@ public class CommentService {
         return commentRepository.save(comment);
     }
 
+    @Transactional
+    public Comment saveComment(long cognitivePaperId, @Nonnull Comment comment) {
+        comment.setCognitivePaperId(cognitivePaperId);
+        return commentRepository.save(comment);
+    }
+
     public Comment find(long commentId) {
         return commentRepository.findOne(commentId);
     }
@@ -48,6 +56,10 @@ public class CommentService {
 
     public Page<Comment> findByPaper(Paper paper, Pageable pageable) {
         return commentRepository.findByPaperOrderByIdDesc(paper, pageable);
+    }
+
+    public Page<Comment> findByCognitivePaperId(long cognitivePaperId, Pageable pageable) {
+        return commentRepository.findByCognitivePaperIdOrderByIdDesc(cognitivePaperId, pageable);
     }
 
     @Transactional
