@@ -120,7 +120,7 @@ public class CognitivePaperService {
         URI uri = buildUri(evaluatePath);
 
         String query = buildPaperIdsMatchQuery(pagedReferenceIds);
-        LinkedMultiValueMap<String, Object> body = buildRequestBody(query, DEFAULT_ATTRIBUTES + ",E.IA", pageable.getOffset(), pageable.getPageSize());
+        LinkedMultiValueMap<String, Object> body = buildRequestBody(query, DEFAULT_ATTRIBUTES + ",E.IA", 0, pageable.getPageSize());
         HttpEntity<Object> httpEntity = buildHttpEntity(body);
 
         EvaluateResponseDto response = getResponse(uri, httpEntity);
