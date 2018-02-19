@@ -21,7 +21,6 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -213,15 +212,11 @@ public class CognitivePaperService {
     }
 
     private EvaluateResponseDto getResponse(URI uri, HttpEntity<Object> entity) {
-        try {
-            ResponseEntity<EvaluateResponseDto> responseEntity = restTemplate.exchange(uri, HttpMethod.POST, entity, EvaluateResponseDto.class);
-            if (!responseEntity.getStatusCode().is2xxSuccessful()) {
-                throw new ExternalApiCallException("Response is not successful: " + responseEntity.getStatusCode() + " " + responseEntity.getBody());
-            }
-            return responseEntity.getBody();
-        } catch (RestClientException e) {
-            throw new ExternalApiCallException(e.getMessage());
+        ResponseEntity<EvaluateResponseDto> responseEntity = restTemplate.exchange(uri, HttpMethod.POST, entity, EvaluateResponseDto.class);
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+            throw new ExternalApiCallException("Response is not successful: " + responseEntity.getStatusCode() + " " + responseEntity.getBody());
         }
+        return responseEntity.getBody();
     }
 
     private LinkedMultiValueMap<String, Object> buildRequestBody(String query, String attributes) {
