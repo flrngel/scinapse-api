@@ -52,7 +52,7 @@ public class PaperController {
                                  @PageableDefault Pageable pageable) {
         Query query = Query.parse(queryStr, filterStr);
         if (!query.isValid()) {
-            throw new BadRequestException("Invalid query: too short query text");
+            throw new BadRequestException("Invalid query: too short or long query text");
         }
 
         return paperFacade.search(query, pageable);

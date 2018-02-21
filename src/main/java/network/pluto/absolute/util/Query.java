@@ -28,7 +28,7 @@ public class Query {
     }
 
     public boolean isValid() {
-        return StringUtils.hasText(text) && text.length() >= 2;
+        return StringUtils.hasText(text) && text.length() >= 2 && text.length() < 200;
     }
 
     public QueryBuilder toQuery() {
