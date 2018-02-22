@@ -3,7 +3,11 @@ package network.pluto.absolute.service;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceAsync;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceAsyncClientBuilder;
-import com.amazonaws.services.simpleemail.model.*;
+import com.amazonaws.services.simpleemail.model.Destination;
+import com.amazonaws.services.simpleemail.model.SendTemplatedEmailRequest;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Authority;
@@ -24,11 +28,15 @@ public class EmailVerificationService {
 
     private final EmailVerificationRepository emailVerificationRepository;
     private final AuthorityRepository authorityRepository;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    public EmailVerificationService(EmailVerificationRepository emailVerificationRepository, AuthorityRepository authorityRepository) {
+    public EmailVerificationService(EmailVerificationRepository emailVerificationRepository,
+                                    AuthorityRepository authorityRepository,
+                                    ObjectMapper objectMapper) {
         this.emailVerificationRepository = emailVerificationRepository;
         this.authorityRepository = authorityRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Value("${pluto.server.web.url.email-verification}")
@@ -44,20 +52,25 @@ public class EmailVerificationService {
         emailVerification.setMember(member);
         emailVerificationRepository.save(emailVerification);
 
-        SendEmailRequest request = new SendEmailRequest()
-                .withDestination(new Destination().withToAddresses(member.getEmail()))
-                .withMessage(new Message()
-                        .withSubject(new Content()
-                                .withData("Welcome to Pluto! Please verify your email address"))
-                        .withBody(new Body()
-                                .withText(new Content()
-                                        .withData("Hello, " + member.getName() + ".\n\n" +
-                                                "Please visit below link to verify your email address:\n" +
-                                                webEmailVerificationUrl + "?email=" + member.getEmail() + "&token=" + token + "\n\n" +
-                                                "Thank you for joining Pluto Network!"))))
-                .withSource("no-reply@pluto.network");
+        sendVerificationEmail(member, token);
+    }
 
-        client.sendEmailAsync(request);
+    private void sendVerificationEmail(Member member, String token) {
+        String templateData;
+        try {
+            VerifyEmailData data = new VerifyEmailData(member.getName(), webEmailVerificationUrl + "?email=" + member.getEmail() + "&token=" + token);
+            templateData = objectMapper.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Json Processing Exception", e);
+        }
+
+        SendTemplatedEmailRequest request = new SendTemplatedEmailRequest()
+                .withDestination(new Destination().withToAddresses(member.getEmail()))
+                .withSource("no-reply@pluto.network")
+                .withTemplate("verify-email")
+                .withTemplateData(templateData);
+
+        client.sendTemplatedEmailAsync(request);
     }
 
     @Transactional
@@ -76,5 +89,48 @@ public class EmailVerificationService {
         Authority authority = authorityRepository.findByName(AuthorityName.ROLE_USER);
         member.setAuthorities(Collections.singletonList(authority));
         member.setEmailVerified(true);
+
+        sendSignUpWelcomeEmail(member);
     }
+
+    public void sendSignUpWelcomeEmail(Member member) {
+        String templateData;
+        try {
+            SignUpWelcomeData data = new SignUpWelcomeData(member.getName());
+            templateData = objectMapper.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Json Processing Exception", e);
+        }
+
+        SendTemplatedEmailRequest request = new SendTemplatedEmailRequest()
+                .withDestination(new Destination().withToAddresses(member.getEmail()))
+                .withSource("no-reply@pluto.network")
+                .withTemplate("sign-up-welcome")
+                .withTemplateData(templateData);
+
+        client.sendTemplatedEmailAsync(request);
+    }
+
+    public static class VerifyEmailData {
+        @JsonProperty
+        String name;
+
+        @JsonProperty("verify-email-url")
+        String verifyEmailUrl;
+
+        public VerifyEmailData(String name, String verifyEmailUrl) {
+            this.name = name;
+            this.verifyEmailUrl = verifyEmailUrl;
+        }
+    }
+
+    public static class SignUpWelcomeData {
+        @JsonProperty
+        String name;
+
+        public SignUpWelcomeData(String name) {
+            this.name = name;
+        }
+    }
+
 }

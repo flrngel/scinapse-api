@@ -108,6 +108,9 @@ public class MemberFacade {
 
         oauthFacade.connect(memberDto.getOauth(), saved);
 
+        // send welcome email
+        emailVerificationService.sendSignUpWelcomeEmail(saved);
+
         // auto login
         String jwt = tokenHelper.generateToken(saved, true);
         tokenHelper.addCookie(response, jwt);
