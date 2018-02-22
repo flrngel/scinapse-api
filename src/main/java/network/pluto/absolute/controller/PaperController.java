@@ -4,12 +4,10 @@ import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.facade.PaperFacade;
 import network.pluto.absolute.util.Query;
-import network.pluto.absolute.util.QueryParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,22 +31,8 @@ public class PaperController {
     }
 
     @RequestMapping(value = "/papers", method = RequestMethod.GET)
-    public Page<PaperDto> search(@RequestParam("query") String queryStr, @PageableDefault Pageable pageable) {
-        if (!StringUtils.hasText(queryStr)) {
-            throw new BadRequestException("Invalid query: query not exists");
-        }
-
-        Query query = QueryParser.parse(queryStr);
-        if (!query.isValid()) {
-            throw new BadRequestException("Invalid query: too short query text");
-        }
-
-        return paperFacade.search(query, pageable);
-    }
-
-    @RequestMapping(value = "/papers", method = RequestMethod.GET, params = "filter")
     public Page<PaperDto> search(@RequestParam("query") String queryStr,
-                                 @RequestParam("filter") String filterStr, // TODO not required
+                                 @RequestParam(value = "filter", required = false) String filterStr,
                                  @PageableDefault Pageable pageable) {
         Query query = Query.parse(queryStr, filterStr);
         if (!query.isValid()) {

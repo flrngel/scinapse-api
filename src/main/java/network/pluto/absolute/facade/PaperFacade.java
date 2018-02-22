@@ -109,12 +109,19 @@ public class PaperFacade {
 
     @Transactional(readOnly = true)
     public Page<PaperDto> search(Query query, Pageable pageable) {
-        String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
-        if (StringUtils.hasText(recommendedQuery)) {
-            return cognitivePaperService.search(recommendedQuery, pageable)
-                    .map(this::setCognitiveDefaultComments);
+        if (query.isDoi()) {
+            return searchFromES(query, pageable);
         }
 
+        String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
+        if (StringUtils.hasText(recommendedQuery)) {
+            return searchFromCognitive(pageable, recommendedQuery);
+        }
+
+        return searchFromES(query, pageable);
+    }
+
+    private Page<PaperDto> searchFromES(Query query, Pageable pageable) {
         Page<Long> paperIds = searchService.search(query, pageable);
         Map<Long, PaperDto> paperMap = findIn(paperIds.getContent());
 
@@ -124,6 +131,11 @@ public class PaperFacade {
         cognitivePaperService.enhance(dtos);
 
         return new PageImpl<>(dtos, pageable, paperIds.getTotalElements());
+    }
+
+    private Page<PaperDto> searchFromCognitive(Pageable pageable, String recommendedQuery) {
+        return cognitivePaperService.search(recommendedQuery, pageable)
+                .map(this::setCognitiveDefaultComments);
     }
 
     @Transactional(readOnly = true)
@@ -176,4 +188,5 @@ public class PaperFacade {
         dto.setComments(commentDtos);
         return dto;
     }
+
 }

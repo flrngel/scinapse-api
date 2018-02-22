@@ -62,4 +62,5 @@ public class SearchService {
             throw new RuntimeException("Elasticsearch exception", e);
         }
     }
+
 }
