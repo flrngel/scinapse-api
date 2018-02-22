@@ -37,6 +37,8 @@ public class CognitivePaperService {
 
     private final RestTemplate restTemplate;
 
+    private final SearchService searchService;
+
     @Value("${pluto.ms.cognitive.uri}")
     private String cognitiveUri;
 
@@ -48,8 +50,9 @@ public class CognitivePaperService {
     private String cognitiveSubscriptionKey;
 
     @Autowired
-    public CognitivePaperService(RestTemplate restTemplate) {
+    public CognitivePaperService(RestTemplate restTemplate, SearchService searchService) {
         this.restTemplate = restTemplate;
+        this.searchService = searchService;
     }
 
     public String getRecommendQuery(Query query) {
@@ -243,10 +246,13 @@ public class CognitivePaperService {
     private PaperDto enhance(PaperDto dto, EvaluateResponseDto.Entity detailFromCognitive) {
         dto.setCognitivePaperId(detailFromCognitive.getCognitivePaperId());
 
-        if (StringUtils.hasText(detailFromCognitive.getJournalName())) {
-            dto.setVenue(detailFromCognitive.getJournalName());
+        String journalName = detailFromCognitive.getJournalName();
+        if (StringUtils.hasText(journalName)) {
+            dto.setVenue(journalName);
             if (dto.getJournal() != null) {
-                dto.getJournal().setFullTitle(detailFromCognitive.getJournalName());
+                dto.getJournal().setFullTitle(journalName);
+            } else {
+                dto.setJournal(searchService.searchJournal(journalName));
             }
         }
 

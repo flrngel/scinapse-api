@@ -7,6 +7,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -26,6 +27,9 @@ public class CognitivePaperServiceTest {
 
     private CognitivePaperService cognitivePaperService;
 
+    @MockBean
+    private SearchService searchService;
+
     @Value("${pluto.ms.cognitive.uri}")
     private String cognitiveUri;
 
@@ -36,7 +40,7 @@ public class CognitivePaperServiceTest {
     public void setUp() throws Exception {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
-        cognitivePaperService = new CognitivePaperService(restTemplate);
+        cognitivePaperService = new CognitivePaperService(restTemplate, searchService);
 
         ReflectionTestUtils.setField(this.cognitivePaperService, "cognitiveSubscriptionKey", cognitiveSubscriptionKey);
         ReflectionTestUtils.setField(this.cognitivePaperService, "cognitiveUri", cognitiveUri);

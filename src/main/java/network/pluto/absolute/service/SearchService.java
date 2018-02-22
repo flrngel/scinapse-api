@@ -1,11 +1,15 @@
 package network.pluto.absolute.service;
 
 import lombok.extern.slf4j.Slf4j;
+import network.pluto.absolute.dto.JournalDto;
 import network.pluto.absolute.util.Query;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +35,9 @@ public class SearchService {
 
     @Value("${pluto.server.es.index}")
     private String indexName;
+
+    @Value("${pluto.server.es.index.journal}")
+    private String journalIndexName;
 
     public Page<Long> search(Query query, Pageable pageable) {
         SearchRequest request = new SearchRequest(indexName);
@@ -58,6 +65,39 @@ public class SearchService {
             }
             return new PageImpl<>(list, pageable, response.getHits().getTotalHits());
 
+        } catch (IOException | NumberFormatException e) {
+            throw new RuntimeException("Elasticsearch exception", e);
+        }
+    }
+
+    public JournalDto searchJournal(String journalTitle) {
+        MatchQueryBuilder query = QueryBuilders.matchQuery("full_title", journalTitle);
+
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        builder.query(query);
+
+        SearchRequest request = new SearchRequest(journalIndexName);
+        request.source(builder);
+
+        try {
+            SearchResponse response = restHighLevelClient.search(request);
+            SearchHits hits = response.getHits();
+            if (hits.getTotalHits() != 1) {
+                return null;
+            }
+
+            SearchHit hit = hits.getAt(0);
+
+            JournalDto dto = new JournalDto();
+            dto.setId(Long.valueOf(hit.getId()));
+            dto.setFullTitle(journalTitle);
+
+            Object impactFactor = hit.getSource().get("impact_factor");
+            if (impactFactor != null) {
+                dto.setImpactFactor((Double) impactFactor);
+            }
+
+            return dto;
         } catch (IOException | NumberFormatException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }
