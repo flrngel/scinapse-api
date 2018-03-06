@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Service
 public class CognitivePaperService {
 
-    private static final String DEFAULT_ATTRIBUTES = "Id,Ti,Y,D,AA.DAuN,AA.DAfN,AA.S,E.DN,E.DOI,E.VFN,E.S,CC,RId,F.FN,E";
+    private static final String DEFAULT_ATTRIBUTES = "Id,Ti,Y,D,AA.DAuN,AA.DAfN,AA.S,E.DN,E.DOI,E.VFN,E.S,CC,RId,F.FN,E,E.IA";
 
     private final RestTemplate restTemplate;
 
@@ -85,7 +85,7 @@ public class CognitivePaperService {
     public Page<PaperDto> search(String query, Pageable pageable) {
         URI uri = buildUri(evaluatePath);
 
-        LinkedMultiValueMap<String, Object> body = buildRequestBody(query, DEFAULT_ATTRIBUTES + ",E.IA", pageable.getOffset(), pageable.getPageSize());
+        LinkedMultiValueMap<String, Object> body = buildRequestBody(query, DEFAULT_ATTRIBUTES, pageable.getOffset(), pageable.getPageSize());
         HttpEntity<Object> httpEntity = buildHttpEntity(body);
 
         EvaluateResponseDto response = getResponse(uri, httpEntity);
@@ -122,7 +122,7 @@ public class CognitivePaperService {
         URI uri = buildUri(evaluatePath);
 
         String query = buildPaperIdsMatchQuery(pagedReferenceIds);
-        LinkedMultiValueMap<String, Object> body = buildRequestBody(query, DEFAULT_ATTRIBUTES + ",E.IA", 0, pageable.getPageSize());
+        LinkedMultiValueMap<String, Object> body = buildRequestBody(query, DEFAULT_ATTRIBUTES, 0, pageable.getPageSize());
         HttpEntity<Object> httpEntity = buildHttpEntity(body);
 
         EvaluateResponseDto response = getResponse(uri, httpEntity);
@@ -138,7 +138,7 @@ public class CognitivePaperService {
         URI uri = buildUri(evaluatePath);
 
         String query = buildCitedMatchQuery(cognitivePaperId);
-        LinkedMultiValueMap<String, Object> body = buildRequestBody(query, DEFAULT_ATTRIBUTES + ",E.IA", pageable.getOffset(), pageable.getPageSize());
+        LinkedMultiValueMap<String, Object> body = buildRequestBody(query, DEFAULT_ATTRIBUTES, pageable.getOffset(), pageable.getPageSize());
         HttpEntity<Object> httpEntity = buildHttpEntity(body);
 
         EvaluateResponseDto response = getResponse(uri, httpEntity);
