@@ -100,8 +100,7 @@ public class Query {
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
                 .should(stemmedFieldQuery)
                 .should(standardFieldQuery)
-                .should(journalQuery)
-                .filter(filter.toFilerQuery());
+                .should(journalQuery);
 
         // journal booster
         ExistsQueryBuilder journalExistsQuery = QueryBuilders.existsQuery("journal.title");
