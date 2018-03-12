@@ -78,31 +78,39 @@ public class Query {
         }
 
         // search specific fields
-        MultiMatchQueryBuilder query = QueryBuilders.multiMatchQuery(text, "title")
-                .field("title.en_stemmed")
-                .field("abstract", 3)
-                .field("abstract.en_stemmed", 3)
-                .type(MultiMatchQueryBuilder.Type.MOST_FIELDS)
-                .minimumShouldMatch("3<75%")
-                .cutoffFrequency(0.01f);
+        MultiMatchQueryBuilder stemmedFieldQuery = QueryBuilders.multiMatchQuery(text, "title.en_stemmed")
+                .field("abstract.en_stemmed")
+                .field("authors.name.en_stemmed")
+                .field("authors.affiliation.en_stemmed")
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
+                .minimumShouldMatch("3<75%");
+//                .cutoffFrequency(0.01f); // turn off cutoff frequency temporary
 //                .fuzziness(Fuzziness.AUTO); // turn off fuzziness temporary to improve precision
 
+        MultiMatchQueryBuilder standardFieldQuery = QueryBuilders.multiMatchQuery(text, "title")
+                .field("abstract")
+                .field("authors.name")
+                .field("authors.affiliation")
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
+                .minimumShouldMatch("3<75%");
+
+        MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text);
+
         // bool query for bool filter
-        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().must(query);
-        filter.filter(boolQuery);
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery()
+                .should(stemmedFieldQuery)
+                .should(standardFieldQuery)
+                .should(journalQuery)
+                .filter(filter.toFilerQuery());
 
         // journal booster
-        ExistsQueryBuilder journalExistsQuery = QueryBuilders.existsQuery("journal.full_title");
-        FunctionScoreQueryBuilder.FilterFunctionBuilder journalBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(journalExistsQuery, new WeightBuilder().setWeight(3));
-
-        // venue booster
-        ExistsQueryBuilder venueExistsQuery = QueryBuilders.existsQuery("venue");
-        FunctionScoreQueryBuilder.FilterFunctionBuilder venueBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(venueExistsQuery, new WeightBuilder().setWeight(2));
+        ExistsQueryBuilder journalExistsQuery = QueryBuilders.existsQuery("journal.title");
+        FunctionScoreQueryBuilder.FilterFunctionBuilder journalBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(journalExistsQuery, new WeightBuilder().setWeight(2));
 
         return QueryBuilders.functionScoreQuery(
                 boolQuery,
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { journalBooster, venueBooster })
-                .maxBoost(3); // limit boosting
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { journalBooster })
+                .maxBoost(2); // limit boosting
     }
 
     public boolean isDoi() {

@@ -80,22 +80,18 @@ public class QueryFilter {
         return queryFilter;
     }
 
-    public void filter(BoolQueryBuilder boolQuery) {
+    public BoolQueryBuilder toFilerQuery() {
+        BoolQueryBuilder filterQuery = QueryBuilders.boolQuery();
+
         if (yearStart != null) {
-            boolQuery.filter(QueryBuilders.rangeQuery("year").gte(yearStart));
+            filterQuery.must(QueryBuilders.rangeQuery("year").gte(yearStart));
         }
 
         if (yearEnd != null) {
-            boolQuery.filter(QueryBuilders.rangeQuery("year").lte(yearEnd));
+            filterQuery.must(QueryBuilders.rangeQuery("year").lte(yearEnd));
         }
 
-        if (ifStart != null) {
-            boolQuery.filter(QueryBuilders.rangeQuery("journal.impact_factor").gte(ifStart));
-        }
-
-        if (ifEnd != null) {
-            boolQuery.filter(QueryBuilders.rangeQuery("journal.impact_factor").lte(ifEnd));
-        }
+        return filterQuery;
     }
 
     public String toCognitiveFilterQuery() {

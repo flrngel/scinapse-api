@@ -245,6 +245,9 @@ public class CognitivePaperService {
 
     private PaperDto enhance(PaperDto dto, EvaluateResponseDto.Entity detailFromCognitive) {
         dto.setCognitivePaperId(detailFromCognitive.getCognitivePaperId());
+        if (dto.getId() == 0) {
+            dto.setId(detailFromCognitive.getCognitivePaperId());
+        }
 
         String journalName = detailFromCognitive.getJournalName();
         if (StringUtils.hasText(journalName)) {

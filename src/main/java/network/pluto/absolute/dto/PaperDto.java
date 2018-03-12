@@ -7,6 +7,7 @@ import lombok.Setter;
 import network.pluto.bibliotheca.models.Paper;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,8 +49,6 @@ public class PaperDto {
 
     private long authorCount = 0;
 
-    private long keywordCount = 0;
-
     private long fosCount = 0;
 
     private long urlCount = 0;
@@ -59,8 +58,6 @@ public class PaperDto {
     private JournalDto journal;
 
     private List<PaperAuthorDto> authors = new ArrayList<>();
-
-    private List<PaperKeywordDto> keywords = new ArrayList<>();
 
     private List<FosDto> fosList = new ArrayList<>();
 
@@ -101,4 +98,46 @@ public class PaperDto {
             this.urlCount = paper.getUrls().size();
         }
     }
+
+    public PaperDto(network.pluto.bibliotheca.models.mag.Paper paper) {
+        this.id = paper.getId();
+        this.cognitivePaperId = paper.getId();
+        this.title = paper.getOriginalTitle();
+        this.year = paper.getYear();
+        this.doi = paper.getDoi();
+        this.publisher = paper.getPublisher();
+        this.volume = paper.getVolume();
+        this.issue = paper.getIssue();
+        this.referenceCount = paper.getPaperCount() != null ? paper.getPaperCount() : 0;
+        this.citedCount = paper.getCitationCount() != null ? paper.getCitationCount() : 0;
+
+        if (paper.getPaperAbstract() != null) {
+            this.paperAbstract = paper.getPaperAbstract().getAbstract();
+        }
+
+        if (paper.getJournal() != null) {
+            this.journal = new JournalDto(paper.getJournal());
+        }
+
+        if (!paper.getPaperAuthorAffiliations().isEmpty()) {
+            this.authors = paper.getPaperAuthorAffiliations()
+                    .stream()
+                    .map(PaperAuthorDto::new)
+                    .sorted(Comparator.comparing(PaperAuthorDto::getOrder))
+                    .collect(Collectors.toList());
+            this.authorCount = this.authors.size();
+        }
+
+        if (!paper.getPaperFosList().isEmpty()) {
+            this.fosList = paper.getPaperFosList().stream().map(FosDto::new).collect(Collectors.toList());
+            this.fosCount = this.fosList.size();
+        }
+
+        if (!paper.getPaperUrls().isEmpty()) {
+            this.urls = paper.getPaperUrls().stream().map(PaperUrlDto::new).collect(Collectors.toList());
+            this.urlCount = this.urls.size();
+        }
+
+    }
+
 }

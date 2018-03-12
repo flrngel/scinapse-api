@@ -10,13 +10,20 @@ import network.pluto.bibliotheca.models.PaperUrl;
 @Setter
 public class PaperUrlDto {
 
-    private long id;
     private long paperId;
+    private long id;
     private String url;
 
     public PaperUrlDto(PaperUrl paperUrl) {
-        this.id = paperUrl.getId();
         this.paperId = paperUrl.getPaper().getId();
+        this.id = paperUrl.getId();
         this.url = paperUrl.getUrl();
     }
+
+    public PaperUrlDto(network.pluto.bibliotheca.models.mag.PaperUrl paperUrl) {
+        this.paperId = paperUrl.getPaper().getId();
+        this.id = paperUrl.getId();
+        this.url = paperUrl.getSourceUrl();
+    }
+
 }

@@ -21,12 +21,7 @@ public class PaperController {
     }
 
     @RequestMapping(value = "/papers/{paperId}", method = RequestMethod.GET)
-    public PaperDto find(@PathVariable long paperId,
-                         @RequestParam(defaultValue = "false") boolean cognitive) {
-        if (cognitive) {
-            return paperFacade.findFromCognitive(paperId);
-        }
-
+    public PaperDto find(@PathVariable long paperId) {
         return paperFacade.find(paperId);
     }
 
@@ -44,23 +39,13 @@ public class PaperController {
 
     @RequestMapping(value = "/papers/{paperId}/references", method = RequestMethod.GET)
     public Page<PaperDto> paperReferences(@PathVariable long paperId,
-                                          @RequestParam(defaultValue = "false") boolean cognitive,
                                           @PageableDefault Pageable pageable) {
-        if (cognitive) {
-            return paperFacade.findReferencesFromCognitive(paperId, pageable);
-        }
-
         return paperFacade.findReferences(paperId, pageable);
     }
 
     @RequestMapping(value = "/papers/{paperId}/cited", method = RequestMethod.GET)
     public Page<PaperDto> paperCited(@PathVariable long paperId,
-                                     @RequestParam(defaultValue = "false") boolean cognitive,
                                      @PageableDefault Pageable pageable) {
-        if (cognitive) {
-            return paperFacade.findCitedFromCognitive(paperId, pageable);
-        }
-
         return paperFacade.findCited(paperId, pageable);
     }
 

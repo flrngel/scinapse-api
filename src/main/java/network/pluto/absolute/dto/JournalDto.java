@@ -19,4 +19,10 @@ public class JournalDto {
         this.fullTitle = journal.getFullJournalTitle();
         this.impactFactor = journal.getJournalImpactFactor();
     }
+
+    public JournalDto(network.pluto.bibliotheca.models.mag.Journal journal) {
+        this.id = journal.getId();
+        this.fullTitle = journal.getDisplayName();
+    }
+
 }

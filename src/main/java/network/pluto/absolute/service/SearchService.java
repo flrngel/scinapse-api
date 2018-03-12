@@ -71,6 +71,38 @@ public class SearchService {
     }
 
     public JournalDto searchJournal(String journalTitle) {
+        SearchHit journalHit = findJournal(journalTitle);
+        if (journalHit == null) {
+            return null;
+        }
+
+        JournalDto dto = new JournalDto();
+        dto.setId(Long.valueOf(journalHit.getId()));
+        dto.setFullTitle(journalTitle);
+
+        Object impactFactor = journalHit.getSource().get("impact_factor");
+        if (impactFactor != null) {
+            dto.setImpactFactor((Double) impactFactor);
+        }
+
+        return dto;
+    }
+
+    public Double searchJournalImpact(String journalTitle) {
+        SearchHit journalHit = findJournal(journalTitle);
+        if (journalHit == null) {
+            return null;
+        }
+
+        Object impactFactor = journalHit.getSource().get("impact_factor");
+        if (impactFactor == null) {
+            return null;
+        }
+
+        return (Double) impactFactor;
+    }
+
+    private SearchHit findJournal(String journalTitle) {
         MatchQueryBuilder query = QueryBuilders.matchQuery("full_title", journalTitle);
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
@@ -86,19 +118,8 @@ public class SearchService {
                 return null;
             }
 
-            SearchHit hit = hits.getAt(0);
-
-            JournalDto dto = new JournalDto();
-            dto.setId(Long.valueOf(hit.getId()));
-            dto.setFullTitle(journalTitle);
-
-            Object impactFactor = hit.getSource().get("impact_factor");
-            if (impactFactor != null) {
-                dto.setImpactFactor((Double) impactFactor);
-            }
-
-            return dto;
-        } catch (IOException | NumberFormatException e) {
+            return hits.getAt(0);
+        } catch (IOException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }
     }
