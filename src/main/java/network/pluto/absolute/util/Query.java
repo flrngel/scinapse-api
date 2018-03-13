@@ -2,8 +2,11 @@ package network.pluto.absolute.util;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
+import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.index.query.functionscore.WeightBuilder;
 import org.springframework.util.StringUtils;
 
@@ -104,13 +107,19 @@ public class Query {
                 .filter(filter.toFilerQuery());
 
         // journal booster
+        ExistsQueryBuilder abstractExistsQuery = QueryBuilders.existsQuery("abstract");
+        FunctionScoreQueryBuilder.FilterFunctionBuilder abstractBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(abstractExistsQuery, new WeightBuilder().setWeight(2));
+
         ExistsQueryBuilder journalExistsQuery = QueryBuilders.existsQuery("journal.title");
-        FunctionScoreQueryBuilder.FilterFunctionBuilder journalBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(journalExistsQuery, new WeightBuilder().setWeight(2));
+        FunctionScoreQueryBuilder.FilterFunctionBuilder journalBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(journalExistsQuery, new WeightBuilder().setWeight(1.5f));
+
+        FieldValueFactorFunctionBuilder citationFunction = ScoreFunctionBuilders.fieldValueFactorFunction("citation_count").modifier(FieldValueFactorFunction.Modifier.LOG1P);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder citationBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(citationFunction);
 
         return QueryBuilders.functionScoreQuery(
                 boolQuery,
-                new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { journalBooster })
-                .maxBoost(2); // limit boosting
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { abstractBooster, journalBooster, citationBooster })
+                .maxBoost(10); // limit boosting
     }
 
     public boolean isDoi() {
