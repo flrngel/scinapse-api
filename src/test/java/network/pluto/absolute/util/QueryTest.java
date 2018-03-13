@@ -28,6 +28,12 @@ public class QueryTest {
 
         String url6 = "10.1207/s15327906mbr0801_4";
         assertThat(Query.parse(url6).getDoi()).isEqualTo("10.1207/s15327906mbr0801_4");
+
+        String url7 = "   DOI   :    10.1016/j.psyneuen.2017.10.017";
+        assertThat(Query.parse(url7).getDoi()).isEqualTo("10.1016/j.psyneuen.2017.10.017");
+
+        String url8 = "doi:10.1007/s12272-013-0020-y";
+        assertThat(Query.parse(url8).getDoi()).isEqualTo("10.1007/s12272-013-0020-y");
     }
 
     @Test

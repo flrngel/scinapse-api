@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 public class Query {
 
     private static Pattern DOI_HTTP_PATTERN = Pattern.compile("^(?:(?:http://|https://)?(?:.+)?doi.org/)(.+)$", Pattern.CASE_INSENSITIVE);
+    private static Pattern DOI_DOT_PATTERN = Pattern.compile("^\\s*doi\\s*:\\s*(.+)$", Pattern.CASE_INSENSITIVE);
     private static Pattern DOI_PATTERN = Pattern.compile("^10.\\d{4,9}/[-._;()/:A-Z0-9]+$", Pattern.CASE_INSENSITIVE);
     private static Pattern DOI_EXTRA_PATTERN1 = Pattern.compile("^10.1002/[^\\s]+$", Pattern.CASE_INSENSITIVE);
     private static Pattern DOI_EXTRA_PATTERN2 = Pattern.compile("^10.\\d{4}/\\d+-\\d+X?(\\d+)\\d+<[\\d\\w]+:[\\d\\w]*>\\d+.\\d+.\\w+;\\d$", Pattern.CASE_INSENSITIVE);
@@ -51,6 +52,11 @@ public class Query {
         Matcher httpMatcher = DOI_HTTP_PATTERN.matcher(query);
         if (httpMatcher.matches()) {
             query = httpMatcher.group(1);
+        }
+
+        Matcher dotMatcher = DOI_DOT_PATTERN.matcher(query);
+        if (dotMatcher.matches()) {
+            query = dotMatcher.group(1);
         }
 
         boolean isDoiPattern = false;
