@@ -1,5 +1,6 @@
 package network.pluto.absolute.controller;
 
+import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.LoginDto;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.OAuthAuthorizeUriDto;
@@ -12,7 +13,6 @@ import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Member;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -28,23 +28,13 @@ import javax.validation.Valid;
 import java.net.URI;
 
 @RestController
+@RequiredArgsConstructor
 public class AuthController {
 
     private final TokenHelper tokenHelper;
     private final MemberService memberService;
     private final BCryptPasswordEncoder encoder;
     private final OauthFacade oauthFacade;
-
-    @Autowired
-    public AuthController(TokenHelper tokenHelper,
-                          MemberService memberService,
-                          BCryptPasswordEncoder encoder,
-                          OauthFacade oauthFacade) {
-        this.tokenHelper = tokenHelper;
-        this.memberService = memberService;
-        this.encoder = encoder;
-        this.oauthFacade = oauthFacade;
-    }
 
     @RequestMapping(value = "/auth/login", method = RequestMethod.GET)
     public LoginDto login(HttpServletResponse response, @ApiIgnore JwtUser user) {

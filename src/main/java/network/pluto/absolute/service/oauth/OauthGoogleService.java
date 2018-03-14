@@ -1,9 +1,9 @@
 package network.pluto.absolute.service.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.RequiredArgsConstructor;
 import network.pluto.bibliotheca.models.oauth.OauthGoogle;
 import network.pluto.bibliotheca.repositories.oauth.OauthGoogleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -22,6 +22,7 @@ import java.util.Map;
 
 @Transactional(readOnly = true)
 @Service
+@RequiredArgsConstructor
 public class OauthGoogleService {
 
     @Value("${pluto.oauth.google.client.id}")
@@ -44,12 +45,6 @@ public class OauthGoogleService {
 
     private final OauthGoogleRepository googleRepository;
     private final RestTemplate restTemplate;
-
-    @Autowired
-    public OauthGoogleService(OauthGoogleRepository googleRepository, RestTemplate restTemplate) {
-        this.googleRepository = googleRepository;
-        this.restTemplate = restTemplate;
-    }
 
     public OauthGoogle find(String googleId) {
         return googleRepository.findByGoogleId(googleId);

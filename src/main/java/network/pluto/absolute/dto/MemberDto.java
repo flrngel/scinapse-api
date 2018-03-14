@@ -5,7 +5,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import network.pluto.absolute.dto.oauth.OauthUserDto;
 import network.pluto.absolute.validator.Update;
 import network.pluto.bibliotheca.models.Member;
@@ -17,7 +16,6 @@ import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
 
 @NoArgsConstructor
-@ToString
 @Getter
 @Setter
 public class MemberDto {
@@ -53,14 +51,6 @@ public class MemberDto {
     @Size(max = 250)
     private String major;
 
-    private long reputation;
-
-    @ApiModelProperty(readOnly = true)
-    private long articleCount;
-
-    @ApiModelProperty(readOnly = true)
-    private long reviewCount;
-
     @ApiModelProperty(readOnly = true)
     private long commentCount;
 
@@ -75,7 +65,6 @@ public class MemberDto {
         this.profileImage = member.getProfileImage();
         this.affiliation = member.getAffiliation();
         this.major = member.getMajor();
-        this.reputation = member.getReputation();
     }
 
     public Member toEntity() {
@@ -97,4 +86,5 @@ public class MemberDto {
         @NotNull
         private String password;
     }
+
 }

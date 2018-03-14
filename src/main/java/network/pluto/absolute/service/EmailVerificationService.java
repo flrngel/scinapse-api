@@ -8,6 +8,7 @@ import com.amazonaws.services.simpleemail.model.SendTemplatedEmailRequest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Authority;
@@ -15,7 +16,6 @@ import network.pluto.bibliotheca.models.EmailVerification;
 import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.repositories.AuthorityRepository;
 import network.pluto.bibliotheca.repositories.EmailVerificationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,20 +24,12 @@ import java.util.Collections;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class EmailVerificationService {
 
     private final EmailVerificationRepository emailVerificationRepository;
     private final AuthorityRepository authorityRepository;
     private final ObjectMapper objectMapper;
-
-    @Autowired
-    public EmailVerificationService(EmailVerificationRepository emailVerificationRepository,
-                                    AuthorityRepository authorityRepository,
-                                    ObjectMapper objectMapper) {
-        this.emailVerificationRepository = emailVerificationRepository;
-        this.authorityRepository = authorityRepository;
-        this.objectMapper = objectMapper;
-    }
 
     @Value("${pluto.server.web.url.email-verification}")
     private String webEmailVerificationUrl;

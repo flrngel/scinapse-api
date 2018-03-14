@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import network.pluto.bibliotheca.models.mag.Paper;
 import network.pluto.bibliotheca.models.mag.PaperAbstract;
 import network.pluto.bibliotheca.models.mag.RelPaperReference;
-import network.pluto.bibliotheca.repositories.mag.MagPaperRepository;
 import network.pluto.bibliotheca.repositories.mag.PaperAbstractRepository;
+import network.pluto.bibliotheca.repositories.mag.PaperRepository;
 import network.pluto.bibliotheca.repositories.mag.RelPaperReferenceRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,17 +17,17 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
-public class MagPaperService {
+@RequiredArgsConstructor
+public class PaperService {
 
-    private final MagPaperRepository magPaperRepository;
+    private final PaperRepository paperRepository;
     private final PaperAbstractRepository paperAbstractRepository;
     private final RelPaperReferenceRepository paperReferenceRepository;
 
     public Paper find(long paperId) {
-        Paper paper = magPaperRepository.findOne(paperId);
+        Paper paper = paperRepository.findOne(paperId);
         if (paper == null) {
             return null;
         }
@@ -38,7 +38,7 @@ public class MagPaperService {
     }
 
     public List<Paper> findByIdIn(List<Long> paperIds) {
-        List<Paper> papers = magPaperRepository.findByIdIn(paperIds);
+        List<Paper> papers = paperRepository.findByIdIn(paperIds);
 
         Map<Long, PaperAbstract> abstractMap = paperAbstractRepository.findByPaperIdIn(paperIds)
                 .stream()

@@ -7,11 +7,11 @@ import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.service.CognitivePaperService;
 import network.pluto.absolute.service.CommentService;
-import network.pluto.absolute.service.PaperService;
 import network.pluto.absolute.service.SearchService;
-import network.pluto.absolute.service.mag.MagPaperService;
+import network.pluto.absolute.service.mag.PaperService;
 import network.pluto.absolute.util.Query;
 import network.pluto.bibliotheca.models.Comment;
+import network.pluto.bibliotheca.models.mag.Paper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -27,19 +27,18 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 @Component
+@RequiredArgsConstructor
 public class PaperFacade {
 
-    private final PaperService paperService;
     private final SearchService searchService;
     private final CommentService commentService;
     private final CognitivePaperService cognitivePaperService;
-    private final MagPaperService magPaperService;
+    private final PaperService paperService;
 
     @Transactional(readOnly = true)
     public PaperDto find(long paperId) {
-        network.pluto.bibliotheca.models.mag.Paper paper = magPaperService.find(paperId);
+        Paper paper = paperService.find(paperId);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }
@@ -47,7 +46,7 @@ public class PaperFacade {
         PaperDto dto = new PaperDto(paper);
 
         PageRequest pageRequest = new PageRequest(0, 10);
-        Page<Comment> commentPage = commentService.findByCognitivePaperId(paperId, pageRequest);
+        Page<Comment> commentPage = commentService.findByPaperId(paperId, pageRequest);
         List<CommentDto> commentDtos = commentPage
                 .getContent()
                 .stream()
@@ -61,14 +60,14 @@ public class PaperFacade {
 
     @Transactional(readOnly = true)
     public Page<PaperDto> findReferences(long paperId, Pageable pageable) {
-        Page<Long> referenceIds = magPaperService.findReferences(paperId, pageable);
+        Page<Long> referenceIds = paperService.findReferences(paperId, pageable);
         List<PaperDto> dtos = findIn(referenceIds.getContent());
         return new PageImpl<>(dtos, pageable, referenceIds.getTotalElements());
     }
 
     @Transactional(readOnly = true)
     public Page<PaperDto> findCited(long paperId, Pageable pageable) {
-        Page<Long> citedIds = magPaperService.findCited(paperId, pageable);
+        Page<Long> citedIds = paperService.findCited(paperId, pageable);
         List<PaperDto> dtos = findIn(citedIds.getContent());
         return new PageImpl<>(dtos, pageable, citedIds.getTotalElements());
     }
@@ -114,7 +113,7 @@ public class PaperFacade {
     }
 
     private List<PaperDto> findIn(List<Long> paperIds) {
-        List<network.pluto.bibliotheca.models.mag.Paper> list = magPaperService.findByIdIn(paperIds);
+        List<Paper> list = paperService.findByIdIn(paperIds);
         return list
                 .stream()
                 .filter(Objects::nonNull)
@@ -125,7 +124,7 @@ public class PaperFacade {
 
     private PaperDto setCognitiveDefaultComments(PaperDto dto) {
         PageRequest pageRequest = new PageRequest(0, 10);
-        Page<Comment> commentPage = commentService.findByCognitivePaperId(dto.getCognitivePaperId(), pageRequest);
+        Page<Comment> commentPage = commentService.findByPaperId(dto.getCognitivePaperId(), pageRequest);
         List<CommentDto> commentDtos = commentPage
                 .getContent()
                 .stream()

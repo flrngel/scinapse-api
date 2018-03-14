@@ -23,4 +23,5 @@ public class CacheConfig {
                 .maximumSize(500)
                 .expireAfterWrite(1, TimeUnit.MINUTES);
     }
+
 }

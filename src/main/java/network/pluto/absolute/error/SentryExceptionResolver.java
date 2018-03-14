@@ -51,4 +51,5 @@ public class SentryExceptionResolver implements HandlerExceptionResolver, Ordere
         // ensure this resolver runs first so that all exceptions are reported
         return Integer.MIN_VALUE;
     }
+
 }

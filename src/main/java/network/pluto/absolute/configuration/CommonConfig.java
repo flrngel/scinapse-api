@@ -46,4 +46,5 @@ public class CommonConfig {
     public ServletContextInitializer sentryServletContextInitializer() {
         return new SentryServletContextInitializer();
     }
+
 }

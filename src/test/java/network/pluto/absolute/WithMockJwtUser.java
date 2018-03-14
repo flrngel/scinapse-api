@@ -19,4 +19,5 @@ public @interface WithMockJwtUser {
     boolean oauth() default false;
 
     AuthorityName[] roles() default { AuthorityName.ROLE_USER };
+
 }

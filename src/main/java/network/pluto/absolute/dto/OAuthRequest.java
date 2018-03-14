@@ -23,4 +23,5 @@ public class OAuthRequest {
 
     @ApiModelProperty
     private String redirectUri;
+
 }

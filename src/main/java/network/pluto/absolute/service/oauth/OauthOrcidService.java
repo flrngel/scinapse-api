@@ -1,9 +1,9 @@
 package network.pluto.absolute.service.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.RequiredArgsConstructor;
 import network.pluto.bibliotheca.models.oauth.OauthOrcid;
 import network.pluto.bibliotheca.repositories.oauth.OauthOrcidRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -22,6 +22,7 @@ import java.util.Map;
 
 @Transactional(readOnly = true)
 @Service
+@RequiredArgsConstructor
 public class OauthOrcidService {
 
     @Value("${pluto.oauth.orcid.client.id}")
@@ -44,12 +45,6 @@ public class OauthOrcidService {
 
     private final OauthOrcidRepository oauthOrcidRepository;
     private final RestTemplate restTemplate;
-
-    @Autowired
-    public OauthOrcidService(OauthOrcidRepository oauthOrcidRepository, RestTemplate restTemplate) {
-        this.oauthOrcidRepository = oauthOrcidRepository;
-        this.restTemplate = restTemplate;
-    }
 
     public OauthOrcid find(String orcid) {
         return oauthOrcidRepository.findByOrcid(orcid);
@@ -111,4 +106,5 @@ public class OauthOrcidService {
         @JsonProperty
         private String name;
     }
+
 }

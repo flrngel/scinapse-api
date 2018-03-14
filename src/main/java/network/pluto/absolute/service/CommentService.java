@@ -1,12 +1,9 @@
 package network.pluto.absolute.service;
 
-import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.Member;
-import network.pluto.bibliotheca.models.Paper;
-import network.pluto.bibliotheca.models.Review;
 import network.pluto.bibliotheca.repositories.CommentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,33 +13,14 @@ import javax.annotation.Nonnull;
 
 @Transactional(readOnly = true)
 @Service
+@RequiredArgsConstructor
 public class CommentService {
+
     private final CommentRepository commentRepository;
 
-    @Autowired
-    public CommentService(CommentRepository commentRepository) {
-        this.commentRepository = commentRepository;
-    }
-
     @Transactional
-    public Comment saveComment(Review review, @NonNull Comment comment) {
-        comment.setReview(review);
-        Comment save = commentRepository.save(comment);
-
-        review.increaseCommentSize();
-
-        return save;
-    }
-
-    @Transactional
-    public Comment saveComment(Paper paper, @NonNull Comment comment) {
-        comment.setPaper(paper);
-        return commentRepository.save(comment);
-    }
-
-    @Transactional
-    public Comment saveComment(long cognitivePaperId, @Nonnull Comment comment) {
-        comment.setCognitivePaperId(cognitivePaperId);
+    public Comment saveComment(long paperId, @Nonnull Comment comment) {
+        comment.setPaperId(paperId);
         return commentRepository.save(comment);
     }
 
@@ -50,16 +28,8 @@ public class CommentService {
         return commentRepository.findOne(commentId);
     }
 
-    public Page<Comment> findByReview(Review review, Pageable pageable) {
-        return commentRepository.findByReview(review, pageable);
-    }
-
-    public Page<Comment> findByPaper(Paper paper, Pageable pageable) {
-        return commentRepository.findByPaperOrderByIdDesc(paper, pageable);
-    }
-
-    public Page<Comment> findByCognitivePaperId(long cognitivePaperId, Pageable pageable) {
-        return commentRepository.findByCognitivePaperIdOrderByIdDesc(cognitivePaperId, pageable);
+    public Page<Comment> findByPaperId(long paperId, Pageable pageable) {
+        return commentRepository.findByPaperIdOrderByIdDesc(paperId, pageable);
     }
 
     @Transactional
@@ -77,7 +47,4 @@ public class CommentService {
         return commentRepository.countByCreatedBy(createdBy);
     }
 
-    public long getCount(Paper paper) {
-        return commentRepository.countByPaper(paper);
-    }
 }

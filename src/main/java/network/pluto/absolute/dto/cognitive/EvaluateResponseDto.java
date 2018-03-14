@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Joiner;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import network.pluto.absolute.util.JsonUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -15,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-@ToString
 @Getter
 @Setter
 public class EvaluateResponseDto {
@@ -26,7 +24,6 @@ public class EvaluateResponseDto {
     @JsonProperty
     private List<Entity> entities = new ArrayList<>();
 
-    @ToString
     @Getter
     @Setter
     public static class Entity {
@@ -90,7 +87,6 @@ public class EvaluateResponseDto {
 
     }
 
-    @ToString
     @Getter
     @Setter
     public static class Author {
@@ -106,7 +102,6 @@ public class EvaluateResponseDto {
 
     }
 
-    @ToString
     @Getter
     @Setter
     public static class Source {
@@ -147,7 +142,6 @@ public class EvaluateResponseDto {
         }
     }
 
-    @ToString
     @Getter
     @Setter
     public static class FieldOfStudy {
@@ -157,7 +151,6 @@ public class EvaluateResponseDto {
 
     }
 
-    @ToString
     @Getter
     @Setter
     public static class InvertedAbstract {

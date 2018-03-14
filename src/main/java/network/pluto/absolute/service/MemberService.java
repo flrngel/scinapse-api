@@ -1,15 +1,12 @@
 package network.pluto.absolute.service;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import network.pluto.bibliotheca.enums.AuthorityName;
-import network.pluto.bibliotheca.enums.ReputationChangeReason;
 import network.pluto.bibliotheca.models.Authority;
 import network.pluto.bibliotheca.models.Member;
-import network.pluto.bibliotheca.models.MemberReputation;
 import network.pluto.bibliotheca.repositories.AuthorityRepository;
 import network.pluto.bibliotheca.repositories.MemberRepository;
-import network.pluto.bibliotheca.repositories.MemberReputationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,23 +18,12 @@ import java.util.Collections;
 
 @Transactional(readOnly = true)
 @Service
+@RequiredArgsConstructor
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final MemberReputationRepository memberReputationRepository;
     private final AuthorityRepository authorityRepository;
     private final PasswordEncoder passwordEncoder;
-
-    @Autowired
-    public MemberService(MemberRepository memberRepository,
-                         MemberReputationRepository memberReputationRepository,
-                         AuthorityRepository authorityRepository,
-                         PasswordEncoder passwordEncoder) {
-        this.memberRepository = memberRepository;
-        this.memberReputationRepository = memberReputationRepository;
-        this.authorityRepository = authorityRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Transactional
     public Member saveMember(@NonNull Member member) {
@@ -98,14 +84,4 @@ public class MemberService {
         return member;
     }
 
-    @Transactional
-    public void changeReputation(Member member, ReputationChangeReason reason, long point) {
-        MemberReputation reputation = new MemberReputation();
-        reputation.setMember(member);
-        reputation.setReason(reason);
-        reputation.setDelta(point);
-        memberReputationRepository.save(reputation);
-
-        member.changeReputation(point);
-    }
 }

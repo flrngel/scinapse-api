@@ -9,8 +9,8 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 
-@EqualsAndHashCode(callSuper = false, of = { "id", "email" })
-@ToString
+@EqualsAndHashCode(callSuper = false, of = "id")
+@ToString(of = { "id", "email", "name" })
 @Getter
 @Setter
 public class JwtUser extends AbstractAuthenticationToken {
@@ -44,4 +44,5 @@ public class JwtUser extends AbstractAuthenticationToken {
 
         super.setAuthenticated(false);
     }
+
 }

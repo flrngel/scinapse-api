@@ -1,10 +1,10 @@
 package network.pluto.absolute.configuration;
 
+import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.security.jwt.JwtAuthenticationFilter;
 import network.pluto.absolute.security.rest.RestAccessDeniedHandler;
 import network.pluto.absolute.security.rest.RestAuthExceptionHandler;
 import network.pluto.bibliotheca.enums.AuthorityName;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +24,7 @@ import java.util.Collections;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final String AUTH_LOGIN_URI = "/auth/login";
@@ -35,15 +36,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RestAuthExceptionHandler restAuthExceptionHandler;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
-
-    @Autowired
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-                          RestAuthExceptionHandler restAuthExceptionHandler,
-                          RestAccessDeniedHandler restAccessDeniedHandler) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.restAuthExceptionHandler = restAuthExceptionHandler;
-        this.restAccessDeniedHandler = restAccessDeniedHandler;
-    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -104,15 +96,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         HttpMethod.GET,
                         "/members/checkDuplication",
                         "/members/*",
-                        "/members/*/articles",
-                        "/members/*/reviews",
-                        "/articles",
-                        "/articles/*",
-                        "/articles/*/point",
-                        "/articles/*/reviews",
-                        "/articles/*/reviews/*",
-                        "/articles/*/reviews/*/vote",
-                        "/articles/*/reviews/*/comments",
                         "/papers",
                         "/papers/*",
                         "/papers/*/references",
@@ -154,4 +137,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/swgr/**"
                 );
     }
+
 }

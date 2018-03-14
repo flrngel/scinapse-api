@@ -93,4 +93,5 @@ public class CustomErrorAttributes extends DefaultErrorAttributes {
     private <T> T getAttribute(RequestAttributes requestAttributes, String name) {
         return (T) requestAttributes.getAttribute(name, RequestAttributes.SCOPE_REQUEST);
     }
+
 }

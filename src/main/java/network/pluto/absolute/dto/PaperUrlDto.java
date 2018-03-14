@@ -3,7 +3,7 @@ package network.pluto.absolute.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.bibliotheca.models.PaperUrl;
+import network.pluto.bibliotheca.models.mag.PaperUrl;
 
 @NoArgsConstructor
 @Getter
@@ -15,12 +15,6 @@ public class PaperUrlDto {
     private String url;
 
     public PaperUrlDto(PaperUrl paperUrl) {
-        this.paperId = paperUrl.getPaper().getId();
-        this.id = paperUrl.getId();
-        this.url = paperUrl.getUrl();
-    }
-
-    public PaperUrlDto(network.pluto.bibliotheca.models.mag.PaperUrl paperUrl) {
         this.paperId = paperUrl.getPaper().getId();
         this.id = paperUrl.getId();
         this.url = paperUrl.getSourceUrl();

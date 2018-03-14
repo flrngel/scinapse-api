@@ -1,14 +1,16 @@
 package network.pluto.absolute.facade;
 
+import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.configuration.CacheName;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.TokenHelper;
-import network.pluto.absolute.service.*;
+import network.pluto.absolute.service.CommentService;
+import network.pluto.absolute.service.EmailVerificationService;
+import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Member;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,34 +19,14 @@ import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpServletResponse;
 
 @Component
+@RequiredArgsConstructor
 public class MemberFacade {
 
     private final MemberService memberService;
-    private final ArticleService articleService;
-    private final ReviewService reviewService;
     private final CommentService commentService;
-    private final TransactionService transactionService;
     private final EmailVerificationService emailVerificationService;
     private final TokenHelper tokenHelper;
     private final OauthFacade oauthFacade;
-
-    @Autowired
-    public MemberFacade(MemberService memberService,
-                        ArticleService articleService,
-                        ReviewService reviewService,
-                        CommentService commentService,
-                        TransactionService transactionService,
-                        EmailVerificationService emailVerificationService,
-                        TokenHelper tokenHelper, OauthFacade oauthFacade) {
-        this.memberService = memberService;
-        this.articleService = articleService;
-        this.reviewService = reviewService;
-        this.commentService = commentService;
-        this.transactionService = transactionService;
-        this.emailVerificationService = emailVerificationService;
-        this.tokenHelper = tokenHelper;
-        this.oauthFacade = oauthFacade;
-    }
 
     @Cacheable(CacheName.Member.GET_DETAIL)
     public MemberDto getDetail(long memberId) {
@@ -53,13 +35,9 @@ public class MemberFacade {
             throw new ResourceNotFoundException("Member not found");
         }
 
-        long articleCount = articleService.getCount(member);
-        long reviewCount = reviewService.getCount(member);
         long commentCount = commentService.getCount(member);
 
         MemberDto memberDto = new MemberDto(member);
-        memberDto.setArticleCount(articleCount);
-        memberDto.setReviewCount(reviewCount);
         memberDto.setCommentCount(commentCount);
 
         return memberDto;
@@ -118,9 +96,4 @@ public class MemberFacade {
         return saved;
     }
 
-    @Transactional
-    public void createWallet(Member member) {
-        // send transaction
-        transactionService.createWallet(member);
-    }
 }

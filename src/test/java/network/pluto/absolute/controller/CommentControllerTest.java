@@ -5,13 +5,12 @@ import network.pluto.absolute.WithMockJwtUser;
 import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.MemberService;
-import network.pluto.absolute.service.PaperService;
+import network.pluto.absolute.service.mag.PaperService;
 import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.Member;
-import network.pluto.bibliotheca.models.Paper;
+import network.pluto.bibliotheca.models.mag.Paper;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +34,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Ignore
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @SpringBootTest
@@ -77,12 +75,12 @@ public class CommentControllerTest {
         Comment comment = new Comment();
         comment.setId(1);
         comment.setComment(commentMessage);
-        comment.setPaper(paper);
+        comment.setPaperId(paperId);
         comment.setCreatedBy(member);
 
         when(paperService.find(paperId)).thenReturn(paper);
         when(memberService.getMember(memberId)).thenReturn(member);
-        when(commentService.saveComment(eq(paper), any(Comment.class))).thenReturn(comment);
+        when(commentService.saveComment(eq(paperId), any(Comment.class))).thenReturn(comment);
 
         CommentDto commentDto = new CommentDto();
         commentDto.setComment(commentMessage);
@@ -100,7 +98,7 @@ public class CommentControllerTest {
 
         verify(paperService, only()).find(paperId);
         verify(memberService, only()).getMember(memberId);
-        verify(commentService, only()).saveComment(eq(paper), any(Comment.class));
+        verify(commentService, only()).saveComment(eq(paperId), any(Comment.class));
     }
 
     @Test
@@ -155,14 +153,14 @@ public class CommentControllerTest {
         Comment comment = new Comment();
         comment.setId(1);
         comment.setComment(commentMessage);
-        comment.setPaper(paper);
+        comment.setPaperId(paperId);
         comment.setCreatedBy(member);
 
         List<Comment> comments = Collections.singletonList(comment);
         PageImpl<Comment> page = new PageImpl<>(comments);
 
         when(paperService.find(paperId)).thenReturn(paper);
-        when(commentService.findByPaper(eq(paper), any(Pageable.class))).thenReturn(page);
+        when(commentService.findByPaperId(eq(paperId), any(Pageable.class))).thenReturn(page);
 
         mvc
                 .perform(get("/comments")
@@ -172,7 +170,7 @@ public class CommentControllerTest {
                 .andExpect(jsonPath("$.content[0].comment", String.class).value(commentMessage));
 
         verify(paperService, only()).find(paperId);
-        verify(commentService, only()).findByPaper(eq(paper), any(Pageable.class));
+        verify(commentService, only()).findByPaperId(eq(paperId), any(Pageable.class));
     }
 
     @WithMockJwtUser

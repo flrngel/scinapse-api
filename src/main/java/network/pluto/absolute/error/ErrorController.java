@@ -32,4 +32,5 @@ public class ErrorController extends AbstractErrorController {
         HttpStatus status = getStatus(request);
         return new ResponseEntity<>(body, status);
     }
+
 }

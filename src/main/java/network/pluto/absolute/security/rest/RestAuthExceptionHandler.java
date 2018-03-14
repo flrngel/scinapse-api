@@ -17,4 +17,5 @@ public class RestAuthExceptionHandler implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         response.sendError(HttpStatus.UNAUTHORIZED.value(), authException.getLocalizedMessage());
     }
+
 }

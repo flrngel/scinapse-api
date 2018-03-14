@@ -1,6 +1,7 @@
 package network.pluto.absolute.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.TokenHelper;
@@ -8,7 +9,6 @@ import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.EmailVerificationService;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.bibliotheca.models.Member;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,20 +19,12 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.servlet.http.HttpServletResponse;
 
 @RestController
+@RequiredArgsConstructor
 public class EmailVerificationController {
 
     private final EmailVerificationService emailVerificationService;
     private final MemberService memberService;
     private final TokenHelper tokenHelper;
-
-    @Autowired
-    public EmailVerificationController(EmailVerificationService emailVerificationService,
-                                       MemberService memberService,
-                                       TokenHelper tokenHelper) {
-        this.emailVerificationService = emailVerificationService;
-        this.memberService = memberService;
-        this.tokenHelper = tokenHelper;
-    }
 
     @RequestMapping(value = "/email-verification", method = RequestMethod.POST)
     public Result verify(HttpServletResponse response,
@@ -81,4 +73,5 @@ public class EmailVerificationController {
         @JsonProperty
         private String token;
     }
+
 }

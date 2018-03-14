@@ -32,4 +32,5 @@ public class MemberDuplicationValidator implements Validator {
             errors.rejectValue("email", "EXIST", "email already exists");
         }
     }
+
 }

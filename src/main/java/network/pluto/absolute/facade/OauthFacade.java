@@ -1,5 +1,6 @@
 package network.pluto.absolute.facade;
 
+import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.oauth.OauthUserDto;
 import network.pluto.absolute.enums.OauthVendor;
 import network.pluto.absolute.error.BadRequestException;
@@ -10,7 +11,6 @@ import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.models.oauth.OauthFacebook;
 import network.pluto.bibliotheca.models.oauth.OauthGoogle;
 import network.pluto.bibliotheca.models.oauth.OauthOrcid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,20 +18,12 @@ import java.net.URI;
 
 @Transactional(readOnly = true)
 @Component
+@RequiredArgsConstructor
 public class OauthFacade {
 
     private final OauthOrcidService orcidService;
     private final OauthFacebookService facebookService;
     private final OauthGoogleService googleService;
-
-    @Autowired
-    public OauthFacade(OauthOrcidService orcidService,
-                       OauthFacebookService facebookService,
-                       OauthGoogleService googleService) {
-        this.orcidService = orcidService;
-        this.facebookService = facebookService;
-        this.googleService = googleService;
-    }
 
     public URI getAuthorizeUri(OauthVendor vendor, String redirectUri) {
         if (vendor == null) {
@@ -215,4 +207,5 @@ public class OauthFacade {
                 return false;
         }
     }
+
 }

@@ -14,4 +14,5 @@ public class TokenExpiredException extends AuthenticationException {
         this.token = token;
         this.reason = reason;
     }
+
 }

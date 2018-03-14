@@ -107,4 +107,5 @@ public class QueryFilter {
 
         return Joiner.on(",").join(filters);
     }
+
 }

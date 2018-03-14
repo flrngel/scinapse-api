@@ -17,4 +17,5 @@ public class OauthUserDto {
     private String oauthId;
     private Map<String, Object> userData;
     private boolean connected = false;
+
 }

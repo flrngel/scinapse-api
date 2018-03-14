@@ -1,5 +1,6 @@
 package network.pluto.absolute.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import network.pluto.absolute.dto.FosDto;
 import network.pluto.absolute.dto.PaperAuthorDto;
@@ -12,7 +13,6 @@ import network.pluto.absolute.error.ExternalApiCallException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.util.Query;
 import network.pluto.absolute.util.TextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CognitivePaperService {
 
     private static final String DEFAULT_ATTRIBUTES = "Id,Ti,Y,D,AA.DAuN,AA.DAfN,AA.S,E.DN,E.DOI,E.VFN,E.S,CC,RId,F.FN,E,E.IA";
@@ -48,12 +49,6 @@ public class CognitivePaperService {
 
     @Value("${pluto.ms.cognitive.subscription.key}")
     private String cognitiveSubscriptionKey;
-
-    @Autowired
-    public CognitivePaperService(RestTemplate restTemplate, SearchService searchService) {
-        this.restTemplate = restTemplate;
-        this.searchService = searchService;
-    }
 
     public String getRecommendQuery(Query query) {
         URI uri = UriComponentsBuilder

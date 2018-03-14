@@ -1,21 +1,14 @@
 package network.pluto.absolute.controller;
 
-import network.pluto.absolute.dto.ArticleDto;
+import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.MemberDuplicationCheckDto;
-import network.pluto.absolute.dto.ReviewDto;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.facade.MemberFacade;
 import network.pluto.absolute.security.jwt.JwtUser;
-import network.pluto.absolute.service.ArticleService;
 import network.pluto.absolute.service.MemberService;
-import network.pluto.absolute.service.ReviewService;
 import network.pluto.absolute.validator.Update;
 import network.pluto.bibliotheca.models.Member;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -24,23 +17,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 @RestController
+@RequiredArgsConstructor
 public class MemberController {
 
     private final MemberService memberService;
-    private final ArticleService articleService;
-    private final ReviewService reviewService;
     private final MemberFacade memberFacade;
-
-    @Autowired
-    public MemberController(MemberService memberService,
-                            ArticleService articleService,
-                            ReviewService reviewService,
-                            MemberFacade memberFacade) {
-        this.memberService = memberService;
-        this.articleService = articleService;
-        this.reviewService = reviewService;
-        this.memberFacade = memberFacade;
-    }
 
     @RequestMapping(value = "/members", method = RequestMethod.POST)
     public MemberDto create(HttpServletResponse response, @RequestBody @Valid MemberDto memberDto) {
@@ -60,33 +41,9 @@ public class MemberController {
         return memberFacade.getDetail(memberId);
     }
 
-    @RequestMapping(value = "/members/{memberId}/articles", method = RequestMethod.GET)
-    public Page<ArticleDto> getMyArticles(@ApiIgnore JwtUser user,
-                                          @PathVariable long memberId,
-                                          @PageableDefault Pageable pageable) {
-        Member member = memberService.findMember(memberId);
-        if (member == null) {
-            throw new ResourceNotFoundException("Member not found");
-        }
-
-        return articleService.findByCreatedBy(member, pageable).map(ArticleDto::new);
-    }
-
-    @RequestMapping(value = "/members/{memberId}/reviews", method = RequestMethod.GET)
-    public Page<ReviewDto> getMyReviews(@ApiIgnore JwtUser user,
-                                        @PathVariable long memberId,
-                                        @PageableDefault Pageable pageable) {
-        Member member = memberService.findMember(memberId);
-        if (member == null) {
-            throw new ResourceNotFoundException("Member not found");
-        }
-
-        return reviewService.findByCreatedBy(member, pageable).map(ReviewDto::new);
-    }
-
     @RequestMapping(value = "/members/me", method = RequestMethod.PUT)
     public MemberDto updateMember(@ApiIgnore JwtUser user,
-                                   @RequestBody @Validated(Update.class) MemberDto memberDto) {
+                                  @RequestBody @Validated(Update.class) MemberDto memberDto) {
         Member old = memberService.findMember(user.getId());
         if (old == null) {
             throw new ResourceNotFoundException("Member not found");
@@ -126,4 +83,5 @@ public class MemberController {
 
         return dto;
     }
+
 }

@@ -1,9 +1,9 @@
 package network.pluto.absolute.service.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.RequiredArgsConstructor;
 import network.pluto.bibliotheca.models.oauth.OauthFacebook;
 import network.pluto.bibliotheca.repositories.oauth.OauthFacebookRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +17,7 @@ import java.util.Map;
 
 @Transactional(readOnly = true)
 @Service
+@RequiredArgsConstructor
 public class OauthFacebookService {
 
     @Value("${pluto.oauth.facebook.client.id}")
@@ -39,13 +40,6 @@ public class OauthFacebookService {
 
     private final OauthFacebookRepository facebookRepository;
     private final RestTemplate restTemplate;
-
-    @Autowired
-    public OauthFacebookService(OauthFacebookRepository facebookRepository,
-                                RestTemplate restTemplate) {
-        this.facebookRepository = facebookRepository;
-        this.restTemplate = restTemplate;
-    }
 
     public OauthFacebook find(String facebookId) {
         return facebookRepository.findByFacebookId(facebookId);
@@ -131,4 +125,5 @@ public class OauthFacebookService {
             return map;
         }
     }
+
 }

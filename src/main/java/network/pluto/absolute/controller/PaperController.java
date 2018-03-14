@@ -1,24 +1,20 @@
 package network.pluto.absolute.controller;
 
+import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.facade.PaperFacade;
 import network.pluto.absolute.util.Query;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 public class PaperController {
 
     private final PaperFacade paperFacade;
-
-    @Autowired
-    public PaperController(PaperFacade paperFacade) {
-        this.paperFacade = paperFacade;
-    }
 
     @RequestMapping(value = "/papers/{paperId}", method = RequestMethod.GET)
     public PaperDto find(@PathVariable long paperId) {

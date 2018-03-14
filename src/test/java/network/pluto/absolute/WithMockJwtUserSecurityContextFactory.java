@@ -31,4 +31,5 @@ public class WithMockJwtUserSecurityContextFactory implements WithSecurityContex
         context.setAuthentication(jwtUser);
         return context;
     }
+
 }

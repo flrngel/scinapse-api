@@ -17,4 +17,5 @@ public class RestAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
         response.sendError(HttpStatus.UNAUTHORIZED.value(), accessDeniedException.getLocalizedMessage());
     }
+
 }

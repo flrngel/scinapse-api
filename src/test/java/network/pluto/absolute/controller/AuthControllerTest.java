@@ -215,4 +215,5 @@ public class AuthControllerTest {
                 .perform(post("/auth/logout"))
                 .andExpect(status().isOk());
     }
+
 }

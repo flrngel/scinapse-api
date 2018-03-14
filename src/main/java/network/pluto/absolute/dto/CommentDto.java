@@ -4,14 +4,12 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import network.pluto.bibliotheca.models.Comment;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
-@ToString(exclude = { "createdBy" })
 @Getter
 @Setter
 public class CommentDto {
@@ -23,9 +21,8 @@ public class CommentDto {
     @NotNull
     private String comment;
 
+    @ApiModelProperty(required = true)
     private Long paperId;
-
-    private Long cognitivePaperId;
 
     @ApiModelProperty(readOnly = true)
     private MemberDto createdBy;
@@ -36,13 +33,9 @@ public class CommentDto {
     public CommentDto(Comment comment) {
         this.id = comment.getId();
         this.comment = comment.getComment();
-        this.cognitivePaperId = comment.getCognitivePaperId();
+        this.paperId = comment.getPaperId();
         this.createdBy = new MemberDto(comment.getCreatedBy());
         this.createdAt = comment.getCreatedAt();
-
-        if (comment.getPaper() != null) {
-            this.paperId = comment.getPaper().getId();
-        }
     }
 
     public Comment toEntity() {
@@ -50,4 +43,5 @@ public class CommentDto {
         comment.setComment(this.comment);
         return comment;
     }
+
 }

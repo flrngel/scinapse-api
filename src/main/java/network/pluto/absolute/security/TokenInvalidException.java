@@ -14,4 +14,5 @@ public class TokenInvalidException extends AuthenticationException {
         this.token = token;
         this.reason = reason;
     }
+
 }

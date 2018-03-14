@@ -9,6 +9,8 @@ import java.net.URI;
 @Getter
 @Setter
 public class OAuthAuthorizeUriDto {
+
     private OauthVendor vendor;
     private URI uri;
+
 }
