@@ -13,6 +13,7 @@ public class PaperAuthorDto {
     private long paperId;
     private long id;
     private String name;
+    private Integer hIndex;
     private String organization;
     private AffiliationDto affiliation;
     private int order;
@@ -26,6 +27,10 @@ public class PaperAuthorDto {
         if (relation.getAffiliation() != null) {
             this.affiliation = new AffiliationDto(relation.getAffiliation());
             this.organization = relation.getAffiliation().getDisplayName();
+        }
+
+        if (relation.getAuthor().getAuthorHIndex() != null) {
+            this.hIndex = relation.getAuthor().getAuthorHIndex().getHIndex();
         }
     }
 
