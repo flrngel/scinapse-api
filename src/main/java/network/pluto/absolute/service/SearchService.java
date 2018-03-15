@@ -3,11 +3,11 @@ package network.pluto.absolute.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import network.pluto.absolute.dto.JournalDto;
-import network.pluto.absolute.util.Query;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -35,13 +35,13 @@ public class SearchService {
     @Value("${pluto.server.es.index.journal}")
     private String journalIndexName;
 
-    public Page<Long> search(Query query, Pageable pageable) {
+    public Page<Long> search(QueryBuilder query, Pageable pageable) {
         SearchRequest request = new SearchRequest(indexName);
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
 
         // set query
-        builder.query(query.toQuery());
+        builder.query(query);
 
         // do not retrieve source
         builder.fetchSource(false);
@@ -98,7 +98,7 @@ public class SearchService {
         return (Double) impactFactor;
     }
 
-    private SearchHit findJournal(String journalTitle) {
+    public SearchHit findJournal(String journalTitle) {
         MatchQueryBuilder query = QueryBuilders.matchQuery("full_title", journalTitle);
 
         SearchSourceBuilder builder = new SearchSourceBuilder();

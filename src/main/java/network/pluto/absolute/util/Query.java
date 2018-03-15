@@ -128,6 +128,12 @@ public class Query {
                 .maxBoost(10); // limit boosting
     }
 
+    public QueryBuilder toJournalQuery() {
+        return QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchQuery("journal.title", text))
+                .filter(filter.toFilerQuery());
+    }
+
     public boolean isDoi() {
         return StringUtils.hasText(doi);
     }

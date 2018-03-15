@@ -12,6 +12,8 @@ import network.pluto.absolute.service.mag.PaperService;
 import network.pluto.absolute.util.Query;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.mag.Paper;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.SearchHit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -75,7 +77,12 @@ public class PaperFacade {
     @Transactional(readOnly = true)
     public Page<PaperDto> search(Query query, Pageable pageable) {
         if (query.isDoi()) {
-            return searchFromES(query, pageable);
+            return searchFromES(query.toQuery(), pageable);
+        }
+
+        SearchHit journal = searchService.findJournal(query.getText());
+        if (journal != null) {
+            return searchFromES(query.toJournalQuery(), pageable);
         }
 
         String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
@@ -83,10 +90,10 @@ public class PaperFacade {
             return searchFromCognitive(pageable, recommendedQuery);
         }
 
-        return searchFromES(query, pageable);
+        return searchFromES(query.toQuery(), pageable);
     }
 
-    private Page<PaperDto> searchFromES(Query query, Pageable pageable) {
+    private Page<PaperDto> searchFromES(QueryBuilder query, Pageable pageable) {
         Page<Long> paperIds = searchService.search(query, pageable);
         List<PaperDto> dtoList = findIn(paperIds.getContent());
         Map<Long, PaperDto> paperMap = dtoList.stream().collect(Collectors.toMap(PaperDto::getId, Function.identity()));
