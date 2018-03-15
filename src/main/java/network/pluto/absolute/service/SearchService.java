@@ -1,5 +1,6 @@
 package network.pluto.absolute.service;
 
+import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import network.pluto.absolute.dto.JournalDto;
@@ -12,6 +13,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -35,13 +37,20 @@ public class SearchService {
     @Value("${pluto.server.es.index.journal}")
     private String journalIndexName;
 
-    public Page<Long> search(QueryBuilder query, Pageable pageable) {
+    public Page<Long> search(QueryBuilder query, List<SortBuilder> sorts, Pageable pageable) {
+        Preconditions.checkNotNull(query);
+        Preconditions.checkNotNull(sorts);
+        Preconditions.checkNotNull(pageable);
+
         SearchRequest request = new SearchRequest(indexName);
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
 
         // set query
         builder.query(query);
+
+        // set sort
+        sorts.forEach(builder::sort);
 
         // do not retrieve source
         builder.fetchSource(false);

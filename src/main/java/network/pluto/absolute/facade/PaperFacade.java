@@ -14,6 +14,9 @@ import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.mag.Paper;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -22,10 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -82,7 +82,12 @@ public class PaperFacade {
 
         SearchHit journal = searchService.findJournal(query.getText());
         if (journal != null) {
-            return searchFromES(query.toJournalQuery(), pageable);
+            return searchFromES(
+                    query.toJournalQuery(),
+                    Arrays.asList(
+                            SortBuilders.fieldSort("year").order(SortOrder.DESC),
+                            SortBuilders.fieldSort("citation_count").order(SortOrder.DESC)),
+                    pageable);
         }
 
         String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
@@ -94,7 +99,11 @@ public class PaperFacade {
     }
 
     private Page<PaperDto> searchFromES(QueryBuilder query, Pageable pageable) {
-        Page<Long> paperIds = searchService.search(query, pageable);
+        return searchFromES(query, new ArrayList<>(), pageable);
+    }
+
+    private Page<PaperDto> searchFromES(QueryBuilder query, List<SortBuilder> sorts, Pageable pageable) {
+        Page<Long> paperIds = searchService.search(query, sorts, pageable);
         List<PaperDto> dtoList = findIn(paperIds.getContent());
         Map<Long, PaperDto> paperMap = dtoList.stream().collect(Collectors.toMap(PaperDto::getId, Function.identity()));
 
