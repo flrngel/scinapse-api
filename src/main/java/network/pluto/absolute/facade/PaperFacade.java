@@ -104,6 +104,15 @@ public class PaperFacade {
 
     private Page<PaperDto> searchFromES(QueryBuilder query, List<SortBuilder> sorts, Pageable pageable) {
         Page<Long> paperIds = searchService.search(query, sorts, pageable);
+        return convertToDto(paperIds, pageable);
+    }
+
+    private Page<PaperDto> searchFromCognitive(Pageable pageable, String recommendedQuery) {
+        Page<Long> paperIds = cognitivePaperService.search(recommendedQuery, pageable);
+        return convertToDto(paperIds, pageable);
+    }
+
+    private Page<PaperDto> convertToDto(Page<Long> paperIds, Pageable pageable) {
         List<PaperDto> dtoList = findIn(paperIds.getContent());
         Map<Long, PaperDto> paperMap = dtoList.stream().collect(Collectors.toMap(PaperDto::getId, Function.identity()));
 
@@ -123,22 +132,17 @@ public class PaperFacade {
         return new PageImpl<>(dtos, pageable, paperIds.getTotalElements());
     }
 
-    private Page<PaperDto> searchFromCognitive(Pageable pageable, String recommendedQuery) {
-        return cognitivePaperService.search(recommendedQuery, pageable)
-                .map(this::setCognitiveDefaultComments);
-    }
-
     private List<PaperDto> findIn(List<Long> paperIds) {
         List<Paper> list = paperService.findByIdIn(paperIds);
         return list
                 .stream()
                 .filter(Objects::nonNull)
                 .map(PaperDto::new)
-                .map(this::setCognitiveDefaultComments)
+                .map(this::setDefaultComments)
                 .collect(Collectors.toList());
     }
 
-    private PaperDto setCognitiveDefaultComments(PaperDto dto) {
+    private PaperDto setDefaultComments(PaperDto dto) {
         PageRequest pageRequest = new PageRequest(0, 10);
         Page<Comment> commentPage = commentService.findByPaperId(dto.getCognitivePaperId(), pageRequest);
         List<CommentDto> commentDtos = commentPage
