@@ -3,7 +3,6 @@ package network.pluto.absolute.service;
 import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import network.pluto.absolute.dto.JournalDto;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -73,38 +72,6 @@ public class SearchService {
         } catch (IOException | NumberFormatException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }
-    }
-
-    public JournalDto searchJournal(String journalTitle) {
-        SearchHit journalHit = findJournal(journalTitle);
-        if (journalHit == null) {
-            return null;
-        }
-
-        JournalDto dto = new JournalDto();
-        dto.setId(Long.valueOf(journalHit.getId()));
-        dto.setFullTitle(journalTitle);
-
-        Object impactFactor = journalHit.getSource().get("impact_factor");
-        if (impactFactor != null) {
-            dto.setImpactFactor((Double) impactFactor);
-        }
-
-        return dto;
-    }
-
-    public Double searchJournalImpact(String journalTitle) {
-        SearchHit journalHit = findJournal(journalTitle);
-        if (journalHit == null) {
-            return null;
-        }
-
-        Object impactFactor = journalHit.getSource().get("impact_factor");
-        if (impactFactor == null) {
-            return null;
-        }
-
-        return (Double) impactFactor;
     }
 
     public SearchHit findJournal(String journalTitle) {

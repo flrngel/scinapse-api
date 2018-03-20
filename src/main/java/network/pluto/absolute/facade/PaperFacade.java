@@ -2,7 +2,6 @@ package network.pluto.absolute.facade;
 
 import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.CommentDto;
-import network.pluto.absolute.dto.JournalDto;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.service.CognitivePaperService;
@@ -25,8 +24,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -82,12 +83,7 @@ public class PaperFacade {
 
         SearchHit journal = searchService.findJournal(query.getText());
         if (journal != null) {
-            return searchFromES(
-                    query.toJournalQuery(),
-                    Arrays.asList(
-                            SortBuilders.fieldSort("year").order(SortOrder.DESC),
-                            SortBuilders.fieldSort("citation_count").order(SortOrder.DESC)),
-                    pageable);
+            return searchByJournal(query, pageable);
         }
 
         String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
@@ -96,6 +92,15 @@ public class PaperFacade {
         }
 
         return searchFromES(query.toQuery(), pageable);
+    }
+
+    private Page<PaperDto> searchByJournal(Query query, Pageable pageable) {
+        return searchFromES(
+                query.toJournalQuery(),
+                Arrays.asList(
+                        SortBuilders.fieldSort("year").order(SortOrder.DESC),
+                        SortBuilders.fieldSort("citation_count").order(SortOrder.DESC)),
+                pageable);
     }
 
     private Page<PaperDto> searchFromES(QueryBuilder query, Pageable pageable) {
@@ -113,23 +118,7 @@ public class PaperFacade {
     }
 
     private Page<PaperDto> convertToDto(Page<Long> paperIds, Pageable pageable) {
-        List<PaperDto> dtoList = findIn(paperIds.getContent());
-        Map<Long, PaperDto> paperMap = dtoList.stream().collect(Collectors.toMap(PaperDto::getId, Function.identity()));
-
-        List<PaperDto> dtos = new ArrayList<>();
-        paperIds.getContent().forEach(id -> {
-            PaperDto dto = paperMap.get(id);
-            if (dto != null) {
-                JournalDto journal = dto.getJournal();
-                if (journal != null) {
-                    Double impactFactor = searchService.searchJournalImpact(journal.getFullTitle());
-                    journal.setImpactFactor(impactFactor);
-                }
-                dtos.add(dto);
-            }
-        });
-
-        return new PageImpl<>(dtos, pageable, paperIds.getTotalElements());
+        return new PageImpl<>(findIn(paperIds.getContent()), pageable, paperIds.getTotalElements());
     }
 
     private List<PaperDto> findIn(List<Long> paperIds) {

@@ -17,6 +17,7 @@ public class JournalDto {
     public JournalDto(Journal journal) {
         this.id = journal.getId();
         this.fullTitle = journal.getDisplayName();
+        this.impactFactor = journal.getImpactFactor();
     }
 
 }
