@@ -91,6 +91,14 @@ public class QueryFilter {
             filterQuery.must(QueryBuilders.rangeQuery("year").lte(yearEnd));
         }
 
+        if (ifStart != null) {
+            filterQuery.must(QueryBuilders.rangeQuery("journal.impact_factor").gte(ifStart));
+        }
+
+        if (ifEnd != null) {
+            filterQuery.must(QueryBuilders.rangeQuery("journal.impact_factor").lte(ifEnd));
+        }
+
         return filterQuery;
     }
 
