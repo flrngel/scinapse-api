@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public class Query {
 
     private static Pattern DOI_HTTP_PATTERN = Pattern.compile("^(?:(?:http://|https://)?(?:.+)?doi.org/)(.+)$", Pattern.CASE_INSENSITIVE);
-    private static Pattern DOI_DOT_PATTERN = Pattern.compile("^\\s*doi\\s*:\\s*(.+)$", Pattern.CASE_INSENSITIVE);
+    private static Pattern DOI_DOT_PATTERN = Pattern.compile("^doi\\s*:\\s*(.+)$", Pattern.CASE_INSENSITIVE);
     private static Pattern DOI_PATTERN = Pattern.compile("^10.\\d{4,9}/[-._;()/:A-Z0-9]+$", Pattern.CASE_INSENSITIVE);
     private static Pattern DOI_EXTRA_PATTERN1 = Pattern.compile("^10.1002/[^\\s]+$", Pattern.CASE_INSENSITIVE);
     private static Pattern DOI_EXTRA_PATTERN2 = Pattern.compile("^10.\\d{4}/\\d+-\\d+X?(\\d+)\\d+<[\\d\\w]+:[\\d\\w]*>\\d+.\\d+.\\w+;\\d$", Pattern.CASE_INSENSITIVE);
@@ -85,15 +85,7 @@ public class Query {
         }
 
         // search specific fields
-        MultiMatchQueryBuilder stemmedFieldQuery = QueryBuilders.multiMatchQuery(text, "title.en_stemmed")
-                .field("abstract.en_stemmed")
-                .field("authors.name.en_stemmed")
-                .field("authors.affiliation.en_stemmed")
-                .field("fos.name.en_stemmed")
-                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .minimumShouldMatch("3<75%");
-//                .cutoffFrequency(0.01f); // turn off cutoff frequency temporary
-//                .fuzziness(Fuzziness.AUTO); // turn off fuzziness temporary to improve precision
+        MultiMatchQueryBuilder stemmedFieldQuery = getMainQueryClause();
 
         MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(10);
         MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(10);
@@ -116,17 +108,20 @@ public class Query {
 
     public QueryBuilder toAggregationQuery() {
         // search specific fields
-        MultiMatchQueryBuilder stemmedFieldQuery = QueryBuilders.multiMatchQuery(text, "title.en_stemmed")
-                .field("abstract.en_stemmed")
-                .field("authors.name.en_stemmed")
-                .field("authors.affiliation.en_stemmed")
-                .field("fos.name.en_stemmed")
-                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .minimumShouldMatch("3<75%");
+        MultiMatchQueryBuilder stemmedFieldQuery = getMainQueryClause();
 
         return QueryBuilders.boolQuery()
                 .must(stemmedFieldQuery)
                 .filter(filter.toFilerQuery());
+    }
+
+    private MultiMatchQueryBuilder getMainQueryClause() {
+        return QueryBuilders.multiMatchQuery(text, "title.en_stemmed")
+                .field("abstract.en_stemmed")
+                .field("authors.name.en_stemmed")
+                .field("fos.name.en_stemmed")
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
+                .minimumShouldMatch("3<75%");
     }
 
     public QueryBuilder toJournalQuery() {

@@ -88,7 +88,7 @@ public class SearchService {
 
         // re-scoring top 1000 documents only
         QueryRescorerBuilder rescorerBuilder = QueryRescorerBuilder.queryRescorer(citationBooster)
-                .windowSize(1000)
+                .windowSize(500)
                 .setScoreMode(QueryRescoreMode.Multiply);
         builder.addRescorer(rescorerBuilder);
 
