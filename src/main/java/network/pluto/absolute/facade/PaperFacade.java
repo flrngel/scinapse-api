@@ -1,6 +1,7 @@
 package network.pluto.absolute.facade;
 
 import lombok.RequiredArgsConstructor;
+import network.pluto.absolute.dto.AggregationDto;
 import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.error.ResourceNotFoundException;
@@ -143,6 +144,10 @@ public class PaperFacade {
         dto.setCommentCount(commentPage.getTotalElements());
         dto.setComments(commentDtos);
         return dto;
+    }
+
+    public AggregationDto aggregate(Query query) {
+        return searchService.aggregate(query.toAggregationQuery());
     }
 
 }

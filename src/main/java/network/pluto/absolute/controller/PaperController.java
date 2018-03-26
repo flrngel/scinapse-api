@@ -1,6 +1,7 @@
 package network.pluto.absolute.controller;
 
 import lombok.RequiredArgsConstructor;
+import network.pluto.absolute.dto.AggregationDto;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.facade.PaperFacade;
@@ -9,6 +10,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,6 +35,20 @@ public class PaperController {
         }
 
         return paperFacade.search(query, pageable);
+    }
+
+    @RequestMapping(value = "/papers/aggregate", method = RequestMethod.GET)
+    public Map<String, Object> aggregate(@RequestParam("query") String queryStr,
+                                         @RequestParam(value = "filter", required = false) String filterStr) {
+        Query query = Query.parse(queryStr, filterStr);
+        if (!query.isValid()) {
+            throw new BadRequestException("Invalid query: too short or long query text");
+        }
+
+        HashMap<String, Object> aggregationMap = new HashMap<>();
+        AggregationDto aggregationDto = paperFacade.aggregate(query);
+        aggregationMap.put("data", aggregationDto);
+        return aggregationMap;
     }
 
     @RequestMapping(value = "/papers/{paperId}/references", method = RequestMethod.GET)

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -22,6 +23,8 @@ public class QueryFilter {
     private Integer yearEnd;
     private Integer ifStart;
     private Integer ifEnd;
+    private List<Long> journals = new ArrayList<>();
+    private List<Long> fosList = new ArrayList<>();
 
     public static QueryFilter parse(String filterStr) {
         QueryFilter queryFilter = new QueryFilter();
@@ -77,6 +80,38 @@ public class QueryFilter {
             }
         }
 
+        String journalStr = filterMap.get("journal");
+        if (StringUtils.hasText(journalStr)) {
+            try {
+                List<Long> journals = Splitter.on("|")
+                        .trimResults()
+                        .omitEmptyStrings()
+                        .splitToList(journalStr)
+                        .stream()
+                        .map(Long::parseLong)
+                        .collect(Collectors.toList());
+                queryFilter.setJournals(journals);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+
+        String fosStr = filterMap.get("fos");
+        if (StringUtils.hasText(fosStr)) {
+            try {
+                List<Long> fosList = Splitter.on("|")
+                        .trimResults()
+                        .omitEmptyStrings()
+                        .splitToList(fosStr)
+                        .stream()
+                        .map(Long::parseLong)
+                        .collect(Collectors.toList());
+                queryFilter.setFosList(fosList);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+
         return queryFilter;
     }
 
@@ -97,6 +132,20 @@ public class QueryFilter {
 
         if (ifEnd != null) {
             filterQuery.must(QueryBuilders.rangeQuery("journal.impact_factor").lte(ifEnd));
+        }
+
+        return filterQuery;
+    }
+
+    public BoolQueryBuilder toExtraFilterQuery() {
+        BoolQueryBuilder filterQuery = QueryBuilders.boolQuery();
+
+        if (!journals.isEmpty()) {
+            filterQuery.must(QueryBuilders.termsQuery("journal.id", journals));
+        }
+
+        if (!fosList.isEmpty()) {
+            filterQuery.must(QueryBuilders.termsQuery("fos.id", fosList));
         }
 
         return filterQuery;

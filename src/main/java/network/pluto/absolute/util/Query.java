@@ -110,6 +110,22 @@ public class Query {
                 .should(authorAffiliationQuery)
                 .should(fosQuery)
                 .should(journalQuery)
+                .filter(filter.toFilerQuery())
+                .filter(filter.toExtraFilterQuery());
+    }
+
+    public QueryBuilder toAggregationQuery() {
+        // search specific fields
+        MultiMatchQueryBuilder stemmedFieldQuery = QueryBuilders.multiMatchQuery(text, "title.en_stemmed")
+                .field("abstract.en_stemmed")
+                .field("authors.name.en_stemmed")
+                .field("authors.affiliation.en_stemmed")
+                .field("fos.name.en_stemmed")
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
+                .minimumShouldMatch("3<75%");
+
+        return QueryBuilders.boolQuery()
+                .must(stemmedFieldQuery)
                 .filter(filter.toFilerQuery());
     }
 
