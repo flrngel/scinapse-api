@@ -157,7 +157,7 @@ public class SearchService {
                 .subAggregation(fosAggFilteredByJournal);
 
         SearchSourceBuilder builder = SearchSourceBuilder.searchSource()
-                .query(query.toQuery()) // set query
+                .query(query.toAggregationQuery()) // set query
                 .fetchSource(false) // do not retrieve source
                 .size(0) // do not fetch data
 
