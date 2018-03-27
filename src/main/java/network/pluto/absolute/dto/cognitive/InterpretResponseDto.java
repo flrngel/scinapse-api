@@ -63,8 +63,7 @@ public class InterpretResponseDto {
     }
 
     private boolean filterValidKeyword(String value) {
-        return (value.contains("Composite") && (value.contains("F.FN") || value.contains("A.AuN"))) // FOS, author match query
-                || value.startsWith("W=") // keyword match query
+        return (value.contains("Composite") && (value.contains("F.FN"))) // FOS match query
                 || value.startsWith("Ti="); // title match query
     }
 
