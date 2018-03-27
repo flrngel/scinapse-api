@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import network.pluto.absolute.dto.AggregationDto;
+import network.pluto.absolute.util.Query;
 import network.pluto.bibliotheca.models.mag.FieldsOfStudy;
 import network.pluto.bibliotheca.models.mag.Journal;
 import network.pluto.bibliotheca.repositories.FieldsOfStudyRepository;
@@ -22,6 +23,8 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.filter.Filter;
+import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.sampler.Sampler;
 import org.elasticsearch.search.aggregations.bucket.sampler.SamplerAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -133,19 +136,28 @@ public class SearchService {
         }
     }
 
-    public AggregationDto aggregate(QueryBuilder query) {
+    public AggregationDto aggregate(Query query) {
         Preconditions.checkNotNull(query);
+
 
         TermsAggregationBuilder journalAgg = AggregationBuilders.terms(JOURNAL_AGG_NAME).field("journal.id").size(10);
         TermsAggregationBuilder fosAgg = AggregationBuilders.terms(FOS_AGG_NAME).field("fos.id").size(10);
 
-        // add aggregations using top 100 results
-        SamplerAggregationBuilder sampleAgg = AggregationBuilders.sampler(SAMPLE_AGG_NAME)
-                .subAggregation(journalAgg)
+        FilterAggregationBuilder journalAggFilteredByFos = AggregationBuilders
+                .filter(JOURNAL_AGG_NAME, query.getFilter().getFosTermsQuery())
+                .subAggregation(journalAgg);
+
+        FilterAggregationBuilder fosAggFilteredByJournal = AggregationBuilders
+                .filter(FOS_AGG_NAME, query.getFilter().getJournalTermsQuery())
                 .subAggregation(fosAgg);
 
+        // add aggregations using top 100 results
+        SamplerAggregationBuilder sampleAgg = AggregationBuilders.sampler(SAMPLE_AGG_NAME)
+                .subAggregation(journalAggFilteredByFos)
+                .subAggregation(fosAggFilteredByJournal);
+
         SearchSourceBuilder builder = SearchSourceBuilder.searchSource()
-                .query(query) // set query
+                .query(query.toQuery()) // set query
                 .fetchSource(false) // do not retrieve source
                 .size(0) // do not fetch data
 
@@ -173,14 +185,19 @@ public class SearchService {
         List<AggregationDto.Journal> journals = getJournals(aggregationMap);
         List<AggregationDto.Fos> fosList = getFosList(aggregationMap);
 
-        AggregationDto dto = new AggregationDto();
+        if (journals.isEmpty() && fosList.isEmpty()) {
+            return AggregationDto.unavailable();
+        }
+
+        AggregationDto dto = AggregationDto.available();
         dto.journals = journals;
         dto.fosList = fosList;
         return dto;
     }
 
     private List<AggregationDto.Journal> getJournals(Map<String, Aggregation> aggregationMap) {
-        Terms journal = (Terms) aggregationMap.get(JOURNAL_AGG_NAME);
+        Filter journalFilteredByFos = (Filter) aggregationMap.get(JOURNAL_AGG_NAME);
+        Terms journal = journalFilteredByFos.getAggregations().get(JOURNAL_AGG_NAME);
         List<Long> journalIds = journal.getBuckets()
                 .stream()
                 .map(j -> (long) j.getKey())
@@ -211,7 +228,8 @@ public class SearchService {
     }
 
     private List<AggregationDto.Fos> getFosList(Map<String, Aggregation> aggregationMap) {
-        Terms fos = (Terms) aggregationMap.get(FOS_AGG_NAME);
+        Filter fosFilteredByJournal = (Filter) aggregationMap.get(FOS_AGG_NAME);
+        Terms fos = fosFilteredByJournal.getAggregations().get(FOS_AGG_NAME);
         List<Long> fosIds = fos.getBuckets()
                 .stream()
                 .map(f -> (long) f.getKey())

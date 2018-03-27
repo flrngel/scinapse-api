@@ -158,7 +158,21 @@ public class PaperFacade {
     }
 
     public AggregationDto aggregate(Query query) {
-        return searchService.aggregate(query.toAggregationQuery());
+        if (query.isDoi()) {
+            return AggregationDto.unavailable();
+        }
+
+        SearchHit journal = searchService.findJournal(query.getText());
+        if (journal != null) {
+            return AggregationDto.unavailable();
+        }
+
+        String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
+        if (StringUtils.hasText(recommendedQuery)) {
+            return AggregationDto.unavailable();
+        }
+
+        return searchService.aggregate(query);
     }
 
 }

@@ -1,17 +1,35 @@
 package network.pluto.absolute.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AggregationDto {
 
+    public boolean available = false;
+
     public List<Year> years;
+
     @JsonProperty("impact_factors")
     public List<ImpactFactor> impactFactors;
+
     public List<Journal> journals;
+
     @JsonProperty("fos_list")
     public List<Fos> fosList;
+
+    public static AggregationDto available() {
+        AggregationDto dto = new AggregationDto();
+        dto.available = true;
+        return dto;
+    }
+
+    public static AggregationDto unavailable() {
+        return new AggregationDto();
+    }
 
     public static class Year {
         public int year;

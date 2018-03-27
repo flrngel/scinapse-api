@@ -5,6 +5,7 @@ import com.google.common.base.Splitter;
 import lombok.Getter;
 import lombok.Setter;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.util.StringUtils;
 
@@ -149,6 +150,24 @@ public class QueryFilter {
         }
 
         return filterQuery;
+    }
+
+    public QueryBuilder getJournalTermsQuery() {
+        // to avoid empty filtering
+        if (journals.isEmpty()) {
+            return QueryBuilders.matchAllQuery();
+        }
+
+        return QueryBuilders.termsQuery("journal.id", journals);
+    }
+
+    public QueryBuilder getFosTermsQuery() {
+        // to avoid empty filtering
+        if (fosList.isEmpty()) {
+            return QueryBuilders.matchAllQuery();
+        }
+
+        return QueryBuilders.termsQuery("fos.id", fosList);
     }
 
     public String toCognitiveFilterQuery() {

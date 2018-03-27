@@ -50,6 +50,11 @@ public class PaperController {
         HashMap<String, Object> aggregationMap = new HashMap<>();
         AggregationDto aggregationDto = paperFacade.aggregate(query);
         aggregationMap.put("data", aggregationDto);
+        if (aggregationDto.available) {
+            aggregationMap.put("meta", Meta.available());
+        } else {
+            aggregationMap.put("meta", Meta.unavailable());
+        }
         return aggregationMap;
     }
 
