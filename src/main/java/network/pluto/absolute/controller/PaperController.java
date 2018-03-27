@@ -2,7 +2,9 @@ package network.pluto.absolute.controller;
 
 import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.AggregationDto;
+import network.pluto.absolute.dto.CitationTextDto;
 import network.pluto.absolute.dto.PaperDto;
+import network.pluto.absolute.enums.CitationFormat;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.facade.PaperFacade;
 import network.pluto.absolute.util.Query;
@@ -61,6 +63,15 @@ public class PaperController {
     public Page<PaperDto> paperCited(@PathVariable long paperId,
                                      @PageableDefault Pageable pageable) {
         return paperFacade.findCited(paperId, pageable);
+    }
+
+    @RequestMapping(value = "/papers/{paperId}/citation", method = RequestMethod.GET)
+    public Map<String, Object> citation(@PathVariable long paperId, @RequestParam CitationFormat format) {
+        CitationTextDto dto = paperFacade.citation(paperId, format);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", dto);
+        return result;
     }
 
 }

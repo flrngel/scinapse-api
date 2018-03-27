@@ -2,8 +2,10 @@ package network.pluto.absolute.facade;
 
 import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.AggregationDto;
+import network.pluto.absolute.dto.CitationTextDto;
 import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.PaperDto;
+import network.pluto.absolute.enums.CitationFormat;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.service.CognitivePaperService;
 import network.pluto.absolute.service.CommentService;
@@ -93,6 +95,15 @@ public class PaperFacade {
         }
 
         return searchFromES(query.toQuery(), pageable);
+    }
+
+    public CitationTextDto citation(long paperId, CitationFormat format) {
+        Paper paper = paperService.find(paperId);
+        if (paper == null) {
+            throw new ResourceNotFoundException("Paper not found");
+        }
+
+        return paperService.citation(paper.getDoi(), format);
     }
 
     private Page<PaperDto> searchByJournal(Query query, Pageable pageable) {
