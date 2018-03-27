@@ -65,6 +65,17 @@ public class PaperFacade {
     }
 
     @Transactional(readOnly = true)
+    public List<PaperDto> findIn(List<Long> paperIds) {
+        List<Paper> list = paperService.findByIdIn(paperIds);
+        return list
+                .stream()
+                .filter(Objects::nonNull)
+                .map(PaperDto::new)
+                .map(this::setDefaultComments)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public Page<PaperDto> findReferences(long paperId, Pageable pageable) {
         Page<Long> referenceIds = paperService.findReferences(paperId, pageable);
         List<PaperDto> dtos = findIn(referenceIds.getContent());
@@ -131,16 +142,6 @@ public class PaperFacade {
 
     private Page<PaperDto> convertToDto(Page<Long> paperIds, Pageable pageable) {
         return new PageImpl<>(findIn(paperIds.getContent()), pageable, paperIds.getTotalElements());
-    }
-
-    private List<PaperDto> findIn(List<Long> paperIds) {
-        List<Paper> list = paperService.findByIdIn(paperIds);
-        return list
-                .stream()
-                .filter(Objects::nonNull)
-                .map(PaperDto::new)
-                .map(this::setDefaultComments)
-                .collect(Collectors.toList());
     }
 
     private PaperDto setDefaultComments(PaperDto dto) {
