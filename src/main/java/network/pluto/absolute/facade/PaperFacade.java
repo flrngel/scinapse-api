@@ -168,12 +168,17 @@ public class PaperFacade {
             return AggregationDto.unavailable();
         }
 
+        AggregationDto dto = searchService.aggregateFromSample(query);
+
         String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
         if (StringUtils.hasText(recommendedQuery)) {
-            return AggregationDto.unavailable();
+            dto.cognitive = true;
         }
 
-        return searchService.aggregate(query);
+        // for calculate doc count for each buckets
+        searchService.enhanceAggregation(query, dto);
+
+        return dto;
     }
 
 }

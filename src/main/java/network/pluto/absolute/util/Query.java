@@ -64,16 +64,7 @@ public class Query {
                 .filter(filter.toExtraFilterQuery());
     }
 
-    public QueryBuilder toAggregationQuery() {
-        // search specific fields
-        MultiMatchQueryBuilder stemmedFieldQuery = getMainQueryClause();
-
-        return QueryBuilders.boolQuery()
-                .must(stemmedFieldQuery)
-                .filter(filter.toFilerQuery());
-    }
-
-    private MultiMatchQueryBuilder getMainQueryClause() {
+    public MultiMatchQueryBuilder getMainQueryClause() {
         return QueryBuilders.multiMatchQuery(text, "title.en_stemmed")
                 .field("abstract.en_stemmed")
                 .field("authors.name.en_stemmed")

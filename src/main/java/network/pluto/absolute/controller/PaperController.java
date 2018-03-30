@@ -47,15 +47,17 @@ public class PaperController {
             throw new BadRequestException("Invalid query: too short or long query text");
         }
 
-        HashMap<String, Object> aggregationMap = new HashMap<>();
+        HashMap<String, Object> result = new HashMap<>();
+
         AggregationDto aggregationDto = paperFacade.aggregate(query);
-        aggregationMap.put("data", aggregationDto);
-        if (aggregationDto.available) {
-            aggregationMap.put("meta", Meta.available());
-        } else {
-            aggregationMap.put("meta", Meta.unavailable());
-        }
-        return aggregationMap;
+        result.put("data", aggregationDto);
+
+        Meta meta = new Meta();
+        meta.available = aggregationDto.available;
+        meta.cognitive = aggregationDto.cognitive;
+        result.put("meta", meta);
+
+        return result;
     }
 
     @RequestMapping(value = "/papers/{paperId}/references", method = RequestMethod.GET)

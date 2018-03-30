@@ -10,6 +10,7 @@ import java.util.List;
 public class AggregationDto {
 
     public boolean available = false;
+    public boolean cognitive = false;
 
     public List<Year> years;
 
