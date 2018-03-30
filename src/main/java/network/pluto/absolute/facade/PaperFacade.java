@@ -39,8 +39,8 @@ public class PaperFacade {
 
     private final SearchService searchService;
     private final CommentService commentService;
-    private final CognitivePaperService cognitivePaperService;
     private final PaperService paperService;
+    private final CognitivePaperService cognitivePaperService;
 
     @Transactional(readOnly = true)
     public PaperDto find(long paperId) {
@@ -91,18 +91,16 @@ public class PaperFacade {
 
     @Transactional(readOnly = true)
     public Page<PaperDto> search(Query query, Pageable pageable) {
-        if (query.isDoi()) {
-            return searchFromES(query.toQuery(), pageable);
+
+        // only for title exact match
+        String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
+        if (StringUtils.hasText(recommendedQuery)) {
+            return searchFromCognitive(pageable, recommendedQuery);
         }
 
         SearchHit journal = searchService.findJournal(query.getText());
         if (journal != null) {
             return searchByJournal(query, pageable);
-        }
-
-        String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
-        if (StringUtils.hasText(recommendedQuery)) {
-            return searchFromCognitive(pageable, recommendedQuery);
         }
 
         return searchFromES(query.toQuery(), pageable);
@@ -163,17 +161,18 @@ public class PaperFacade {
             return AggregationDto.unavailable();
         }
 
+        // only for title exact match
+        String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
+        if (StringUtils.hasText(recommendedQuery)) {
+            return AggregationDto.unavailable();
+        }
+
         SearchHit journal = searchService.findJournal(query.getText());
         if (journal != null) {
             return AggregationDto.unavailable();
         }
 
         AggregationDto dto = searchService.aggregateFromSample(query);
-
-        String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
-        if (StringUtils.hasText(recommendedQuery)) {
-            dto.cognitive = true;
-        }
 
         // for calculate doc count for each buckets
         searchService.enhanceAggregation(query, dto);

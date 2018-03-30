@@ -14,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -59,14 +58,7 @@ public class CognitivePaperService {
             throw new ExternalApiCallException("Response is not successful: " + responseEntity.getStatusCode() + " " + responseEntity.getBody());
         }
 
-        String recommendedQuery = responseEntity.getBody().getRecommendQuery();
-
-        String filter = query.getFilter().toCognitiveFilterQuery();
-        if (StringUtils.hasText(recommendedQuery) && StringUtils.hasText(filter)) {
-            recommendedQuery = "And(" + recommendedQuery + "," + filter + ")";
-        }
-
-        return recommendedQuery;
+        return responseEntity.getBody().getRecommendQuery();
     }
 
     public Page<Long> search(String query, Pageable pageable) {

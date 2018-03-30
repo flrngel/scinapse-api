@@ -189,12 +189,12 @@ public class SearchService {
         double year = (double) Year.now().getValue();
         RangeAggregationBuilder yearAgg = AggregationBuilders.range(YEAR_AGG_NAME)
                 .field("year")
-                .addRange(year - 9, year + 1)
+                .addRange(year - 10, year + 1)
                 .subAggregation(AggregationBuilders.histogram(YEAR_AGG_NAME)
                         .field("year")
                         .interval(1)
                         .minDocCount(0)
-                        .extendedBounds(year - 9, year));
+                        .extendedBounds(year - 10, year));
         FilterAggregationBuilder yearAggFiltered = AggregationBuilders
                 .filter(YEAR_AGG_NAME, query.getFilter().toYearAggFilter())
                 .subAggregation(yearAgg);
@@ -306,7 +306,8 @@ public class SearchService {
         Range year = yearFiltered.getAggregations().get(YEAR_AGG_NAME);
         List<? extends Range.Bucket> buckets = year.getBuckets();
         Histogram yearHistogram = buckets.get(0).getAggregations().get(YEAR_AGG_NAME);
-        return yearHistogram.getBuckets()
+
+        List<AggregationDto.Year> years = yearHistogram.getBuckets()
                 .stream()
                 .map(y -> {
                     AggregationDto.Year yearDto = new AggregationDto.Year();
@@ -315,6 +316,13 @@ public class SearchService {
                     return yearDto;
                 })
                 .collect(Collectors.toList());
+
+        AggregationDto.Year allYear = new AggregationDto.Year();
+        allYear.year = AggregationDto.ALL;
+        allYear.docCount = yearFiltered.getDocCount();
+        years.add(allYear);
+
+        return years;
     }
 
     private List<AggregationDto.ImpactFactor> getImpactFactors(Map<String, Aggregation> aggregationMap) {
@@ -323,7 +331,7 @@ public class SearchService {
         Range impactFactor = ifFiltered.getAggregations().get(IF_AGG_NAME);
         List<? extends Range.Bucket> buckets = impactFactor.getBuckets();
         Histogram ifHistogram = buckets.get(0).getAggregations().get(IF_AGG_NAME);
-        List<AggregationDto.ImpactFactor> ifList = ifHistogram.getBuckets()
+        List<AggregationDto.ImpactFactor> impactFactors = ifHistogram.getBuckets()
                 .stream()
                 .map(y -> {
                     AggregationDto.ImpactFactor ifDto = new AggregationDto.ImpactFactor();
@@ -341,9 +349,15 @@ public class SearchService {
         AggregationDto.ImpactFactor if10Dto = new AggregationDto.ImpactFactor();
         if10Dto.from = 10;
         if10Dto.docCount = if10.getDocCount();
-        ifList.add(if10Dto);
+        impactFactors.add(if10Dto);
 
-        return ifList;
+        AggregationDto.ImpactFactor allIf = new AggregationDto.ImpactFactor();
+        allIf.from = AggregationDto.ALL;
+        allIf.to = AggregationDto.ALL;
+        allIf.docCount = ifFiltered.getDocCount();
+        impactFactors.add(allIf);
+
+        return impactFactors;
     }
 
     private List<AggregationDto.Journal> getJournals(Map<String, Aggregation> aggregationMap) {

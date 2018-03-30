@@ -54,7 +54,6 @@ public class PaperController {
 
         Meta meta = new Meta();
         meta.available = aggregationDto.available;
-        meta.cognitive = aggregationDto.cognitive;
         result.put("meta", meta);
 
         return result;

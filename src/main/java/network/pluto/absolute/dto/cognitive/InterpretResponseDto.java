@@ -38,16 +38,17 @@ public class InterpretResponseDto {
     }
 
     public String getRecommendQuery() {
-        List<String> queries = getInterpretedQuery();
-        if (queries.size() == 1 && queries.get(0).startsWith("Ti=")) {
-            return queries.get(0);
-        }
-
-        String subQuery = filterKeywordMatchQuery(queries);
-        if (!StringUtils.hasText(subQuery)) {
+        // prevent short keyword title matching
+        if (interpretations.size() != 1) {
             return null;
         }
-        return "OR(" + subQuery + ")";
+
+        List<String> queries = getInterpretedQuery();
+        if (queries.isEmpty()) {
+            return null;
+        }
+
+        return queries.get(0);
     }
 
     private List<String> getInterpretedQuery() {
@@ -63,15 +64,7 @@ public class InterpretResponseDto {
     }
 
     private boolean filterValidKeyword(String value) {
-        return (value.contains("Composite") && (value.contains("F.FN"))) // FOS match query
-                || value.startsWith("Ti="); // title match query
-    }
-
-    private String filterKeywordMatchQuery(List<String> queries) {
-        return queries.stream()
-                .filter(value -> !value.startsWith("Ti=")) // remove title match query
-                .limit(3) // take top 3 interpretations
-                .collect(Collectors.joining(","));
+        return value.startsWith("Ti="); // title match query
     }
 
 }

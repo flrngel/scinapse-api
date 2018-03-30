@@ -4,23 +4,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AggregationDto {
 
-    public boolean available = false;
-    public boolean cognitive = false;
+    public static final Integer ALL = null;
 
-    public List<Year> years;
+    public boolean available = false;
+
+    public List<Year> years = new ArrayList<>();
 
     @JsonProperty("impact_factors")
-    public List<ImpactFactor> impactFactors;
+    public List<ImpactFactor> impactFactors = new ArrayList<>();
 
-    public List<Journal> journals;
+    public List<Journal> journals = new ArrayList<>();
 
     @JsonProperty("fos_list")
-    public List<Fos> fosList;
+    public List<Fos> fosList = new ArrayList<>();
 
     public static AggregationDto available() {
         AggregationDto dto = new AggregationDto();
@@ -33,14 +35,14 @@ public class AggregationDto {
     }
 
     public static class Year {
-        public int year;
+        public Integer year = ALL;
         @JsonProperty("doc_count")
         public long docCount;
     }
 
     public static class ImpactFactor {
-        public int from;
-        public Integer to;
+        public Integer from = ALL;
+        public Integer to = ALL;
         @JsonProperty("doc_count")
         public long docCount;
     }

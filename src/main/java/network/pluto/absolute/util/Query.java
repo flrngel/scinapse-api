@@ -45,11 +45,11 @@ public class Query {
         // search specific fields
         MultiMatchQueryBuilder stemmedFieldQuery = getMainQueryClause();
 
-        MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(10);
-        MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(10);
+        MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(5);
+        MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
         MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("author.name", text).boost(3);
         MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("author.affiliation", text);
-        MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(5);
+        MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(3);
         MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text);
 
         return QueryBuilders.boolQuery()
