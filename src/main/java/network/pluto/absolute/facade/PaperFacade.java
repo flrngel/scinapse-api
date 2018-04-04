@@ -14,7 +14,6 @@ import network.pluto.absolute.service.mag.PaperService;
 import network.pluto.absolute.util.Query;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.mag.Paper;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -27,10 +26,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -66,9 +63,16 @@ public class PaperFacade {
 
     @Transactional(readOnly = true)
     public List<PaperDto> findIn(List<Long> paperIds) {
-        List<Paper> list = paperService.findByIdIn(paperIds);
-        return list
+        // DO THIS because results from IN query ordered randomly
+        Map<Long, Paper> map = paperService.findByIdIn(paperIds)
                 .stream()
+                .collect(Collectors.toMap(
+                        Paper::getId,
+                        Function.identity()
+                ));
+        return paperIds
+                .stream()
+                .map(map::get)
                 .filter(Objects::nonNull)
                 .map(PaperDto::new)
                 .map(this::setDefaultComments)
@@ -113,7 +117,7 @@ public class PaperFacade {
             return searchByJournal(query, pageable);
         }
 
-        return searchFromES(query.toQuery(), pageable);
+        return searchFromES(query, pageable);
     }
 
     public CitationTextDto citation(long paperId, CitationFormat format) {
@@ -127,18 +131,18 @@ public class PaperFacade {
 
     private Page<PaperDto> searchByJournal(Query query, Pageable pageable) {
         return searchFromES(
-                query.toJournalQuery(),
+                query,
                 Arrays.asList(
                         SortBuilders.fieldSort("year").order(SortOrder.DESC),
                         SortBuilders.fieldSort("citation_count").order(SortOrder.DESC)),
                 pageable);
     }
 
-    private Page<PaperDto> searchFromES(QueryBuilder query, Pageable pageable) {
+    private Page<PaperDto> searchFromES(Query query, Pageable pageable) {
         return searchFromES(query, new ArrayList<>(), pageable);
     }
 
-    private Page<PaperDto> searchFromES(QueryBuilder query, List<SortBuilder> sorts, Pageable pageable) {
+    private Page<PaperDto> searchFromES(Query query, List<SortBuilder> sorts, Pageable pageable) {
         Page<Long> paperIds = searchService.search(query, sorts, pageable);
         return convertToDto(paperIds, pageable);
     }

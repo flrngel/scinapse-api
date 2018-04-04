@@ -2,10 +2,13 @@ package network.pluto.absolute.util;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
+import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
+import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
+import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
+import org.elasticsearch.search.rescore.QueryRescoreMode;
+import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.springframework.util.StringUtils;
 
 @Getter
@@ -15,6 +18,7 @@ public class Query {
     private String text;
     private String doi;
     private QueryFilter filter = new QueryFilter();
+    private boolean journalSearch = false;
 
     private Query(String text) {
         if (StringUtils.hasText(text)) {
@@ -42,11 +46,17 @@ public class Query {
             return toDoiSearchQuery();
         }
 
+        if (journalSearch) {
+            return toJournalQuery();
+        }
+
         // search specific fields
         MultiMatchQueryBuilder stemmedFieldQuery = getMainQueryClause();
 
         MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(5);
+        MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(7);
         MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
+        MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(5);
         MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("author.name", text).boost(3);
         MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("author.affiliation", text);
         MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(3);
@@ -55,7 +65,9 @@ public class Query {
         return QueryBuilders.boolQuery()
                 .must(stemmedFieldQuery)
                 .should(titleQuery)
+                .should(titleShingleQuery)
                 .should(abstractQuery)
+                .should(abstractShingleQuery)
                 .should(authorNameQuery)
                 .should(authorAffiliationQuery)
                 .should(fosQuery)
@@ -73,10 +85,32 @@ public class Query {
                 .minimumShouldMatch("3<75%");
     }
 
-    public QueryBuilder toJournalQuery() {
-        return QueryBuilders.boolQuery()
-                .must(QueryBuilders.matchQuery("journal.title.keyword", text))
-                .filter(filter.toFilerQuery());
+    public QueryRescorerBuilder getPhraseRescoreQuery() {
+        MatchPhraseQueryBuilder titleQuery = QueryBuilders.matchPhraseQuery("title.en_stemmed", text).slop(5);
+        MatchPhraseQueryBuilder abstractQuery = QueryBuilders.matchPhraseQuery("abstract.en_stemmed", text).slop(5);
+
+        // phrase match booster for re-scoring
+        BoolQueryBuilder phraseMatchQuery = QueryBuilders.boolQuery()
+                .should(titleQuery)
+                .should(abstractQuery);
+
+        // re-scoring top 500 documents only
+        return QueryRescorerBuilder.queryRescorer(phraseMatchQuery).windowSize(500);
+    }
+
+    public QueryRescorerBuilder getCitationRescoreQuery() {
+        // citation count booster for re-scoring
+        FieldValueFactorFunctionBuilder citationFunction = ScoreFunctionBuilders.fieldValueFactorFunction("citation_count").modifier(FieldValueFactorFunction.Modifier.LOG1P);
+        FunctionScoreQueryBuilder citationBooster = QueryBuilders.functionScoreQuery(citationFunction).maxBoost(10); // limit boosting
+
+        // re-scoring top 500 documents only
+        return QueryRescorerBuilder.queryRescorer(citationBooster)
+                .windowSize(500)
+                .setScoreMode(QueryRescoreMode.Multiply);
+    }
+
+    public boolean shouldRescore() {
+        return !isDoi() && !journalSearch;
     }
 
     public boolean isDoi() {
@@ -85,6 +119,12 @@ public class Query {
 
     private QueryBuilder toDoiSearchQuery() {
         return QueryBuilders.matchQuery("doi.keyword", getDoi());
+    }
+
+    private QueryBuilder toJournalQuery() {
+        return QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchQuery("journal.title.keyword", text))
+                .filter(filter.toFilerQuery());
     }
 
 }

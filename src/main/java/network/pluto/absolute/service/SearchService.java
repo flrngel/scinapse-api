@@ -12,14 +12,9 @@ import network.pluto.bibliotheca.repositories.JournalRepository;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermQueryBuilder;
-import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
-import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
-import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -38,8 +33,6 @@ import org.elasticsearch.search.aggregations.bucket.sampler.SamplerAggregationBu
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.rescore.QueryRescoreMode;
-import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -78,7 +71,7 @@ public class SearchService {
     private static final String IF_AGG_NAME = "if";
     private static final String IF_10_AGG_NAME = "if10";
 
-    public Page<Long> search(QueryBuilder query, List<SortBuilder> sorts, Pageable pageable) {
+    public Page<Long> search(Query query, List<SortBuilder> sorts, Pageable pageable) {
         Preconditions.checkNotNull(query);
         Preconditions.checkNotNull(sorts);
         Preconditions.checkNotNull(pageable);
@@ -88,7 +81,7 @@ public class SearchService {
         SearchSourceBuilder builder = SearchSourceBuilder.searchSource();
 
         // set query
-        builder.query(query);
+        builder.query(query.toQuery());
 
         // do not retrieve source
         builder.fetchSource(false);
@@ -97,15 +90,10 @@ public class SearchService {
         builder.from(pageable.getOffset());
         builder.size(pageable.getPageSize());
 
-        // citation count booster for re-scoring
-        FieldValueFactorFunctionBuilder citationFunction = ScoreFunctionBuilders.fieldValueFactorFunction("citation_count").modifier(FieldValueFactorFunction.Modifier.LOG1P);
-        FunctionScoreQueryBuilder citationBooster = QueryBuilders.functionScoreQuery(citationFunction).maxBoost(10); // limit boosting
-
-        // re-scoring top 1000 documents only
-        QueryRescorerBuilder rescorerBuilder = QueryRescorerBuilder.queryRescorer(citationBooster)
-                .windowSize(500)
-                .setScoreMode(QueryRescoreMode.Multiply);
-        builder.addRescorer(rescorerBuilder);
+        if (query.shouldRescore()) {
+            builder.addRescorer(query.getPhraseRescoreQuery());
+            builder.addRescorer(query.getCitationRescoreQuery());
+        }
 
         // set sort
         sorts.forEach(builder::sort);
