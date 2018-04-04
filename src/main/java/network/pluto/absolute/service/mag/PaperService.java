@@ -7,7 +7,9 @@ import network.pluto.absolute.error.ExternalApiCallException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.util.TextUtils;
 import network.pluto.bibliotheca.models.mag.Paper;
+import network.pluto.bibliotheca.models.mag.PaperAbstract;
 import network.pluto.bibliotheca.models.mag.RelPaperReference;
+import network.pluto.bibliotheca.repositories.mag.PaperAbstractRepository;
 import network.pluto.bibliotheca.repositories.mag.PaperRepository;
 import network.pluto.bibliotheca.repositories.mag.RelPaperReferenceRepository;
 import org.springframework.data.domain.Page;
@@ -23,6 +25,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Transactional(readOnly = true)
 @Service
@@ -32,15 +37,33 @@ public class PaperService {
     private static final String DOI_PREFIX = "https://doi.org/";
 
     private final PaperRepository paperRepository;
+    private final PaperAbstractRepository paperAbstractRepository;
     private final RelPaperReferenceRepository paperReferenceRepository;
     private final RestTemplate restTemplate;
 
     public Paper find(long paperId) {
-        return paperRepository.findOne(paperId);
+        Paper paper = paperRepository.findOne(paperId);
+        if (paper == null) {
+            return null;
+        }
+
+        PaperAbstract paperAbstract = paperAbstractRepository.findOne(paperId);
+        paper.setPaperAbstract(paperAbstract);
+        return paper;
     }
 
     public List<Paper> findByIdIn(List<Long> paperIds) {
-        return paperRepository.findByIdIn(paperIds);
+        List<Paper> papers = paperRepository.findByIdIn(paperIds);
+
+        Map<Long, PaperAbstract> abstractMap = paperAbstractRepository.findByPaperIdIn(paperIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        PaperAbstract::getPaperId,
+                        Function.identity()
+                ));
+        papers.forEach(p -> p.setPaperAbstract(abstractMap.get(p.getId())));
+
+        return papers;
     }
 
     public Page<Long> findReferences(long paperId, Pageable pageable) {
