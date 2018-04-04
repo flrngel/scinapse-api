@@ -12,7 +12,6 @@ import network.pluto.bibliotheca.models.mag.RelPaperReference;
 import network.pluto.bibliotheca.repositories.mag.PaperAbstractRepository;
 import network.pluto.bibliotheca.repositories.mag.PaperRepository;
 import network.pluto.bibliotheca.repositories.mag.RelPaperReferenceRepository;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -42,9 +41,17 @@ public class PaperService {
     private final RestTemplate restTemplate;
 
     public Paper find(long paperId) {
+        return find(paperId, true);
+    }
+
+    public Paper find(long paperId, boolean withAbstract) {
         Paper paper = paperRepository.findOne(paperId);
         if (paper == null) {
             return null;
+        }
+
+        if (!withAbstract) {
+            return paper;
         }
 
         PaperAbstract paperAbstract = paperAbstractRepository.findOne(paperId);
@@ -53,7 +60,15 @@ public class PaperService {
     }
 
     public List<Paper> findByIdIn(List<Long> paperIds) {
+        return findByIdIn(paperIds, true);
+    }
+
+    public List<Paper> findByIdIn(List<Long> paperIds, boolean withAbstract) {
         List<Paper> papers = paperRepository.findByIdIn(paperIds);
+
+        if (!withAbstract) {
+            return papers;
+        }
 
         Map<Long, PaperAbstract> abstractMap = paperAbstractRepository.findByPaperIdIn(paperIds)
                 .stream()
@@ -66,12 +81,18 @@ public class PaperService {
         return papers;
     }
 
-    public Page<Long> findReferences(long paperId, Pageable pageable) {
-        return paperReferenceRepository.findByPaperId(paperId, pageable).map(RelPaperReference::getPaperReferenceId);
+    public List<Long> findReferences(long paperId, Pageable pageable) {
+        return paperReferenceRepository.findByPaperId(paperId, pageable)
+                .stream()
+                .map(RelPaperReference::getPaperReferenceId)
+                .collect(Collectors.toList());
     }
 
-    public Page<Long> findCited(long paperId, Pageable pageable) {
-        return paperReferenceRepository.findByPaperReferenceId(paperId, pageable).map(RelPaperReference::getPaperId);
+    public List<Long> findCited(long paperId, Pageable pageable) {
+        return paperReferenceRepository.findByPaperReferenceId(paperId, pageable)
+                .stream()
+                .map(RelPaperReference::getPaperId)
+                .collect(Collectors.toList());
     }
 
     public CitationTextDto citation(String doiStr, CitationFormat format) {

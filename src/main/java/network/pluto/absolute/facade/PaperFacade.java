@@ -77,16 +77,26 @@ public class PaperFacade {
 
     @Transactional(readOnly = true)
     public Page<PaperDto> findReferences(long paperId, Pageable pageable) {
-        Page<Long> referenceIds = paperService.findReferences(paperId, pageable);
-        List<PaperDto> dtos = findIn(referenceIds.getContent());
-        return new PageImpl<>(dtos, pageable, referenceIds.getTotalElements());
+        Paper paper = paperService.find(paperId, false);
+        if (paper == null) {
+            throw new ResourceNotFoundException("Paper not found");
+        }
+
+        List<Long> referenceIds = paperService.findReferences(paperId, pageable);
+        List<PaperDto> dtos = findIn(referenceIds);
+        return new PageImpl<>(dtos, pageable, paper.getPaperCount());
     }
 
     @Transactional(readOnly = true)
     public Page<PaperDto> findCited(long paperId, Pageable pageable) {
-        Page<Long> citedIds = paperService.findCited(paperId, pageable);
-        List<PaperDto> dtos = findIn(citedIds.getContent());
-        return new PageImpl<>(dtos, pageable, citedIds.getTotalElements());
+        Paper paper = paperService.find(paperId, false);
+        if (paper == null) {
+            throw new ResourceNotFoundException("Paper not found");
+        }
+
+        List<Long> citedIds = paperService.findCited(paperId, pageable);
+        List<PaperDto> dtos = findIn(citedIds);
+        return new PageImpl<>(dtos, pageable, paper.getCitationCount());
     }
 
     @Transactional(readOnly = true)
