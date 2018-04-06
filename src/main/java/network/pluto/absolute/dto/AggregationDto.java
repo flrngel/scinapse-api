@@ -50,6 +50,7 @@ public class AggregationDto {
     public static class Journal {
         public long id;
         public String title;
+        public Double impactFactor;
         @JsonProperty("doc_count")
         public long docCount;
     }

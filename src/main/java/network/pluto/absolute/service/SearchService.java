@@ -5,8 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import network.pluto.absolute.dto.AggregationDto;
 import network.pluto.absolute.util.Query;
-import network.pluto.bibliotheca.models.mag.FieldsOfStudy;
-import network.pluto.bibliotheca.models.mag.Journal;
 import network.pluto.bibliotheca.repositories.FieldsOfStudyRepository;
 import network.pluto.bibliotheca.repositories.JournalRepository;
 import org.elasticsearch.action.search.SearchRequest;
@@ -43,10 +41,9 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.Year;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -266,6 +263,8 @@ public class SearchService {
             }
             j.docCount = bucket.getDocCount();
         });
+        dto.journals.sort(Comparator.comparing(j -> j.impactFactor, Comparator.nullsLast(Comparator.reverseOrder())));
+
         dto.fosList.forEach(f -> {
             Filters.Bucket bucket = fos.getBucketByKey(String.valueOf(f.id));
             if (bucket == null) {
@@ -273,6 +272,7 @@ public class SearchService {
             }
             f.docCount = bucket.getDocCount();
         });
+        dto.fosList.sort(Comparator.comparing(f -> f.docCount, Comparator.reverseOrder()));
     }
 
     private AggregationDto convert(Map<String, Aggregation> aggregationMap) {
@@ -354,28 +354,16 @@ public class SearchService {
                 .stream()
                 .map(j -> (long) j.getKey())
                 .collect(Collectors.toList());
-        Map<Long, Journal> journalMap = journalRepository.findByIdIn(journalIds).stream()
-                .collect(Collectors.toMap(
-                        Journal::getId,
-                        Function.identity()
-                ));
-        return journal.getBuckets()
+
+        return journalRepository.findByIdIn(journalIds)
                 .stream()
                 .map(j -> {
-                    long key = (long) j.getKey();
-                    Journal one = journalMap.get(key);
-                    if (one == null) {
-                        return null;
-                    }
-
                     AggregationDto.Journal journalDto = new AggregationDto.Journal();
-                    journalDto.id = key;
-                    journalDto.title = one.getDisplayName();
-//                    journalDto.docCount = j.getDocCount(); // sampled count, cannot use yet.
-
+                    journalDto.id = j.getId();
+                    journalDto.title = j.getDisplayName();
+                    journalDto.impactFactor = j.getImpactFactor();
                     return journalDto;
                 })
-                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -385,29 +373,14 @@ public class SearchService {
                 .stream()
                 .map(f -> (long) f.getKey())
                 .collect(Collectors.toList());
-        Map<Long, FieldsOfStudy> fosMap = fieldsOfStudyRepository.findByIdIn(fosIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        FieldsOfStudy::getId,
-                        Function.identity()
-                ));
-        return fos.getBuckets()
+        return fieldsOfStudyRepository.findByIdIn(fosIds)
                 .stream()
                 .map(f -> {
-                    long key = (long) f.getKey();
-                    FieldsOfStudy one = fosMap.get(key);
-                    if (one == null) {
-                        return null;
-                    }
-
                     AggregationDto.Fos fosDto = new AggregationDto.Fos();
-                    fosDto.id = key;
-                    fosDto.name = one.getDisplayName();
-//                    fosDto.docCount = f.getDocCount(); // sampled count, cannot use yet.
-
+                    fosDto.id = f.getId();
+                    fosDto.name = f.getDisplayName();
                     return fosDto;
                 })
-                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
