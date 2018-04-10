@@ -7,7 +7,6 @@ import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.enums.CitationFormat;
 import network.pluto.absolute.error.ResourceNotFoundException;
-import network.pluto.absolute.service.CognitivePaperService;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.SearchService;
 import network.pluto.absolute.service.mag.PaperService;
@@ -24,7 +23,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.function.Function;
@@ -37,7 +35,6 @@ public class PaperFacade {
     private final SearchService searchService;
     private final CommentService commentService;
     private final PaperService paperService;
-    private final CognitivePaperService cognitivePaperService;
 
     @Transactional(readOnly = true)
     public PaperDto find(long paperId) {
@@ -105,13 +102,6 @@ public class PaperFacade {
 
     @Transactional(readOnly = true)
     public Page<PaperDto> search(Query query, Pageable pageable) {
-
-        // only for title exact match
-        String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
-        if (StringUtils.hasText(recommendedQuery)) {
-            return searchFromCognitive(pageable, recommendedQuery);
-        }
-
         SearchHit journal = searchService.findJournal(query.getText());
         if (journal != null) {
             return searchByJournal(query, pageable);
@@ -147,11 +137,6 @@ public class PaperFacade {
         return convertToDto(paperIds, pageable);
     }
 
-    private Page<PaperDto> searchFromCognitive(Pageable pageable, String recommendedQuery) {
-        Page<Long> paperIds = cognitivePaperService.search(recommendedQuery, pageable);
-        return convertToDto(paperIds, pageable);
-    }
-
     private Page<PaperDto> convertToDto(Page<Long> paperIds, Pageable pageable) {
         return new PageImpl<>(findIn(paperIds.getContent()), pageable, paperIds.getTotalElements());
     }
@@ -172,12 +157,6 @@ public class PaperFacade {
 
     public AggregationDto aggregate(Query query) {
         if (query.isDoi()) {
-            return AggregationDto.unavailable();
-        }
-
-        // only for title exact match
-        String recommendedQuery = cognitivePaperService.getRecommendQuery(query);
-        if (StringUtils.hasText(recommendedQuery)) {
             return AggregationDto.unavailable();
         }
 
