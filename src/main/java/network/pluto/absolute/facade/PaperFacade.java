@@ -104,6 +104,8 @@ public class PaperFacade {
     public Page<PaperDto> search(Query query, Pageable pageable) {
         SearchHit journal = searchService.findJournal(query.getText());
         if (journal != null) {
+            query.setJournalSearch(true);
+            query.setJournalId(Long.parseLong(journal.getId()));
             return searchByJournal(query, pageable);
         }
 

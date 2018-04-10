@@ -89,7 +89,7 @@ public class SearchService {
 
         if (query.shouldRescore()) {
             builder.addRescorer(query.getPhraseRescoreQuery());
-            builder.addRescorer(query.getCitationRescoreQuery());
+            builder.addRescorer(query.getFunctionRescoreQuery());
         }
 
         // set sort
@@ -99,7 +99,7 @@ public class SearchService {
 
         try {
             SearchResponse response = restHighLevelClient.search(request);
-            if (response.getHits().totalHits == 0) {
+            if (response.getHits().totalHits == 0 && !query.isDoi() && !query.isJournalSearch()) {
                 builder.query(query.toLenientQuery());
                 response = restHighLevelClient.search(request);
             }
@@ -116,7 +116,7 @@ public class SearchService {
     }
 
     public SearchHit findJournal(String journalTitle) {
-        MatchQueryBuilder query = QueryBuilders.matchQuery("full_title", journalTitle);
+        MatchQueryBuilder query = QueryBuilders.matchQuery("title.keyword", journalTitle);
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
         builder.query(query);

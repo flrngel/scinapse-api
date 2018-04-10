@@ -8,6 +8,7 @@ import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
+import org.elasticsearch.index.query.functionscore.WeightBuilder;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.springframework.util.StringUtils;
@@ -20,6 +21,7 @@ public class Query {
     private String doi;
     private QueryFilter filter = new QueryFilter();
     private boolean journalSearch = false;
+    private long journalId;
 
     private Query(String text) {
         if (StringUtils.hasText(text)) {
@@ -61,9 +63,9 @@ public class Query {
 
     private QueryBuilder toQuery(QueryBuilder mainQuery) {
         MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(5);
-        MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(7);
+        MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(5);
         MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
-        MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(5);
+        MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(3);
         MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("author.name", text).boost(3);
         MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("author.affiliation", text);
         MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(3);
@@ -112,18 +114,30 @@ public class Query {
                 .should(titleQuery)
                 .should(abstractQuery);
 
-        // re-scoring top 500 documents only
-        return QueryRescorerBuilder.queryRescorer(phraseMatchQuery).windowSize(500);
+        // re-scoring top 100 documents only for each shard
+        return QueryRescorerBuilder.queryRescorer(phraseMatchQuery)
+                .windowSize(100);
     }
 
-    public QueryRescorerBuilder getCitationRescoreQuery() {
+    public QueryRescorerBuilder getFunctionRescoreQuery() {
+        // journal title absent booster for re-scoring
+        BoolQueryBuilder journalTitleAbsentFilter = QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery("journal.title"));
+        FunctionScoreQueryBuilder.FilterFunctionBuilder titleAbsentBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(
+                journalTitleAbsentFilter,
+                new WeightBuilder().setWeight(0.5f));
+
         // citation count booster for re-scoring
         FieldValueFactorFunctionBuilder citationFunction = ScoreFunctionBuilders.fieldValueFactorFunction("citation_count").modifier(FieldValueFactorFunction.Modifier.LOG1P);
-        FunctionScoreQueryBuilder citationBooster = QueryBuilders.functionScoreQuery(citationFunction).maxBoost(10); // limit boosting
+        FunctionScoreQueryBuilder.FilterFunctionBuilder citationBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(citationFunction);
 
-        // re-scoring top 500 documents only
-        return QueryRescorerBuilder.queryRescorer(citationBooster)
-                .windowSize(500)
+
+        FunctionScoreQueryBuilder functionQuery = QueryBuilders
+                .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { titleAbsentBooster, citationBooster })
+                .maxBoost(10); // limit boosting
+
+        // re-scoring top 100 documents only for each shard
+        return QueryRescorerBuilder.queryRescorer(functionQuery)
+                .windowSize(100)
                 .setScoreMode(QueryRescoreMode.Multiply);
     }
 
@@ -141,7 +155,7 @@ public class Query {
 
     private QueryBuilder toJournalQuery() {
         return QueryBuilders.boolQuery()
-                .must(QueryBuilders.matchQuery("journal.title.keyword", text))
+                .filter(QueryBuilders.termQuery("journal.id", journalId))
                 .filter(filter.toFilerQuery());
     }
 
