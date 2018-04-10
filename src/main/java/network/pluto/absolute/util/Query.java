@@ -3,6 +3,7 @@ package network.pluto.absolute.util;
 import lombok.Getter;
 import lombok.Setter;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
@@ -51,8 +52,14 @@ public class Query {
         }
 
         // search specific fields
-        MultiMatchQueryBuilder stemmedFieldQuery = getMainQueryClause();
+        return toQuery(getMainQueryClause());
+    }
 
+    public QueryBuilder toLenientQuery() {
+        return toQuery(getLenientQueryClause());
+    }
+
+    private QueryBuilder toQuery(QueryBuilder mainQuery) {
         MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(5);
         MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(7);
         MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
@@ -63,7 +70,7 @@ public class Query {
         MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text);
 
         return QueryBuilders.boolQuery()
-                .must(stemmedFieldQuery)
+                .must(mainQuery)
                 .should(titleQuery)
                 .should(titleShingleQuery)
                 .should(abstractQuery)
@@ -77,12 +84,23 @@ public class Query {
     }
 
     public MultiMatchQueryBuilder getMainQueryClause() {
+        return getMainFieldQuery()
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
+                .minimumShouldMatch("-25%");
+    }
+
+    public QueryBuilder getLenientQueryClause() {
+        return getMainFieldQuery()
+                .type(MultiMatchQueryBuilder.Type.MOST_FIELDS)
+                .minimumShouldMatch("-25%")
+                .fuzziness(Fuzziness.AUTO);
+    }
+
+    private MultiMatchQueryBuilder getMainFieldQuery() {
         return QueryBuilders.multiMatchQuery(text, "title.en_stemmed")
                 .field("abstract.en_stemmed")
                 .field("authors.name.en_stemmed")
-                .field("fos.name.en_stemmed")
-                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .minimumShouldMatch("3<75%");
+                .field("fos.name.en_stemmed");
     }
 
     public QueryRescorerBuilder getPhraseRescoreQuery() {
