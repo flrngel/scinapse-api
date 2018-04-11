@@ -120,9 +120,15 @@ public class Query {
     }
 
     public QueryRescorerBuilder getFunctionRescoreQuery() {
+        // abstract absent booster for re-scoring
+        BoolQueryBuilder abstractAbsentFilter = QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery("abstract"));
+        FunctionScoreQueryBuilder.FilterFunctionBuilder abstractAbsentBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(
+                abstractAbsentFilter,
+                new WeightBuilder().setWeight(0.5f));
+
         // journal title absent booster for re-scoring
         BoolQueryBuilder journalTitleAbsentFilter = QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery("journal.title"));
-        FunctionScoreQueryBuilder.FilterFunctionBuilder titleAbsentBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(
+        FunctionScoreQueryBuilder.FilterFunctionBuilder journalTitleAbsentBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(
                 journalTitleAbsentFilter,
                 new WeightBuilder().setWeight(0.5f));
 
@@ -132,7 +138,7 @@ public class Query {
 
 
         FunctionScoreQueryBuilder functionQuery = QueryBuilders
-                .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { titleAbsentBooster, citationBooster })
+                .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { abstractAbsentBooster, journalTitleAbsentBooster, citationBooster })
                 .maxBoost(10); // limit boosting
 
         // re-scoring top 100 documents only for each shard
