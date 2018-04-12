@@ -15,7 +15,6 @@ import network.pluto.bibliotheca.models.Bookmark;
 import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.models.mag.Paper;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +23,7 @@ import springfox.documentation.annotations.ApiIgnore;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -37,17 +37,27 @@ public class BookmarkController {
     private final PaperFacade paperFacade;
 
     @RequestMapping(value = "/members/me/bookmarks", method = RequestMethod.GET)
-    public Page<PaperDto> getBookmarks(@ApiIgnore JwtUser user, @PageableDefault Pageable pageable) {
+    public Page<BookmarkDto> getBookmarks(@ApiIgnore JwtUser user, @PageableDefault Pageable pageable) {
         Member member = memberService.findMember(user.getId());
         if (member == null) {
             throw new ResourceNotFoundException("Member not found");
         }
 
         Page<Bookmark> bookmarks = bookmarkService.getBookmarks(member.getId(), pageable);
-        List<Long> paperIds = bookmarks.getContent().stream().map(Bookmark::getPaperId).collect(Collectors.toList());
 
-        List<PaperDto> dtos = paperFacade.findIn(paperIds);
-        return new PageImpl<>(dtos, pageable, bookmarks.getTotalElements());
+        List<Long> paperIds = bookmarks.getContent().stream().map(Bookmark::getPaperId).collect(Collectors.toList());
+        Map<Long, PaperDto> paperMap = paperFacade.findIn(paperIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        PaperDto::getId,
+                        Function.identity()
+                ));
+
+        return bookmarks.map(b -> {
+            BookmarkDto dto = BookmarkDto.bookmarked(b);
+            dto.paper = paperMap.get(b.getPaperId());
+            return dto;
+        });
     }
 
     @RequestMapping(value = "/members/me/bookmarks", method = RequestMethod.POST)
@@ -78,19 +88,19 @@ public class BookmarkController {
             throw new ResourceNotFoundException("Member not found");
         }
 
-        Map<Long, Boolean> bookmarkMap = bookmarkService.findIn(member.getId(), paperIds)
+        Map<Long, Bookmark> bookmarkMap = bookmarkService.findIn(member.getId(), paperIds)
                 .stream()
                 .collect(Collectors.toMap(
                         Bookmark::getPaperId,
-                        b -> Boolean.TRUE
+                        Function.identity()
                 ));
 
         List<BookmarkDto> dtos = paperIds
                 .stream()
                 .map(id -> {
-                    Boolean bookmark = bookmarkMap.get(id);
+                    Bookmark bookmark = bookmarkMap.get(id);
                     if (bookmark != null) {
-                        return BookmarkDto.bookmarked(id);
+                        return BookmarkDto.bookmarked(bookmark);
                     } else {
                         return BookmarkDto.available(id);
                     }

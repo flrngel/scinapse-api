@@ -18,7 +18,7 @@ public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
 
     public Page<Bookmark> getBookmarks(long memberId, Pageable pageable) {
-        return bookmarkRepository.findByMemberId(memberId, pageable);
+        return bookmarkRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable);
     }
 
     public Bookmark find(long memberId, long paperId) {
