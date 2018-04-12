@@ -128,4 +128,8 @@ public class PaperService {
         }
     }
 
+    public List<Paper> getRelatedPapers(long paperId) {
+        return paperRepository.getRelatedPapers(paperId);
+    }
+
 }

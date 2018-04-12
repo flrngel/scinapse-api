@@ -175,4 +175,11 @@ public class PaperFacade {
         return dto;
     }
 
+    public List<PaperDto> getRelatedPapers(long paperId) {
+        return paperService.getRelatedPapers(paperId)
+                .stream()
+                .map(PaperDto::simple)
+                .collect(Collectors.toList());
+    }
+
 }

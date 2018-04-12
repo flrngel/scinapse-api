@@ -66,6 +66,24 @@ public class PaperDto {
     private List<CommentDto> comments = new ArrayList<>();
 
     public PaperDto(Paper paper) {
+        this(paper, true);
+
+        if (paper.getPaperAbstract() != null) {
+            this.paperAbstract = paper.getPaperAbstract().getAbstract();
+        }
+
+        if (!paper.getPaperFosList().isEmpty()) {
+            this.fosList = paper.getPaperFosList().stream().map(FosDto::new).collect(Collectors.toList());
+            this.fosCount = this.fosList.size();
+        }
+
+        if (!paper.getPaperUrls().isEmpty()) {
+            this.urls = paper.getPaperUrls().stream().map(PaperUrlDto::new).collect(Collectors.toList());
+            this.urlCount = this.urls.size();
+        }
+    }
+
+    private PaperDto(Paper paper, boolean simple) {
         this.id = paper.getId();
         this.cognitivePaperId = paper.getId();
         this.title = paper.getOriginalTitle();
@@ -76,10 +94,6 @@ public class PaperDto {
         this.issue = paper.getIssue();
         this.referenceCount = paper.getPaperCount() != null ? paper.getPaperCount() : 0;
         this.citedCount = paper.getCitationCount() != null ? paper.getCitationCount() : 0;
-
-        if (paper.getPaperAbstract() != null) {
-            this.paperAbstract = paper.getPaperAbstract().getAbstract();
-        }
 
         if (paper.getJournal() != null) {
             this.journal = new JournalDto(paper.getJournal());
@@ -93,17 +107,10 @@ public class PaperDto {
                     .collect(Collectors.toList());
             this.authorCount = this.authors.size();
         }
+    }
 
-        if (!paper.getPaperFosList().isEmpty()) {
-            this.fosList = paper.getPaperFosList().stream().map(FosDto::new).collect(Collectors.toList());
-            this.fosCount = this.fosList.size();
-        }
-
-        if (!paper.getPaperUrls().isEmpty()) {
-            this.urls = paper.getPaperUrls().stream().map(PaperUrlDto::new).collect(Collectors.toList());
-            this.urlCount = this.urls.size();
-        }
-
+    public static PaperDto simple(Paper paper) {
+        return new PaperDto(paper, true);
     }
 
 }

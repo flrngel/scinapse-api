@@ -14,6 +14,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -77,6 +78,18 @@ public class PaperController {
 
         Map<String, Object> result = new HashMap<>();
         result.put("data", dto);
+        return result;
+    }
+
+    @RequestMapping(value = "/papers/{paperId}/related", method = RequestMethod.GET)
+    public Map<String, Object> related(@PathVariable long paperId) {
+        List<PaperDto> related = paperFacade.getRelatedPapers(paperId);
+
+        HashMap<String, Object> result = new HashMap<>();
+        Meta meta = related.isEmpty() ? Meta.unavailable() : Meta.available();
+        result.put("meta", meta);
+        result.put("data", related);
+
         return result;
     }
 
