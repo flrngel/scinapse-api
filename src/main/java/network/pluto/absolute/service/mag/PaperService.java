@@ -133,7 +133,8 @@ public class PaperService {
             }
             throw new ExternalApiCallException("Request is not successful: " + statusCode + " " + e.getResponseBodyAsString());
         } catch (Exception e) {
-            throw new ExternalApiCallException("Request is not successful: " + e.getMessage());
+            // ignore for temp
+            return new CitationTextDto();
         }
     }
 
