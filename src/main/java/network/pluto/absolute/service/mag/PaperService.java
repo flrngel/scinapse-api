@@ -12,6 +12,7 @@ import network.pluto.bibliotheca.models.mag.RelPaperReference;
 import network.pluto.bibliotheca.repositories.mag.PaperAbstractRepository;
 import network.pluto.bibliotheca.repositories.mag.PaperRepository;
 import network.pluto.bibliotheca.repositories.mag.RelPaperReferenceRepository;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +40,12 @@ public class PaperService {
     private final PaperRepository paperRepository;
     private final PaperAbstractRepository paperAbstractRepository;
     private final RelPaperReferenceRepository paperReferenceRepository;
-    private final RestTemplate restTemplate;
+    private RestTemplate restTemplateForCitation;
+
+    @PostConstruct
+    public void setup() {
+        restTemplateForCitation = new RestTemplateBuilder().setConnectTimeout(3000).setReadTimeout(2000).build();
+    }
 
     public Paper find(long paperId) {
         return find(paperId, true);
@@ -111,7 +118,7 @@ public class PaperService {
         HttpEntity entity = new HttpEntity(httpHeaders);
 
         try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> responseEntity = restTemplateForCitation.exchange(uri, HttpMethod.GET, entity, String.class);
             String formattedCitation = responseEntity.getBody();
 
             CitationTextDto dto = new CitationTextDto();
@@ -125,6 +132,8 @@ public class PaperService {
                 throw new ResourceNotFoundException("Cannot support citation text.");
             }
             throw new ExternalApiCallException("Request is not successful: " + statusCode + " " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            throw new ExternalApiCallException("Request is not successful: " + e.getMessage());
         }
     }
 
