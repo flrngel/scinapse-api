@@ -4,15 +4,20 @@ import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import network.pluto.absolute.dto.AggregationDto;
+import network.pluto.absolute.dto.CompletionDto;
+import network.pluto.absolute.dto.SuggestionDto;
+import network.pluto.absolute.enums.CompletionType;
 import network.pluto.absolute.util.Query;
 import network.pluto.bibliotheca.repositories.FieldsOfStudyRepository;
 import network.pluto.bibliotheca.repositories.JournalRepository;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.common.lucene.search.function.CombineFunction;
+import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
+import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
+import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -32,6 +37,13 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.suggest.SortBy;
+import org.elasticsearch.search.suggest.Suggest;
+import org.elasticsearch.search.suggest.SuggestBuilder;
+import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.elasticsearch.search.suggest.phrase.DirectCandidateGeneratorBuilder;
+import org.elasticsearch.search.suggest.phrase.PhraseSuggestionBuilder;
+import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -60,6 +72,9 @@ public class SearchService {
 
     @Value("${pluto.server.es.index.journal}")
     private String journalIndexName;
+
+    @Value("${pluto.server.es.index.suggestion.fos}")
+    private String fosSuggestionIndex;
 
     private static final String SAMPLE_AGG_NAME = "sample";
     private static final String JOURNAL_AGG_NAME = "journal";
@@ -132,6 +147,81 @@ public class SearchService {
             }
 
             return hits.getAt(0);
+        } catch (IOException e) {
+            throw new RuntimeException("Elasticsearch exception", e);
+        }
+    }
+
+    public List<CompletionDto> complete(String keyword) {
+        MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("name", keyword).operator(Operator.AND);
+        ConstantScoreQueryBuilder constantQuery = QueryBuilders.constantScoreQuery(matchQuery);
+        FunctionScoreQueryBuilder functionQuery = QueryBuilders.functionScoreQuery(
+                constantQuery,
+                new FieldValueFactorFunctionBuilder("paper_count")
+                        .modifier(FieldValueFactorFunction.Modifier.LOG2P))
+                .boostMode(CombineFunction.REPLACE);
+
+        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
+                .query(functionQuery)
+                .fetchSource("name", null);
+
+        try {
+            SearchRequest request = new SearchRequest(fosSuggestionIndex).source(source);
+            SearchResponse response = restHighLevelClient.search(request);
+
+            List<CompletionDto> dtos = new ArrayList<>();
+            for (SearchHit hit : response.getHits()) {
+                Object name = hit.getSource().get("name");
+                if (name == null) {
+                    continue;
+                }
+                dtos.add(new CompletionDto((String) name, CompletionType.FOS));
+            }
+
+            return dtos;
+        } catch (IOException e) {
+            throw new RuntimeException("Elasticsearch exception", e);
+        }
+    }
+
+    public SuggestionDto suggest(String keyword) {
+        DirectCandidateGeneratorBuilder candidate = new DirectCandidateGeneratorBuilder("title.shingles")
+                .suggestMode(TermSuggestionBuilder.SuggestMode.ALWAYS.name())
+                .size(10)
+                .maxInspections(10)
+                .maxTermFreq(300)
+                .sort(SortBy.FREQUENCY.name());
+
+        PhraseSuggestionBuilder phraseSuggest = SuggestBuilders.phraseSuggestion("title.shingles")
+                .text(keyword)
+                .addCandidateGenerator(candidate)
+                .size(1)
+                .maxErrors(3)
+                .highlight("<em>", "</em>");
+
+        SuggestBuilder suggest = new SuggestBuilder()
+                .addSuggestion("suggest", phraseSuggest);
+
+        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
+                .size(0)
+                .fetchSource(false)
+                .suggest(suggest);
+
+        try {
+            SearchRequest request = new SearchRequest(indexName).source(source);
+            SearchResponse response = restHighLevelClient.search(request);
+
+            List<? extends Suggest.Suggestion.Entry.Option> options = response
+                    .getSuggest()
+                    .getSuggestion("suggest")
+                    .getEntries().get(0)
+                    .getOptions();
+
+            if (options.size() == 0) {
+                return null;
+            }
+
+            return new SuggestionDto(keyword, options.get(0).getText().string(), options.get(0).getHighlighted().string());
         } catch (IOException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }

@@ -105,7 +105,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/papers/*/comments",
                         "/papers/search",
                         "/authors/*/papers/main",
-                        "/comments"
+                        "/comments",
+                        "/complete",
+                        "/suggest"
                 ).permitAll()
 
                 // permit post

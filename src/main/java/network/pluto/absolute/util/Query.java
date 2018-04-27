@@ -63,9 +63,9 @@ public class Query {
 
     private QueryBuilder toQuery(QueryBuilder mainQuery) {
         MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(5);
-        MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(5);
+        MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(7);
         MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
-        MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(3);
+        MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(5);
         MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("author.name", text).boost(3);
         MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("author.affiliation", text);
         MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(3);
