@@ -182,4 +182,11 @@ public class PaperFacade {
                 .collect(Collectors.toList());
     }
 
+    public List<PaperDto> getAuthorRelatedPapers(long paperId, long authorId) {
+        return paperService.getAuthorRelatedPapers(paperId, authorId)
+                .stream()
+                .map(PaperDto::simple)
+                .collect(Collectors.toList());
+    }
+
 }

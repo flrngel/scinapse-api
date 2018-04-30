@@ -10,9 +10,11 @@ import network.pluto.bibliotheca.models.mag.Paper;
 import network.pluto.bibliotheca.models.mag.PaperAbstract;
 import network.pluto.bibliotheca.models.mag.RelPaperReference;
 import network.pluto.bibliotheca.repositories.mag.PaperAbstractRepository;
+import network.pluto.bibliotheca.repositories.mag.PaperAuthorAffiliationRepository;
 import network.pluto.bibliotheca.repositories.mag.PaperRepository;
 import network.pluto.bibliotheca.repositories.mag.RelPaperReferenceRepository;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ public class PaperService {
     private final PaperRepository paperRepository;
     private final PaperAbstractRepository paperAbstractRepository;
     private final RelPaperReferenceRepository paperReferenceRepository;
+    private final PaperAuthorAffiliationRepository paperAuthorAffiliationRepository;
     private RestTemplate restTemplateForCitation;
 
     @PostConstruct
@@ -140,6 +143,10 @@ public class PaperService {
 
     public List<Paper> getRelatedPapers(long paperId) {
         return paperRepository.getRelatedPapers(paperId);
+    }
+
+    public List<Paper> getAuthorRelatedPapers(long paperId, long authorId) {
+        return paperAuthorAffiliationRepository.getAuthorMainPapers(paperId, authorId, new PageRequest(0, 5));
     }
 
 }

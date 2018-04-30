@@ -93,4 +93,16 @@ public class PaperController {
         return result;
     }
 
+    @RequestMapping(value = "/papers/{paperId}/authors/{authorId}/related", method = RequestMethod.GET)
+    public HashMap<String, Object> authorRelated(@PathVariable long paperId, @PathVariable long authorId) {
+        List<PaperDto> related = paperFacade.getAuthorRelatedPapers(paperId, authorId);
+
+        HashMap<String, Object> result = new HashMap<>();
+        Meta meta = related.isEmpty() ? Meta.unavailable() : Meta.available();
+        result.put("meta", meta);
+        result.put("data", related);
+
+        return result;
+    }
+
 }
