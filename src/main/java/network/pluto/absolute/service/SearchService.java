@@ -49,6 +49,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.Year;
@@ -75,6 +76,9 @@ public class SearchService {
 
     @Value("${pluto.server.es.index.suggestion.fos}")
     private String fosSuggestionIndex;
+
+    @Value("${pluto.server.es.index.suggestion.title}")
+    private String titleSuggestionIndex;
 
     private static final String SAMPLE_AGG_NAME = "sample";
     private static final String JOURNAL_AGG_NAME = "journal";
@@ -178,26 +182,33 @@ public class SearchService {
                 dtos.add(new CompletionDto((String) name, CompletionType.FOS));
             }
 
-            return dtos;
+            return dtos.stream().distinct().collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }
     }
 
     public SuggestionDto suggest(String keyword) {
-        DirectCandidateGeneratorBuilder candidate = new DirectCandidateGeneratorBuilder("title.shingles")
-                .suggestMode(TermSuggestionBuilder.SuggestMode.ALWAYS.name())
+        if (!StringUtils.hasText(keyword)) {
+            return null;
+        }
+
+        DirectCandidateGeneratorBuilder candidate = new DirectCandidateGeneratorBuilder("title")
+                .suggestMode(TermSuggestionBuilder.SuggestMode.POPULAR.name())
                 .size(10)
                 .maxInspections(10)
-                .maxTermFreq(300)
                 .sort(SortBy.FREQUENCY.name());
 
-        PhraseSuggestionBuilder phraseSuggest = SuggestBuilders.phraseSuggestion("title.shingles")
+        if (keyword.trim().split(" ").length == 1) {
+            candidate.maxTermFreq(300);
+        }
+
+        PhraseSuggestionBuilder phraseSuggest = SuggestBuilders.phraseSuggestion("title")
                 .text(keyword)
                 .addCandidateGenerator(candidate)
                 .size(1)
                 .maxErrors(3)
-                .highlight("<em>", "</em>");
+                .highlight("<b>", "</b>");
 
         SuggestBuilder suggest = new SuggestBuilder()
                 .addSuggestion("suggest", phraseSuggest);
@@ -208,7 +219,7 @@ public class SearchService {
                 .suggest(suggest);
 
         try {
-            SearchRequest request = new SearchRequest(indexName).source(source);
+            SearchRequest request = new SearchRequest(titleSuggestionIndex).source(source);
             SearchResponse response = restHighLevelClient.search(request);
 
             List<? extends Suggest.Suggestion.Entry.Option> options = response
