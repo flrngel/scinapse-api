@@ -87,9 +87,8 @@ public class SearchService {
     private static final String IF_AGG_NAME = "if";
     private static final String IF_10_AGG_NAME = "if10";
 
-    public Page<Long> search(Query query, List<SortBuilder> sorts, Pageable pageable) {
+    public Page<Long> search(Query query, Pageable pageable) {
         Preconditions.checkNotNull(query);
-        Preconditions.checkNotNull(sorts);
         Preconditions.checkNotNull(pageable);
 
         SearchRequest request = new SearchRequest(indexName);
@@ -111,14 +110,11 @@ public class SearchService {
             builder.addRescorer(query.getFunctionRescoreQuery());
         }
 
-        // set sort
-        sorts.forEach(builder::sort);
-
         request.source(builder);
 
         try {
             SearchResponse response = restHighLevelClient.search(request);
-            if (response.getHits().totalHits == 0 && !query.isDoi() && !query.isJournalSearch()) {
+            if (response.getHits().totalHits == 0 && !query.isDoi()) {
                 builder.query(query.toLenientQuery());
                 response = restHighLevelClient.search(request);
             }
@@ -129,6 +125,29 @@ public class SearchService {
             }
             return new PageImpl<>(list, pageable, response.getHits().getTotalHits());
 
+        } catch (IOException | NumberFormatException e) {
+            throw new RuntimeException("Elasticsearch exception", e);
+        }
+    }
+
+    public Page<Long> searchWithSort(Query query, List<SortBuilder> sorts, Pageable pageable) {
+        SearchSourceBuilder builder = SearchSourceBuilder.searchSource()
+                .query(query.toSortQuery())
+                .fetchSource(false)
+                .from(pageable.getOffset())
+                .size(pageable.getPageSize());
+
+        sorts.forEach(builder::sort);
+
+        try {
+            SearchRequest request = new SearchRequest(indexName).source(builder);
+            SearchResponse response = restHighLevelClient.search(request);
+
+            List<Long> list = new ArrayList<>();
+            for (SearchHit hit : response.getHits()) {
+                list.add(Long.valueOf(hit.getId()));
+            }
+            return new PageImpl<>(list, pageable, response.getHits().getTotalHits());
         } catch (IOException | NumberFormatException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }

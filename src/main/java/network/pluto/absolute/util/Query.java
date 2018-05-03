@@ -49,10 +49,6 @@ public class Query {
             return toDoiSearchQuery();
         }
 
-        if (journalSearch) {
-            return toJournalQuery();
-        }
-
         // search specific fields
         return toQuery(getMainQueryClause());
     }
@@ -81,6 +77,18 @@ public class Query {
                 .should(authorAffiliationQuery)
                 .should(fosQuery)
                 .should(journalQuery)
+                .filter(filter.toFilerQuery())
+                .filter(filter.toExtraFilterQuery());
+    }
+
+    public QueryBuilder toSortQuery() {
+        if (journalSearch) {
+            return toJournalQuery();
+        }
+
+        MultiMatchQueryBuilder mainQuery = getMainQueryClause();
+        return QueryBuilders.boolQuery()
+                .must(mainQuery)
                 .filter(filter.toFilerQuery())
                 .filter(filter.toExtraFilterQuery());
     }

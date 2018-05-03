@@ -6,6 +6,7 @@ import network.pluto.absolute.dto.CitationTextDto;
 import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.enums.CitationFormat;
+import network.pluto.absolute.enums.PaperSort;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.SearchService;
@@ -17,10 +18,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -131,11 +129,26 @@ public class PaperFacade {
     }
 
     private Page<PaperDto> searchFromES(Query query, Pageable pageable) {
+        Sort sort = pageable.getSort();
+        if (sort != null && sort.iterator().hasNext()) {
+            Sort.Order next = sort.iterator().next();
+            String property = next.getProperty();
+            SortBuilder sortBuilder = PaperSort.toSortBuilder(PaperSort.find(property));
+            if (sortBuilder != null) {
+                return searchFromES(query, Collections.singletonList(sortBuilder), pageable);
+            }
+        }
+
         return searchFromES(query, new ArrayList<>(), pageable);
     }
 
     private Page<PaperDto> searchFromES(Query query, List<SortBuilder> sorts, Pageable pageable) {
-        Page<Long> paperIds = searchService.search(query, sorts, pageable);
+        Page<Long> paperIds;
+        if (sorts.isEmpty()) {
+            paperIds = searchService.search(query, pageable);
+        } else {
+            paperIds = searchService.searchWithSort(query, sorts, pageable);
+        }
         return convertToDto(paperIds, pageable);
     }
 
