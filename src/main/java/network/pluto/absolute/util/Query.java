@@ -123,7 +123,7 @@ public class Query {
                 .should(abstractQuery);
 
         // re-scoring top 100 documents only for each shard
-        return QueryRescorerBuilder.queryRescorer(phraseMatchQuery)
+        return new QueryRescorerBuilder(phraseMatchQuery)
                 .windowSize(100);
     }
 
@@ -150,7 +150,7 @@ public class Query {
                 .maxBoost(10); // limit boosting
 
         // re-scoring top 100 documents only for each shard
-        return QueryRescorerBuilder.queryRescorer(functionQuery)
+        return new QueryRescorerBuilder(functionQuery)
                 .windowSize(100)
                 .setScoreMode(QueryRescoreMode.Multiply);
     }

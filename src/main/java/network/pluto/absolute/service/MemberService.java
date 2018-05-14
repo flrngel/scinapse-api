@@ -1,5 +1,6 @@
 package network.pluto.absolute.service;
 
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import network.pluto.bibliotheca.enums.AuthorityName;
@@ -16,6 +17,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 
+@XRayEnabled
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor

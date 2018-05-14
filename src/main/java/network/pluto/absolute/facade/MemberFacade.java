@@ -1,5 +1,6 @@
 package network.pluto.absolute.facade;
 
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.configuration.CacheName;
 import network.pluto.absolute.dto.MemberDto;
@@ -18,6 +19,7 @@ import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletResponse;
 
+@XRayEnabled
 @Component
 @RequiredArgsConstructor
 public class MemberFacade {

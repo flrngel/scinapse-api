@@ -1,5 +1,6 @@
 package network.pluto.absolute.service.mag;
 
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.CitationTextDto;
 import network.pluto.absolute.enums.CitationFormat;
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@XRayEnabled
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor

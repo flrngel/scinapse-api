@@ -1,5 +1,6 @@
 package network.pluto.absolute.facade;
 
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.AggregationDto;
 import network.pluto.absolute.dto.CitationTextDto;
@@ -26,6 +27,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@XRayEnabled
 @Component
 @RequiredArgsConstructor
 public class PaperFacade {
@@ -34,7 +36,7 @@ public class PaperFacade {
     private final CommentService commentService;
     private final PaperService paperService;
 
-    @Transactional(readOnly = true)
+
     public PaperDto find(long paperId) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
@@ -56,7 +58,7 @@ public class PaperFacade {
         return dto;
     }
 
-    @Transactional(readOnly = true)
+
     public List<PaperDto> findIn(List<Long> paperIds) {
         // DO THIS because results from IN query ordered randomly
         Map<Long, Paper> map = paperService.findByIdIn(paperIds)
@@ -158,7 +160,7 @@ public class PaperFacade {
 
     private PaperDto setDefaultComments(PaperDto dto) {
         PageRequest pageRequest = new PageRequest(0, 10);
-        Page<Comment> commentPage = commentService.findByPaperId(dto.getCognitivePaperId(), pageRequest);
+        Page<Comment> commentPage = commentService.findByPaperId(dto.getId(), pageRequest);
         List<CommentDto> commentDtos = commentPage
                 .getContent()
                 .stream()

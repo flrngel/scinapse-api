@@ -18,8 +18,6 @@ public class PaperDto {
 
     private long id;
 
-    private long cognitivePaperId;
-
     private String title;
 
     private int year;
@@ -85,7 +83,6 @@ public class PaperDto {
 
     private PaperDto(Paper paper, boolean simple) {
         this.id = paper.getId();
-        this.cognitivePaperId = paper.getId();
         this.title = paper.getOriginalTitle();
         this.year = paper.getYear();
         this.doi = paper.getDoi();

@@ -1,5 +1,6 @@
 package network.pluto.absolute.service;
 
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +23,7 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.filter.Filter;
-import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.filters.Filters;
-import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregator;
+import org.elasticsearch.search.aggregations.bucket.filter.*;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.range.RangeAggregationBuilder;
@@ -59,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@XRayEnabled
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -194,7 +192,7 @@ public class SearchService {
 
             List<CompletionDto> dtos = new ArrayList<>();
             for (SearchHit hit : response.getHits()) {
-                Object name = hit.getSource().get("name");
+                Object name = hit.getSourceAsMap().get("name");
                 if (name == null) {
                     continue;
                 }

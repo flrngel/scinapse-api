@@ -1,5 +1,7 @@
 package network.pluto.absolute.configuration;
 
+import com.amazonaws.xray.javax.servlet.AWSXRayServletFilter;
+import com.amazonaws.xray.strategy.DynamicSegmentNamingStrategy;
 import io.sentry.spring.SentryServletContextInitializer;
 import network.pluto.absolute.error.SentryExceptionResolver;
 import org.apache.http.HttpHost;
@@ -14,6 +16,8 @@ import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+
+import javax.servlet.Filter;
 
 @Configuration
 public class CommonConfig {
@@ -34,7 +38,7 @@ public class CommonConfig {
                                                    @Value("${pluto.server.es.port}") int port,
                                                    @Value("${pluto.server.es.scheme}") String scheme) {
         return new RestHighLevelClient(
-                RestClient.builder(new HttpHost(hostname, port, scheme)).build());
+                RestClient.builder(new HttpHost(hostname, port, scheme)));
     }
 
     @Bean
@@ -45,6 +49,11 @@ public class CommonConfig {
     @Bean
     public ServletContextInitializer sentryServletContextInitializer() {
         return new SentryServletContextInitializer();
+    }
+
+    @Bean
+    public Filter xRayFilter() {
+        return new AWSXRayServletFilter(new DynamicSegmentNamingStrategy("absolute", "*.pluto.network"));
     }
 
 }

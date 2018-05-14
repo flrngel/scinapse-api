@@ -1,5 +1,6 @@
 package network.pluto.absolute.facade;
 
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.oauth.OauthUserDto;
 import network.pluto.absolute.enums.OauthVendor;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
 
+@XRayEnabled
 @Transactional(readOnly = true)
 @Component
 @RequiredArgsConstructor

@@ -1,6 +1,5 @@
 package network.pluto.absolute.util;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import lombok.Getter;
 import lombok.Setter;
@@ -199,34 +198,6 @@ public class QueryFilter {
         if (!fosList.isEmpty()) {
             filterQuery.must(QueryBuilders.termsQuery("fos.id", fosList));
         }
-    }
-
-    public String toCognitiveFilterQuery() {
-        List<String> filters = new ArrayList<>();
-
-        if (yearStart != null && yearStart > 0) {
-            filters.add("Y>=" + yearStart);
-        }
-
-        if (yearEnd != null && yearEnd > 0) {
-            filters.add("Y<=" + yearEnd);
-        }
-
-        if (!journals.isEmpty()) {
-            String journalFilter = journals.stream()
-                    .map(j -> "J.JId=" + j)
-                    .collect(Collectors.joining(","));
-            filters.add("Composite(OR(" + journalFilter + "))");
-        }
-
-        if (!fosList.isEmpty()) {
-            String fosFilter = fosList.stream()
-                    .map(j -> "F.FId=" + j)
-                    .collect(Collectors.joining(","));
-            filters.add("Composite(OR(" + fosFilter + "))");
-        }
-
-        return Joiner.on(",").join(filters);
     }
 
 }
