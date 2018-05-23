@@ -1,5 +1,6 @@
 package network.pluto.absolute.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.MemberDuplicationCheckDto;
@@ -15,6 +16,8 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @RestController
 @RequiredArgsConstructor
@@ -82,6 +85,41 @@ public class MemberController {
         }
 
         return dto;
+    }
+
+    @RequestMapping(value = "/members/password-token", method = RequestMethod.POST)
+    public Result generateToken(@RequestBody EmailWrapper email) {
+        Member member = memberService.findByEmail(email.email);
+        if (member == null) {
+            throw new ResourceNotFoundException("Member not found");
+        }
+
+        memberFacade.generateToken(member);
+        return Result.success();
+    }
+
+    @RequestMapping(value = "/members/reset-password", method = RequestMethod.POST)
+    public Result resetPassword(@RequestBody @Valid TokenWrapper token) {
+        memberFacade.resetPassword(token.token, token.password);
+        return Result.success();
+    }
+
+    private static class EmailWrapper {
+        @JsonProperty
+        private String email;
+    }
+
+    private static class TokenWrapper {
+
+        @JsonProperty
+        @NotNull
+        private String token;
+
+        @JsonProperty
+        @Size(min = 8, message = "password must be greater than or equal to 8")
+        @NotNull
+        private String password;
+
     }
 
 }

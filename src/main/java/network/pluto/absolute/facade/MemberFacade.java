@@ -10,6 +10,7 @@ import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.EmailVerificationService;
 import network.pluto.absolute.service.MemberService;
+import network.pluto.absolute.service.PasswordResetService;
 import network.pluto.bibliotheca.enums.AuthorityName;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.cache.annotation.Cacheable;
@@ -29,6 +30,7 @@ public class MemberFacade {
     private final EmailVerificationService emailVerificationService;
     private final TokenHelper tokenHelper;
     private final OauthFacade oauthFacade;
+    private final PasswordResetService passwordResetService;
 
     @Cacheable(CacheName.Member.GET_DETAIL)
     public MemberDto getDetail(long memberId) {
@@ -96,6 +98,16 @@ public class MemberFacade {
         tokenHelper.addCookie(response, jwt);
 
         return saved;
+    }
+
+    @Transactional
+    public void generateToken(Member member) {
+        passwordResetService.generateToken(member);
+    }
+
+    @Transactional
+    public void resetPassword(String token, String password) {
+        passwordResetService.resetPassword(token, password);
     }
 
 }

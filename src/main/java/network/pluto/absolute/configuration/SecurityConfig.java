@@ -119,7 +119,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/email-verification",
                         "/email-verification/resend",
                         "/members",
-                        "/members/oauth"
+                        "/members/oauth",
+                        "/members/password-token",
+                        "/members/reset-password"
                 ).permitAll()
 
                 .anyRequest()
