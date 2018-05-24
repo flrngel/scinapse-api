@@ -3,7 +3,6 @@ package network.pluto.absolute.util;
 import lombok.Getter;
 import lombok.Setter;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
-import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
@@ -13,21 +12,26 @@ import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class Query {
 
     private String text;
+    private List<String> phraseQueries;
     private String doi;
     private QueryFilter filter = new QueryFilter();
     private boolean journalSearch = false;
     private long journalId;
 
     private Query(String text) {
-        if (StringUtils.hasText(text)) {
-            this.text = text.trim();
-            this.doi = TextUtils.parseDoi(this.text);
+        if (!StringUtils.hasText(text)) {
+            return;
         }
+        this.text = text.trim();
+        this.phraseQueries = TextUtils.parsePhrase(text);
+        this.doi = TextUtils.parseDoi(this.text);
     }
 
     public static Query parse(String queryStr) {
@@ -51,10 +55,6 @@ public class Query {
 
         // search specific fields
         return toQuery(getMainQueryClause());
-    }
-
-    public QueryBuilder toLenientQuery() {
-        return toQuery(getLenientQueryClause());
     }
 
     private QueryBuilder toQuery(QueryBuilder mainQuery) {
@@ -86,24 +86,33 @@ public class Query {
             return toJournalQuery();
         }
 
-        MultiMatchQueryBuilder mainQuery = getMainQueryClause();
+        QueryBuilder mainQuery = getMainQueryClause();
         return QueryBuilders.boolQuery()
                 .must(mainQuery)
                 .filter(filter.toFilerQuery())
                 .filter(filter.toExtraFilterQuery());
     }
 
-    public MultiMatchQueryBuilder getMainQueryClause() {
-        return getMainFieldQuery()
+    public QueryBuilder getMainQueryClause() {
+        BoolQueryBuilder query = QueryBuilders.boolQuery();
+
+        MultiMatchQueryBuilder mainQuery = getMainFieldQuery()
                 .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
                 .minimumShouldMatch("-25%");
-    }
+        query.must(mainQuery);
 
-    public QueryBuilder getLenientQueryClause() {
-        return getMainFieldQuery()
-                .type(MultiMatchQueryBuilder.Type.MOST_FIELDS)
-                .minimumShouldMatch("-25%")
-                .fuzziness(Fuzziness.AUTO);
+        phraseQueries.forEach(q -> {
+            MultiMatchQueryBuilder phrase = QueryBuilders.multiMatchQuery(
+                    q,
+                    "title.en_stemmed",
+                    "abstract.en_stemmed",
+                    "authors.name.en_stemmed",
+                    "fos.name.en_stemmed")
+                    .type(MultiMatchQueryBuilder.Type.PHRASE);
+            query.filter(phrase);
+        });
+
+        return query;
     }
 
     private MultiMatchQueryBuilder getMainFieldQuery() {

@@ -2,6 +2,8 @@ package network.pluto.absolute.util;
 
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +16,7 @@ public class TextUtils {
     private static Pattern DOI_EXTRA_PATTERN2 = Pattern.compile("^10.\\d{4}/\\d+-\\d+X?(\\d+)\\d+<[\\d\\w]+:[\\d\\w]*>\\d+.\\d+.\\w+;\\d$", Pattern.CASE_INSENSITIVE);
     private static Pattern DOI_EXTRA_PATTERN3 = Pattern.compile("^10.1021/\\w\\w\\d++$", Pattern.CASE_INSENSITIVE);
     private static Pattern DOI_EXTRA_PATTERN4 = Pattern.compile("^10.1207/[\\w\\d]+&\\d+_\\d+$", Pattern.CASE_INSENSITIVE);
+    private static Pattern QUERY_PHRASE_MATCH = Pattern.compile("(?<= \")(.*?)(?=\" )");
 
     public static String parseDoi(String doiStr) {
         if (!StringUtils.hasText(doiStr)) {
@@ -50,6 +53,23 @@ public class TextUtils {
         }
 
         return doi;
+    }
+
+    public static List<String> parsePhrase(String query) {
+        if (!StringUtils.hasText(query)) {
+            return new ArrayList<>();
+        }
+
+        // do this for matching very first & last phrase
+        String phraseQuery = " " + query.trim() + " ";
+
+        List<String> results = new ArrayList<>();
+        Matcher matcher = QUERY_PHRASE_MATCH.matcher(phraseQuery);
+        while (matcher.find()) {
+            results.add(matcher.group());
+        }
+
+        return results;
     }
 
 }

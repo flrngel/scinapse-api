@@ -112,10 +112,6 @@ public class SearchService {
 
         try {
             SearchResponse response = restHighLevelClient.search(request);
-            if (response.getHits().totalHits == 0 && !query.isDoi()) {
-                builder.query(query.toLenientQuery());
-                response = restHighLevelClient.search(request);
-            }
 
             List<Long> list = new ArrayList<>();
             for (SearchHit hit : response.getHits()) {
