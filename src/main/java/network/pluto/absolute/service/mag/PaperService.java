@@ -9,11 +9,9 @@ import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.util.TextUtils;
 import network.pluto.bibliotheca.models.mag.Paper;
 import network.pluto.bibliotheca.models.mag.PaperAbstract;
+import network.pluto.bibliotheca.models.mag.PaperRecommendation;
 import network.pluto.bibliotheca.models.mag.RelPaperReference;
-import network.pluto.bibliotheca.repositories.mag.PaperAbstractRepository;
-import network.pluto.bibliotheca.repositories.mag.PaperAuthorAffiliationRepository;
-import network.pluto.bibliotheca.repositories.mag.PaperRepository;
-import network.pluto.bibliotheca.repositories.mag.RelPaperReferenceRepository;
+import network.pluto.bibliotheca.repositories.mag.*;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +28,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -45,6 +44,7 @@ public class PaperService {
     private final PaperAbstractRepository paperAbstractRepository;
     private final RelPaperReferenceRepository paperReferenceRepository;
     private final PaperAuthorAffiliationRepository paperAuthorAffiliationRepository;
+    private final PaperRecommendationRepository paperRecommendationRepository;
     private RestTemplate restTemplateForCitation;
 
     @PostConstruct
@@ -144,7 +144,24 @@ public class PaperService {
     }
 
     public List<Paper> getRelatedPapers(long paperId) {
-        return paperRepository.getRelatedPapers(paperId);
+        List<Long> recommendations = paperRecommendationRepository.findTop5ByPaperIdOrderByScoreDesc(paperId)
+                .stream()
+                .map(PaperRecommendation::getRecommendedPaperId)
+                .collect(Collectors.toList());
+
+        // DO THIS because results from IN query ordered randomly
+        Map<Long, Paper> map = findByIdIn(recommendations)
+                .stream()
+                .collect(Collectors.toMap(
+                        Paper::getId,
+                        Function.identity()
+                ));
+
+        return recommendations
+                .stream()
+                .map(map::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     public List<Paper> getAuthorRelatedPapers(long paperId, long authorId) {
