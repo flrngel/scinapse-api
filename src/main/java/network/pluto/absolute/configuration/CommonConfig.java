@@ -1,7 +1,6 @@
 package network.pluto.absolute.configuration;
 
 import com.amazonaws.xray.javax.servlet.AWSXRayServletFilter;
-import com.amazonaws.xray.strategy.DynamicSegmentNamingStrategy;
 import io.sentry.spring.SentryServletContextInitializer;
 import network.pluto.absolute.error.SentryExceptionResolver;
 import org.apache.http.HttpHost;
@@ -52,8 +51,8 @@ public class CommonConfig {
     }
 
     @Bean
-    public Filter xRayFilter() {
-        return new AWSXRayServletFilter(new DynamicSegmentNamingStrategy("absolute", "*.pluto.network"));
+    public Filter xRayFilter(@Value("${pluto.server.name}") String serverName) {
+        return new AWSXRayServletFilter(serverName);
     }
 
 }
