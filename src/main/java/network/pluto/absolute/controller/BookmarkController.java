@@ -72,7 +72,7 @@ public class BookmarkController {
             throw new BadRequestException("Bookmark already exists");
         }
 
-        Paper paper = paperService.find(paperId.paperId);
+        Paper paper = paperService.find(paperId.paperId, false);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }

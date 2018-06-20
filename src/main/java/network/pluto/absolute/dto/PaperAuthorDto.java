@@ -34,4 +34,22 @@ public class PaperAuthorDto {
         }
     }
 
+    public PaperAuthorDto(network.pluto.bibliotheca.dtos.AuthorDto dto) {
+        this.paperId = dto.getId();
+        this.id = dto.getId();
+        this.name = dto.getName();
+        this.order = dto.getOrder();
+        this.hIndex = dto.getHIndex();
+
+        network.pluto.bibliotheca.dtos.AffiliationDto affiliation = dto.getAffiliation();
+        if (affiliation != null) {
+            AffiliationDto affiliationDto = new AffiliationDto();
+            affiliationDto.setId(affiliation.getId());
+            affiliationDto.setName(affiliation.getName());
+
+            this.affiliation = affiliationDto;
+            this.organization = affiliation.getName();
+        }
+    }
+
 }

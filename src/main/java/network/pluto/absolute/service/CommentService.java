@@ -1,6 +1,7 @@
 package network.pluto.absolute.service;
 
 import lombok.RequiredArgsConstructor;
+import network.pluto.bibliotheca.dtos.CommentWrapper;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.Member;
 import network.pluto.bibliotheca.repositories.CommentRepository;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.Map;
 
 @Transactional(readOnly = true)
 @Service
@@ -29,7 +32,11 @@ public class CommentService {
     }
 
     public Page<Comment> findByPaperId(long paperId, Pageable pageable) {
-        return commentRepository.findByPaperIdOrderByIdDesc(paperId, pageable);
+        return commentRepository.findByPaperIdOrderByUpdatedAtDesc(paperId, pageable);
+    }
+
+    public Map<Long, CommentWrapper> getDefaultComments(List<Long> paperIds) {
+        return commentRepository.getDefaultComments(paperIds);
     }
 
     @Transactional

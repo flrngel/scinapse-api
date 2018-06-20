@@ -9,10 +9,12 @@ import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.enums.CitationFormat;
 import network.pluto.absolute.enums.PaperSort;
 import network.pluto.absolute.error.ResourceNotFoundException;
+import network.pluto.absolute.service.AuthorService;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.SearchService;
 import network.pluto.absolute.service.mag.PaperService;
 import network.pluto.absolute.util.Query;
+import network.pluto.bibliotheca.dtos.CommentWrapper;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.mag.Paper;
 import org.elasticsearch.search.SearchHit;
@@ -35,6 +37,7 @@ public class PaperFacade {
     private final SearchService searchService;
     private final CommentService commentService;
     private final PaperService paperService;
+    private final AuthorService authorService;
 
 
     public PaperDto find(long paperId) {
@@ -44,6 +47,8 @@ public class PaperFacade {
         }
 
         PaperDto dto = new PaperDto(paper);
+
+        authorService.setDefaultAuthors(dto);
 
         PageRequest pageRequest = new PageRequest(0, 10);
         Page<Comment> commentPage = commentService.findByPaperId(paperId, pageRequest);
@@ -67,13 +72,31 @@ public class PaperFacade {
                         Paper::getId,
                         Function.identity()
                 ));
-        return paperIds
+
+        List<PaperDto> dtos = paperIds
                 .stream()
                 .map(map::get)
                 .filter(Objects::nonNull)
                 .map(PaperDto::new)
-                .map(this::setDefaultComments)
                 .collect(Collectors.toList());
+
+        authorService.setDefaultAuthors(dtos);
+
+        Map<Long, CommentWrapper> commentWrapperMap = commentService.getDefaultComments(dtos.stream().map(PaperDto::getId).collect(Collectors.toList()));
+        dtos.forEach(dto -> {
+            CommentWrapper wrapper = commentWrapperMap.get(dto.getId());
+            if (wrapper != null) {
+                List<CommentDto> commentDtos = wrapper.getComments()
+                        .stream()
+                        .map(CommentDto::new)
+                        .collect(Collectors.toList());
+
+                dto.setCommentCount(wrapper.getTotalCount());
+                dto.setComments(commentDtos);
+            }
+        });
+
+        return dtos;
     }
 
     @Transactional(readOnly = true)
@@ -113,7 +136,7 @@ public class PaperFacade {
     }
 
     public CitationTextDto citation(long paperId, CitationFormat format) {
-        Paper paper = paperService.find(paperId);
+        Paper paper = paperService.find(paperId, false);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }
@@ -158,20 +181,6 @@ public class PaperFacade {
         return new PageImpl<>(findIn(paperIds.getContent()), pageable, paperIds.getTotalElements());
     }
 
-    private PaperDto setDefaultComments(PaperDto dto) {
-        PageRequest pageRequest = new PageRequest(0, 10);
-        Page<Comment> commentPage = commentService.findByPaperId(dto.getId(), pageRequest);
-        List<CommentDto> commentDtos = commentPage
-                .getContent()
-                .stream()
-                .map(CommentDto::new)
-                .collect(Collectors.toList());
-
-        dto.setCommentCount(commentPage.getTotalElements());
-        dto.setComments(commentDtos);
-        return dto;
-    }
-
     public AggregationDto aggregate(Query query) {
         if (query.isDoi()) {
             return AggregationDto.unavailable();
@@ -191,17 +200,21 @@ public class PaperFacade {
     }
 
     public List<PaperDto> getRelatedPapers(long paperId) {
-        return paperService.getRelatedPapers(paperId)
+        List<PaperDto> dtos = paperService.getRelatedPapers(paperId)
                 .stream()
                 .map(PaperDto::simple)
                 .collect(Collectors.toList());
+        authorService.setDefaultAuthors(dtos);
+        return dtos;
     }
 
     public List<PaperDto> getAuthorRelatedPapers(long paperId, long authorId) {
-        return paperService.getAuthorRelatedPapers(paperId, authorId)
+        List<PaperDto> dtos = paperService.getAuthorRelatedPapers(paperId, authorId)
                 .stream()
                 .map(PaperDto::simple)
                 .collect(Collectors.toList());
+        authorService.setDefaultAuthors(dtos);
+        return dtos;
     }
 
 }

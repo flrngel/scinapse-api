@@ -45,8 +45,6 @@ public class PaperDto {
 
     private long citedCount = 0;
 
-    private long authorCount = 0;
-
     private long fosCount = 0;
 
     private long urlCount = 0;
@@ -96,13 +94,12 @@ public class PaperDto {
             this.journal = new JournalDto(paper.getJournal());
         }
 
-        if (!paper.getPaperAuthorAffiliations().isEmpty()) {
-            this.authors = paper.getPaperAuthorAffiliations()
+        if (!paper.getAuthors().isEmpty()) {
+            this.authors = paper.getAuthors()
                     .stream()
                     .map(PaperAuthorDto::new)
                     .sorted(Comparator.comparing(PaperAuthorDto::getOrder))
                     .collect(Collectors.toList());
-            this.authorCount = this.authors.size();
         }
     }
 

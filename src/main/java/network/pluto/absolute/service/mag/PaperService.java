@@ -45,6 +45,7 @@ public class PaperService {
     private final RelPaperReferenceRepository paperReferenceRepository;
     private final PaperAuthorAffiliationRepository paperAuthorAffiliationRepository;
     private final PaperRecommendationRepository paperRecommendationRepository;
+    private final AuthorRepository authorRepository;
     private RestTemplate restTemplateForCitation;
 
     @PostConstruct
@@ -68,6 +69,7 @@ public class PaperService {
 
         PaperAbstract paperAbstract = paperAbstractRepository.findOne(paperId);
         paper.setPaperAbstract(paperAbstract);
+
         return paper;
     }
 
@@ -88,6 +90,7 @@ public class PaperService {
                         PaperAbstract::getPaperId,
                         Function.identity()
                 ));
+
         papers.forEach(p -> p.setPaperAbstract(abstractMap.get(p.getId())));
 
         return papers;
@@ -119,7 +122,6 @@ public class PaperService {
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setAccept(Collections.singletonList(MediaType.valueOf(format.getAccept())));
-
         HttpEntity entity = new HttpEntity(httpHeaders);
 
         try {

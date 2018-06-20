@@ -41,15 +41,12 @@ public class AuthorController {
 
     @RequestMapping(value = "/authors/{authorId}/papers", method = RequestMethod.GET)
     public Page<PaperDto> getAuthorPapers(@PathVariable long authorId, @RequestParam(required = false) PaperSort sort, @PageableDefault Pageable pageable) {
-        Author author = authorService.find(authorId);
-        if (author == null) {
-            throw new ResourceNotFoundException("Author not found");
-        }
-
         // FIXME need to create custom pageable converter
         // do this for temporary remove sort from pageable
         PageRequest pageableReplace = new PageRequest(pageable.getPageNumber(), pageable.getPageSize());
-        return authorService.getAuthorPaper(authorId, sort, pageableReplace).map(PaperDto::new);
+        Page<PaperDto> dtos = authorService.getAuthorPaper(authorId, sort, pageableReplace).map(PaperDto::new);
+        authorService.setDefaultAuthors(dtos.getContent());
+        return dtos;
     }
 
     @RequestMapping(value = "/authors/{authorId}/co-authors", method = RequestMethod.GET)
