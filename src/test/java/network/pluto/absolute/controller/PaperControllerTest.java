@@ -3,6 +3,7 @@ package network.pluto.absolute.controller;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.facade.PaperFacade;
 import network.pluto.absolute.util.Query;
+import network.pluto.bibliotheca.models.mag.Paper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,8 +46,10 @@ public class PaperControllerTest {
     public void search_unauthenticated_user_can_access() throws Exception {
         String query = "text=test";
 
-        PaperDto dto = new PaperDto();
-        dto.setId(1);
+        Paper paper = new Paper();
+        paper.setId(1);
+        paper.setYear(2018);
+        PaperDto dto = PaperDto.of(paper);
         PageImpl<PaperDto> page = new PageImpl<>(Collections.singletonList(dto));
 
         when(paperFacade.search(any(Query.class), any(Pageable.class))).thenReturn(page);

@@ -45,7 +45,6 @@ public class PaperService {
     private final RelPaperReferenceRepository paperReferenceRepository;
     private final PaperAuthorAffiliationRepository paperAuthorAffiliationRepository;
     private final PaperRecommendationRepository paperRecommendationRepository;
-    private final AuthorRepository authorRepository;
     private RestTemplate restTemplateForCitation;
 
     @PostConstruct

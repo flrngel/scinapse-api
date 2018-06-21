@@ -4,7 +4,6 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.AggregationDto;
 import network.pluto.absolute.dto.CitationTextDto;
-import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.enums.CitationFormat;
 import network.pluto.absolute.enums.PaperSort;
@@ -14,14 +13,15 @@ import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.SearchService;
 import network.pluto.absolute.service.mag.PaperService;
 import network.pluto.absolute.util.Query;
-import network.pluto.bibliotheca.dtos.CommentWrapper;
-import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.mag.Paper;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,23 +46,12 @@ public class PaperFacade {
             throw new ResourceNotFoundException("Paper not found");
         }
 
-        PaperDto dto = new PaperDto(paper);
+        PaperDto dto = PaperDto.full(paper);
 
         authorService.setDefaultAuthors(dto);
-
-        PageRequest pageRequest = new PageRequest(0, 10);
-        Page<Comment> commentPage = commentService.findByPaperId(paperId, pageRequest);
-        List<CommentDto> commentDtos = commentPage
-                .getContent()
-                .stream()
-                .map(CommentDto::new)
-                .collect(Collectors.toList());
-
-        dto.setCommentCount(commentPage.getTotalElements());
-        dto.setComments(commentDtos);
+        commentService.setDefaultComments(dto);
         return dto;
     }
-
 
     public List<PaperDto> findIn(List<Long> paperIds) {
         // DO THIS because results from IN query ordered randomly
@@ -77,25 +66,31 @@ public class PaperFacade {
                 .stream()
                 .map(map::get)
                 .filter(Objects::nonNull)
-                .map(PaperDto::new)
+                .map(PaperDto::full)
                 .collect(Collectors.toList());
 
         authorService.setDefaultAuthors(dtos);
+        commentService.setDefaultComments(dtos);
+        return dtos;
+    }
 
-        Map<Long, CommentWrapper> commentWrapperMap = commentService.getDefaultComments(dtos.stream().map(PaperDto::getId).collect(Collectors.toList()));
-        dtos.forEach(dto -> {
-            CommentWrapper wrapper = commentWrapperMap.get(dto.getId());
-            if (wrapper != null) {
-                List<CommentDto> commentDtos = wrapper.getComments()
-                        .stream()
-                        .map(CommentDto::new)
-                        .collect(Collectors.toList());
+    public List<PaperDto> findInDetail(List<Long> paperIds) {
+        // DO THIS because results from IN query ordered randomly
+        Map<Long, Paper> map = paperService.findByIdIn(paperIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        Paper::getId,
+                        Function.identity()
+                ));
 
-                dto.setCommentCount(wrapper.getTotalCount());
-                dto.setComments(commentDtos);
-            }
-        });
+        List<PaperDto> dtos = paperIds
+                .stream()
+                .map(map::get)
+                .filter(Objects::nonNull)
+                .map(PaperDto::detail)
+                .collect(Collectors.toList());
 
+        authorService.setDefaultAuthors(dtos);
         return dtos;
     }
 
@@ -107,7 +102,7 @@ public class PaperFacade {
         }
 
         List<Long> referenceIds = paperService.findReferences(paperId, pageable);
-        List<PaperDto> dtos = findIn(referenceIds);
+        List<PaperDto> dtos = findInDetail(referenceIds);
         return new PageImpl<>(dtos, pageable, paper.getPaperCount());
     }
 
@@ -119,7 +114,7 @@ public class PaperFacade {
         }
 
         List<Long> citedIds = paperService.findCited(paperId, pageable);
-        List<PaperDto> dtos = findIn(citedIds);
+        List<PaperDto> dtos = findInDetail(citedIds);
         return new PageImpl<>(dtos, pageable, paper.getCitationCount());
     }
 

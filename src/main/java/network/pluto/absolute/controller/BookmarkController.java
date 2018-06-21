@@ -46,7 +46,7 @@ public class BookmarkController {
         Page<Bookmark> bookmarks = bookmarkService.getBookmarks(member.getId(), pageable);
 
         List<Long> paperIds = bookmarks.getContent().stream().map(Bookmark::getPaperId).collect(Collectors.toList());
-        Map<Long, PaperDto> paperMap = paperFacade.findIn(paperIds)
+        Map<Long, PaperDto> paperMap = paperFacade.findInDetail(paperIds)
                 .stream()
                 .collect(Collectors.toMap(
                         PaperDto::getId,

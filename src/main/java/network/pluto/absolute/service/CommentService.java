@@ -1,6 +1,8 @@
 package network.pluto.absolute.service;
 
 import lombok.RequiredArgsConstructor;
+import network.pluto.absolute.dto.CommentDto;
+import network.pluto.absolute.dto.PaperDto;
 import network.pluto.bibliotheca.dtos.CommentWrapper;
 import network.pluto.bibliotheca.models.Comment;
 import network.pluto.bibliotheca.models.Member;
@@ -11,8 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Transactional(readOnly = true)
 @Service
@@ -35,8 +39,24 @@ public class CommentService {
         return commentRepository.findByPaperIdOrderByUpdatedAtDesc(paperId, pageable);
     }
 
-    public Map<Long, CommentWrapper> getDefaultComments(List<Long> paperIds) {
-        return commentRepository.getDefaultComments(paperIds);
+    public void setDefaultComments(List<PaperDto> paperDtos) {
+        Map<Long, CommentWrapper> commentWrapperMap = commentRepository.getDefaultComments(paperDtos.stream().map(PaperDto::getId).collect(Collectors.toList()));
+        paperDtos.forEach(dto -> {
+            CommentWrapper wrapper = commentWrapperMap.get(dto.getId());
+            if (wrapper != null) {
+                List<CommentDto> commentDtos = wrapper.getComments()
+                        .stream()
+                        .map(CommentDto::new)
+                        .collect(Collectors.toList());
+
+                dto.setCommentCount(wrapper.getTotalCount());
+                dto.setComments(commentDtos);
+            }
+        });
+    }
+
+    public void setDefaultComments(PaperDto paperDto) {
+        setDefaultComments(Collections.singletonList(paperDto));
     }
 
     @Transactional

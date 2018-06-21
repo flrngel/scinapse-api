@@ -44,7 +44,7 @@ public class AuthorController {
         // FIXME need to create custom pageable converter
         // do this for temporary remove sort from pageable
         PageRequest pageableReplace = new PageRequest(pageable.getPageNumber(), pageable.getPageSize());
-        Page<PaperDto> dtos = authorService.getAuthorPaper(authorId, sort, pageableReplace).map(PaperDto::new);
+        Page<PaperDto> dtos = authorService.getAuthorPaper(authorId, sort, pageableReplace).map(PaperDto::detail);
         authorService.setDefaultAuthors(dtos.getContent());
         return dtos;
     }
