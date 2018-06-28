@@ -1,5 +1,6 @@
 package network.pluto.absolute.service;
 
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import lombok.RequiredArgsConstructor;
 import network.pluto.absolute.dto.CommentDto;
 import network.pluto.absolute.dto.PaperDto;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@XRayEnabled
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor

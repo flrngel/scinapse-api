@@ -96,6 +96,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         HttpMethod.GET,
                         "/members/checkDuplication",
                         "/members/*",
+                        "/members/*/collections",
                         "/papers",
                         "/papers/*",
                         "/papers/*/references",
@@ -108,6 +109,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/authors/*",
                         "/authors/*/papers",
                         "/authors/*/co-authors",
+                        "/collections/*",
+                        "/collections/*/papers",
                         "/comments",
                         "/complete",
                         "/suggest"
