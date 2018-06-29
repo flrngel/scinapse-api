@@ -18,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -78,11 +77,7 @@ public class AuthorService {
     }
 
     public List<Author> findCoAuthors(long authorId) {
-        List<Long> coAuthorIds = repository.findCoAuthors(authorId)
-                .stream()
-                .map(BigInteger::longValue)
-                .collect(Collectors.toList());
-        return authorRepository.findByIdIn(coAuthorIds);
+        return authorRepository.findCoAuthors(authorId);
     }
 
 }
