@@ -46,7 +46,7 @@ public class BookmarkController {
         Page<Bookmark> bookmarks = bookmarkService.getBookmarks(member.getId(), pageable);
 
         List<Long> paperIds = bookmarks.getContent().stream().map(Bookmark::getPaperId).collect(Collectors.toList());
-        Map<Long, PaperDto> paperMap = paperFacade.findInDetail(paperIds)
+        Map<Long, PaperDto> paperMap = paperFacade.findIn(paperIds, PaperDto.compact())
                 .stream()
                 .collect(Collectors.toMap(
                         PaperDto::getId,
@@ -72,7 +72,7 @@ public class BookmarkController {
             throw new BadRequestException("Bookmark already exists");
         }
 
-        Paper paper = paperService.find(paperId.paperId, false);
+        Paper paper = paperService.find(paperId.paperId);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }

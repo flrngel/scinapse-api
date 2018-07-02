@@ -6,7 +6,6 @@ import network.pluto.absolute.dto.PaperAuthorDto;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.enums.PaperSort;
 import network.pluto.absolute.error.ResourceNotFoundException;
-import network.pluto.absolute.service.mag.PaperService;
 import network.pluto.bibliotheca.dtos.AuthorDto;
 import network.pluto.bibliotheca.models.mag.Author;
 import network.pluto.bibliotheca.models.mag.Paper;
@@ -31,7 +30,6 @@ public class AuthorService {
 
     private final AuthorRepository authorRepository;
     private final PaperAuthorAffiliationRepository repository;
-    private final PaperService paperService;
 
     public Author find(long authorId) {
         return authorRepository.findOne(authorId);

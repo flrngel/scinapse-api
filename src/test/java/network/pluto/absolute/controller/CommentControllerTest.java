@@ -78,7 +78,7 @@ public class CommentControllerTest {
         comment.setPaperId(paperId);
         comment.setCreatedBy(member);
 
-        when(paperService.find(paperId, false)).thenReturn(paper);
+        when(paperService.find(paperId)).thenReturn(paper);
         when(memberService.getMember(memberId)).thenReturn(member);
         when(commentService.saveComment(eq(paperId), any(Comment.class))).thenReturn(comment);
 
@@ -96,7 +96,7 @@ public class CommentControllerTest {
                 .andExpect(jsonPath("$.paperId", Long.class).value(paperId))
                 .andExpect(jsonPath("$.createdBy.id", Long.class).value(memberId));
 
-        verify(paperService, only()).find(paperId, false);
+        verify(paperService, only()).find(paperId);
         verify(memberService, only()).getMember(memberId);
         verify(commentService, only()).saveComment(eq(paperId), any(Comment.class));
     }
@@ -160,7 +160,7 @@ public class CommentControllerTest {
         PageImpl<Comment> page = new PageImpl<>(comments);
 
 
-        when(paperService.find(paperId, false)).thenReturn(paper);
+        when(paperService.find(paperId)).thenReturn(paper);
         when(commentService.findByPaperId(eq(paperId), any(Pageable.class))).thenReturn(page);
 
         mvc
@@ -170,7 +170,7 @@ public class CommentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].comment", String.class).value(commentMessage));
 
-        verify(paperService, only()).find(paperId, false);
+        verify(paperService, only()).find(paperId);
         verify(commentService, only()).findByPaperId(eq(paperId), any(Pageable.class));
     }
 

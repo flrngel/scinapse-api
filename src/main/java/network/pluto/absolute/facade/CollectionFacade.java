@@ -10,11 +10,9 @@ import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.CollectionService;
 import network.pluto.absolute.service.MemberService;
-import network.pluto.absolute.service.mag.PaperService;
 import network.pluto.bibliotheca.models.Collection;
 import network.pluto.bibliotheca.models.CollectionPaper;
 import network.pluto.bibliotheca.models.Member;
-import network.pluto.bibliotheca.models.mag.Paper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AuthorizationServiceException;
@@ -36,7 +34,6 @@ public class CollectionFacade {
     private final CollectionService collectionService;
     private final MemberService memberService;
     private final PaperFacade paperFacade;
-    private final PaperService paperService;
 
     @Transactional
     public CollectionDto create(JwtUser user, CollectionDto dto) {
@@ -106,21 +103,21 @@ public class CollectionFacade {
         List<CollectionPaperDto> paperDtos = papers.stream().map(CollectionPaperDto::of).collect(Collectors.toList());
 
         List<Long> paperIds = paperDtos.stream().map(CollectionPaperDto::getPaperId).collect(Collectors.toList());
-        Map<Long, Paper> map = paperService.findByIdIn(paperIds, false)
+        Map<Long, PaperDto> map = paperFacade.findIn(paperIds, PaperDto.compact())
                 .stream()
                 .collect(Collectors.toMap(
-                        Paper::getId,
+                        PaperDto::getId,
                         Function.identity()
                 ));
 
         paperDtos.forEach(cp -> {
-            Paper paper = map.get(cp.getPaperId());
+            PaperDto paper = map.get(cp.getPaperId());
             if (paper == null) {
                 return;
             }
 
             // set paper dto
-            cp.setPaper(PaperDto.detail(paper));
+            cp.setPaper(paper);
         });
 
         return paperDtos;

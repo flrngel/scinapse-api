@@ -8,7 +8,9 @@ import lombok.Setter;
 import network.pluto.bibliotheca.models.mag.Paper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -77,49 +79,88 @@ public class PaperDto {
         return new PaperDto(paper);
     }
 
-    public static PaperDto simple(Paper paper) {
-        PaperDto dto = of(paper);
-        dto.withJournal(paper);
-        return dto;
+    public static Converter converter() {
+        return new Converter();
     }
 
-    public static PaperDto detail(Paper paper) {
-        PaperDto dto = simple(paper);
-        dto.withAbstract(paper);
-        dto.withUrl(paper);
-        return dto;
+    public static Converter simple() {
+        return new Converter()
+                .withJournal();
     }
 
-    public static PaperDto full(Paper paper) {
-        PaperDto dto = detail(paper);
-        dto.withFos(paper);
-        return dto;
+    public static Converter compact() {
+        return simple()
+                .withUrl();
     }
 
-    private void withJournal(Paper paper) {
-        if (paper.getJournal() != null) {
-            this.journal = new JournalDto(paper.getJournal());
+    public static Converter detail() {
+        return compact()
+                .withAbstract();
+    }
+
+    public static Converter full() {
+        return detail()
+                .withFos();
+    }
+
+    public static class Converter {
+
+        private Paper paper;
+        private PaperDto dto;
+        private Map<String, Runnable> detailLoaders = new HashMap<>();
+
+        private Converter() {
         }
-    }
 
-    private void withAbstract(Paper paper) {
-        if (paper.getPaperAbstract() != null) {
-            this.paperAbstract = paper.getPaperAbstract().getAbstract();
+        public Converter withJournal() {
+            if (detailLoaders.get("journal") != null) return this;
+            detailLoaders.put("journal", () -> {
+                if (paper.getJournal() != null) {
+                    dto.journal = new JournalDto(paper.getJournal());
+                }
+            });
+            return this;
         }
-    }
 
-    private void withUrl(Paper paper) {
-        if (!paper.getPaperUrls().isEmpty()) {
-            this.urls = paper.getPaperUrls().stream().map(PaperUrlDto::new).collect(Collectors.toList());
-            this.urlCount = this.urls.size();
+        public Converter withUrl() {
+            if (detailLoaders.get("url") != null) return this;
+            detailLoaders.put("url", () -> {
+                if (!paper.getPaperUrls().isEmpty()) {
+                    dto.urls = paper.getPaperUrls().stream().map(PaperUrlDto::new).collect(Collectors.toList());
+                    dto.urlCount = dto.urls.size();
+                }
+            });
+            return this;
         }
-    }
 
-    private void withFos(Paper paper) {
-        if (!paper.getPaperFosList().isEmpty()) {
-            this.fosList = paper.getPaperFosList().stream().map(FosDto::new).collect(Collectors.toList());
-            this.fosCount = this.fosList.size();
+        public Converter withAbstract() {
+            if (detailLoaders.get("abstract") != null) return this;
+            detailLoaders.put("abstract", () -> {
+                if (paper.getPaperAbstract() != null) {
+                    dto.paperAbstract = paper.getPaperAbstract().getAbstract();
+                }
+            });
+            return this;
         }
+
+        public Converter withFos() {
+            if (detailLoaders.get("fos") != null) return this;
+            detailLoaders.put("fos", () -> {
+                if (!paper.getPaperFosList().isEmpty()) {
+                    dto.fosList = paper.getPaperFosList().stream().map(FosDto::new).collect(Collectors.toList());
+                    dto.fosCount = dto.fosList.size();
+                }
+            });
+            return this;
+        }
+
+        public PaperDto convert(Paper paper) {
+            this.paper = paper;
+            this.dto = new PaperDto(paper);
+            this.detailLoaders.values().forEach(Runnable::run);
+            return dto;
+        }
+
     }
 
 }

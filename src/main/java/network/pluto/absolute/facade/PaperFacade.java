@@ -39,21 +39,23 @@ public class PaperFacade {
     private final PaperService paperService;
     private final AuthorService authorService;
 
-
     public PaperDto find(long paperId) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }
 
-        PaperDto dto = PaperDto.full(paper);
-
+        PaperDto dto = PaperDto.full().convert(paper);
         authorService.setDefaultAuthors(dto);
         commentService.setDefaultComments(dto);
         return dto;
     }
 
     public List<PaperDto> findIn(List<Long> paperIds) {
+        return findIn(paperIds, PaperDto.detail());
+    }
+
+    public List<PaperDto> findIn(List<Long> paperIds, PaperDto.Converter converter) {
         // DO THIS because results from IN query ordered randomly
         Map<Long, Paper> map = paperService.findByIdIn(paperIds)
                 .stream()
@@ -66,55 +68,43 @@ public class PaperFacade {
                 .stream()
                 .map(map::get)
                 .filter(Objects::nonNull)
-                .map(PaperDto::full)
+                .map(converter::convert)
                 .collect(Collectors.toList());
 
         authorService.setDefaultAuthors(dtos);
-        commentService.setDefaultComments(dtos);
         return dtos;
     }
 
-    public List<PaperDto> findInDetail(List<Long> paperIds) {
-        // DO THIS because results from IN query ordered randomly
-        Map<Long, Paper> map = paperService.findByIdIn(paperIds)
+    public List<PaperDto> convert(List<Paper> papers, PaperDto.Converter converter) {
+        List<PaperDto> dtos = papers
                 .stream()
-                .collect(Collectors.toMap(
-                        Paper::getId,
-                        Function.identity()
-                ));
-
-        List<PaperDto> dtos = paperIds
-                .stream()
-                .map(map::get)
-                .filter(Objects::nonNull)
-                .map(PaperDto::detail)
+                .map(converter::convert)
                 .collect(Collectors.toList());
-
         authorService.setDefaultAuthors(dtos);
         return dtos;
     }
 
     @Transactional(readOnly = true)
     public Page<PaperDto> findReferences(long paperId, Pageable pageable) {
-        Paper paper = paperService.find(paperId, false);
+        Paper paper = paperService.find(paperId);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }
 
         List<Long> referenceIds = paperService.findReferences(paperId, pageable);
-        List<PaperDto> dtos = findInDetail(referenceIds);
+        List<PaperDto> dtos = findIn(referenceIds);
         return new PageImpl<>(dtos, pageable, paper.getPaperCount());
     }
 
     @Transactional(readOnly = true)
     public Page<PaperDto> findCited(long paperId, Pageable pageable) {
-        Paper paper = paperService.find(paperId, false);
+        Paper paper = paperService.find(paperId);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }
 
         List<Long> citedIds = paperService.findCited(paperId, pageable);
-        List<PaperDto> dtos = findInDetail(citedIds);
+        List<PaperDto> dtos = findIn(citedIds);
         return new PageImpl<>(dtos, pageable, paper.getCitationCount());
     }
 
@@ -128,15 +118,6 @@ public class PaperFacade {
         }
 
         return searchFromES(query, pageable);
-    }
-
-    public CitationTextDto citation(long paperId, CitationFormat format) {
-        Paper paper = paperService.find(paperId, false);
-        if (paper == null) {
-            throw new ResourceNotFoundException("Paper not found");
-        }
-
-        return paperService.citation(paper.getDoi(), format);
     }
 
     private Page<PaperDto> searchByJournal(Query query, Pageable pageable) {
@@ -176,6 +157,15 @@ public class PaperFacade {
         return new PageImpl<>(findIn(paperIds.getContent()), pageable, paperIds.getTotalElements());
     }
 
+    public CitationTextDto citation(long paperId, CitationFormat format) {
+        Paper paper = paperService.find(paperId);
+        if (paper == null) {
+            throw new ResourceNotFoundException("Paper not found");
+        }
+
+        return paperService.citation(paper.getDoi(), format);
+    }
+
     public AggregationDto aggregate(Query query) {
         if (query.isDoi()) {
             return AggregationDto.unavailable();
@@ -195,21 +185,13 @@ public class PaperFacade {
     }
 
     public List<PaperDto> getRelatedPapers(long paperId) {
-        List<PaperDto> dtos = paperService.getRelatedPapers(paperId)
-                .stream()
-                .map(PaperDto::simple)
-                .collect(Collectors.toList());
-        authorService.setDefaultAuthors(dtos);
-        return dtos;
+        List<Long> relatedPaperIds = paperService.getRelatedPapers(paperId);
+        return findIn(relatedPaperIds, PaperDto.simple());
     }
 
     public List<PaperDto> getAuthorRelatedPapers(long paperId, long authorId) {
-        List<PaperDto> dtos = paperService.getAuthorRelatedPapers(paperId, authorId)
-                .stream()
-                .map(PaperDto::simple)
-                .collect(Collectors.toList());
-        authorService.setDefaultAuthors(dtos);
-        return dtos;
+        List<Paper> relatedPapers = paperService.getAuthorRelatedPapers(paperId, authorId);
+        return convert(relatedPapers, PaperDto.simple());
     }
 
 }

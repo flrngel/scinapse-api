@@ -30,7 +30,7 @@ public class CommentController {
     @RequestMapping(value = "/comments", method = RequestMethod.POST)
     public CommentDto createComment(@ApiIgnore JwtUser user,
                                     @RequestBody @Valid CommentDto commentDto) {
-        Paper paper = paperService.find(commentDto.getPaperId(), false);
+        Paper paper = paperService.find(commentDto.getPaperId());
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }
@@ -47,7 +47,7 @@ public class CommentController {
     @RequestMapping(value = "/comments", method = RequestMethod.GET)
     public Page<CommentDto> findComments(@RequestParam Long paperId,
                                          @PageableDefault Pageable pageable) {
-        Paper paper = paperService.find(paperId, false);
+        Paper paper = paperService.find(paperId);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }

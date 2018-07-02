@@ -5,9 +5,12 @@ import network.pluto.absolute.dto.AuthorDto;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.enums.PaperSort;
 import network.pluto.absolute.error.ResourceNotFoundException;
+import network.pluto.absolute.facade.PaperFacade;
 import network.pluto.absolute.service.AuthorService;
 import network.pluto.bibliotheca.models.mag.Author;
+import network.pluto.bibliotheca.models.mag.Paper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 public class AuthorController {
 
     private final AuthorService authorService;
+    private final PaperFacade paperFacade;
 
     @RequestMapping(value = "/authors/{authorId}", method = RequestMethod.GET)
     public Map<String, Object> find(@PathVariable long authorId) {
@@ -44,9 +48,9 @@ public class AuthorController {
         // FIXME need to create custom pageable converter
         // do this for temporary remove sort from pageable
         PageRequest pageableReplace = new PageRequest(pageable.getPageNumber(), pageable.getPageSize());
-        Page<PaperDto> dtos = authorService.getAuthorPaper(authorId, sort, pageableReplace).map(PaperDto::detail);
-        authorService.setDefaultAuthors(dtos.getContent());
-        return dtos;
+        Page<Paper> papers = authorService.getAuthorPaper(authorId, sort, pageableReplace);
+        List<PaperDto> paperDtos = paperFacade.convert(papers.getContent(), PaperDto.detail());
+        return new PageImpl<>(paperDtos, pageable, papers.getTotalElements());
     }
 
     @RequestMapping(value = "/authors/{authorId}/co-authors", method = RequestMethod.GET)
