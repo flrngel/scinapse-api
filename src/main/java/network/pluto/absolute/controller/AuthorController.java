@@ -6,7 +6,7 @@ import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.enums.PaperSort;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.facade.PaperFacade;
-import network.pluto.absolute.service.AuthorService;
+import network.pluto.absolute.service.mag.AuthorService;
 import network.pluto.bibliotheca.models.mag.Author;
 import network.pluto.bibliotheca.models.mag.Paper;
 import org.springframework.data.domain.Page;

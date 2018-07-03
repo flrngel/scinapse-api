@@ -2,6 +2,7 @@ package network.pluto.absolute.util;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
@@ -10,7 +11,6 @@ import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.index.query.functionscore.WeightBuilder;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -26,11 +26,8 @@ public class Query {
     private long journalId;
 
     private Query(String text) {
-        if (!StringUtils.hasText(text)) {
-            return;
-        }
-        this.text = text.trim();
-        this.phraseQueries = TextUtils.parsePhrase(text);
+        this.text = StringUtils.strip(text);
+        this.phraseQueries = TextUtils.parsePhrase(this.text);
         this.doi = TextUtils.parseDoi(this.text);
     }
 
@@ -45,7 +42,7 @@ public class Query {
     }
 
     public boolean isValid() {
-        return StringUtils.hasText(text) && text.length() >= 2 && text.length() < 200;
+        return StringUtils.isNotBlank(text) && text.length() >= 2 && text.length() < 200;
     }
 
     public QueryBuilder toQuery() {
@@ -169,7 +166,7 @@ public class Query {
     }
 
     public boolean isDoi() {
-        return StringUtils.hasText(doi);
+        return StringUtils.isNotBlank(doi);
     }
 
     private QueryBuilder toDoiSearchQuery() {

@@ -8,9 +8,9 @@ import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.enums.CitationFormat;
 import network.pluto.absolute.enums.PaperSort;
 import network.pluto.absolute.error.ResourceNotFoundException;
-import network.pluto.absolute.service.AuthorService;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.SearchService;
+import network.pluto.absolute.service.mag.AuthorService;
 import network.pluto.absolute.service.mag.PaperService;
 import network.pluto.absolute.util.Query;
 import network.pluto.bibliotheca.models.mag.Paper;
@@ -129,7 +129,7 @@ public class PaperFacade {
                 pageable);
     }
 
-    private Page<PaperDto> searchFromES(Query query, Pageable pageable) {
+    public Page<PaperDto> searchFromES(Query query, Pageable pageable) {
         Sort sort = pageable.getSort();
         if (sort != null && sort.iterator().hasNext()) {
             Sort.Order next = sort.iterator().next();
@@ -143,7 +143,7 @@ public class PaperFacade {
         return searchFromES(query, new ArrayList<>(), pageable);
     }
 
-    private Page<PaperDto> searchFromES(Query query, List<SortBuilder> sorts, Pageable pageable) {
+    public Page<PaperDto> searchFromES(Query query, List<SortBuilder> sorts, Pageable pageable) {
         Page<Long> paperIds;
         if (sorts.isEmpty()) {
             paperIds = searchService.search(query, pageable);

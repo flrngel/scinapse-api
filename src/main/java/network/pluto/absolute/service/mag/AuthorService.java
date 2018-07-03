@@ -1,4 +1,4 @@
-package network.pluto.absolute.service;
+package network.pluto.absolute.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import lombok.RequiredArgsConstructor;
