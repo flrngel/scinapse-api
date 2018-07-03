@@ -1,10 +1,12 @@
-package network.pluto.absolute.dto;
+package network.pluto.absolute.dto.collection;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import network.pluto.absolute.dto.PaperDto;
 import network.pluto.bibliotheca.models.CollectionPaper;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -12,11 +14,16 @@ import network.pluto.bibliotheca.models.CollectionPaper;
 @Setter
 public class CollectionPaperDto {
 
+    @ApiModelProperty(readOnly = true)
     @JsonProperty("collection_id")
     private long collectionId;
+
     @JsonProperty("paper_id")
     private long paperId;
+
     private String note;
+
+    @ApiModelProperty(readOnly = true)
     private PaperDto paper;
 
     private CollectionPaperDto(CollectionPaper collectionPaper) {

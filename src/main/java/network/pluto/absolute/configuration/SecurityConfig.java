@@ -91,6 +91,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         AUTH_OAUTH_LOGIN_URI
                 ).permitAll()
 
+                .antMatchers(
+                        HttpMethod.GET,
+                        "/members/me/collections"
+                )
+                .hasAnyAuthority(AuthorityName.ROLE_ADMIN.name(), AuthorityName.ROLE_USER.name())
+
                 // permit get
                 .antMatchers(
                         HttpMethod.GET,

@@ -1,10 +1,11 @@
-package network.pluto.absolute.dto;
+package network.pluto.absolute.dto.collection;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import network.pluto.absolute.dto.MemberDto;
 import network.pluto.bibliotheca.models.Collection;
 import org.springframework.util.StringUtils;
 
@@ -12,7 +13,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter
 public class CollectionDto {
@@ -38,7 +39,7 @@ public class CollectionDto {
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 
-    private CollectionDto(Collection collection) {
+    protected CollectionDto(Collection collection) {
         this.id = collection.getId();
         this.createdBy = new MemberDto(collection.getCreatedBy());
         this.title = collection.getTitle();

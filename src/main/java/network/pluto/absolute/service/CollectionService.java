@@ -32,10 +32,6 @@ public class CollectionService {
         return collectionRepository.findOne(collectionId);
     }
 
-    public List<Collection> findIn(List<Long> collectionIds) {
-        return collectionRepository.findByIdIn(collectionIds);
-    }
-
     public Page<Collection> findByCreator(Member creator, Pageable pageable) {
         return collectionRepository.findByCreatedByOrderByCreatedAtDesc(creator, pageable);
     }
@@ -64,13 +60,12 @@ public class CollectionService {
         collection.setPaperCount(paperCount);
     }
 
-    @Transactional
-    public void addPaper(List<CollectionPaper> collectionPapers) {
-        collectionPapers.forEach(this::addPaper);
-    }
-
     public List<CollectionPaper> findByCollectionId(long collectionId) {
         return collectionPaperRepository.findByIdCollectionId(collectionId);
+    }
+
+    public List<CollectionPaper> findByIds(List<Long> collectionIds, long paperId) {
+        return collectionPaperRepository.findByIdCollectionIdInAndIdPaperId(collectionIds, paperId);
     }
 
     @Transactional
@@ -93,6 +88,10 @@ public class CollectionService {
     @Transactional
     public void delete(long collectionId, List<Long> paperIds) {
         collectionPaperRepository.deleteByIdCollectionIdAndIdPaperIdIn(collectionId, paperIds);
+
+        Collection collection = collectionRepository.findOne(collectionId);
+        int paperCount = collectionPaperRepository.countByIdCollectionId(collectionId);
+        collection.setPaperCount(paperCount);
     }
 
 }

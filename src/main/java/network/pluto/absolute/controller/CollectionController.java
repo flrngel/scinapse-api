@@ -1,10 +1,10 @@
 package network.pluto.absolute.controller;
 
 import lombok.RequiredArgsConstructor;
-import network.pluto.absolute.dto.CollectionDto;
-import network.pluto.absolute.dto.CollectionPaperDto;
-import network.pluto.absolute.dto.collection.CollectionPaperAddRequest;
+import network.pluto.absolute.dto.collection.CollectionDto;
+import network.pluto.absolute.dto.collection.CollectionPaperDto;
 import network.pluto.absolute.dto.collection.CollectionPaperUpdateRequest;
+import network.pluto.absolute.dto.collection.MyCollectionDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.facade.CollectionFacade;
 import network.pluto.absolute.security.jwt.JwtUser;
@@ -83,6 +83,18 @@ public class CollectionController {
         return result;
     }
 
+    @RequestMapping(value = "/members/me/collections", method = RequestMethod.GET)
+    public Map<String, Object> myCollection(@ApiIgnore JwtUser user,
+                                            @RequestParam(value = "paper_id", required = false) Long paperId,
+                                            @PageableDefault Pageable pageable) {
+        Page<MyCollectionDto> dtos = collectionFacade.findMyCollection(user, paperId, pageable);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("data", dtos);
+
+        return result;
+    }
+
     @RequestMapping(value = "/collections/{collectionId}/papers", method = RequestMethod.GET)
     public Map<String, Object> getPapers(@PathVariable long collectionId) {
         List<CollectionPaperDto> dtos = collectionFacade.getPapers(collectionId);
@@ -93,8 +105,9 @@ public class CollectionController {
         return result;
     }
 
-    @RequestMapping(value = "/collections/papers", method = RequestMethod.POST)
-    public Result addPaper(@ApiIgnore JwtUser user, @RequestBody @Valid CollectionPaperAddRequest request) {
+    @RequestMapping(value = "/collections/{collectionId}/papers", method = RequestMethod.POST)
+    public Result addPaper(@ApiIgnore JwtUser user, @PathVariable long collectionId, @RequestBody @Valid CollectionPaperDto request) {
+        request.setCollectionId(collectionId);
         collectionFacade.addPaper(user, request);
         return Result.success();
     }
@@ -109,9 +122,12 @@ public class CollectionController {
         return result;
     }
 
-    @RequestMapping(value = "/collections/{collectionId}/papers/{paperIds}", method = RequestMethod.DELETE)
-    public Result deletePapers(@ApiIgnore JwtUser user, @PathVariable long collectionId, @PathVariable List<Long> paperIds) {
-        collectionFacade.delete(user, collectionId, paperIds);
+    @RequestMapping(value = "/collections/{collectionId}/papers", method = RequestMethod.DELETE)
+    public Result deletePapers(@ApiIgnore JwtUser user, @PathVariable long collectionId, @RequestParam("paper_ids") List<Long> paperIds) {
+        if (paperIds.isEmpty()) {
+            throw new BadRequestException("must specify paper IDs");
+        }
+        collectionFacade.deletePapers(user, collectionId, paperIds);
         return Result.success();
     }
 

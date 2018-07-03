@@ -2,14 +2,15 @@ package network.pluto.absolute.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import lombok.RequiredArgsConstructor;
-import network.pluto.absolute.dto.CollectionDto;
-import network.pluto.absolute.dto.CollectionPaperDto;
 import network.pluto.absolute.dto.PaperDto;
-import network.pluto.absolute.dto.collection.CollectionPaperAddRequest;
+import network.pluto.absolute.dto.collection.CollectionDto;
+import network.pluto.absolute.dto.collection.CollectionPaperDto;
+import network.pluto.absolute.dto.collection.MyCollectionDto;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.CollectionService;
 import network.pluto.absolute.service.MemberService;
+import network.pluto.absolute.service.mag.PaperService;
 import network.pluto.bibliotheca.models.Collection;
 import network.pluto.bibliotheca.models.CollectionPaper;
 import network.pluto.bibliotheca.models.Member;
@@ -19,7 +20,6 @@ import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -34,6 +34,7 @@ public class CollectionFacade {
     private final CollectionService collectionService;
     private final MemberService memberService;
     private final PaperFacade paperFacade;
+    private final PaperService paperService;
 
     @Transactional
     public CollectionDto create(JwtUser user, CollectionDto dto) {
@@ -62,6 +63,28 @@ public class CollectionFacade {
         }
 
         return collectionService.findByCreator(creator, pageable).map(CollectionDto::of);
+    }
+
+    public Page<MyCollectionDto> findMyCollection(JwtUser user, Long paperId, Pageable pageable) {
+        Member member = memberService.findMember(user.getId());
+        if (member == null) {
+            throw new ResourceNotFoundException("Member not found : " + user.getId());
+        }
+
+        if (paperId == null) {
+            return collectionService.findByCreator(member, pageable).map(MyCollectionDto::of);
+        }
+
+        Page<Collection> collections = collectionService.findByCreator(member, pageable);
+        List<Long> collectionIds = collections.getContent().stream().map(Collection::getId).collect(Collectors.toList());
+        Map<Long, CollectionPaper> collectionPaperMap = collectionService.findByIds(collectionIds, paperId)
+                .stream()
+                .collect(Collectors.toMap(
+                        cp -> cp.getId().getCollectionId(),
+                        Function.identity()
+                ));
+
+        return collections.map(c -> MyCollectionDto.of(c, collectionPaperMap.containsKey(c.getId())));
     }
 
     @Transactional
@@ -124,34 +147,21 @@ public class CollectionFacade {
     }
 
     @Transactional
-    public void addPaper(JwtUser user, CollectionPaperAddRequest request) {
-        List<Collection> collections = collectionService.findIn(request.getCollectionIds());
-        if (collections.isEmpty() || collections.size() != request.getCollectionIds().size()) {
-            ArrayList<Long> collectionIds = new ArrayList<>(request.getCollectionIds());
-            collectionIds.removeAll(collections.stream().map(Collection::getId).collect(Collectors.toList()));
-            throw new ResourceNotFoundException("Collection not found : " + collectionIds);
+    public void addPaper(JwtUser user, CollectionPaperDto request) {
+        if (!paperService.exists(request.getPaperId())) {
+            throw new ResourceNotFoundException("Paper not found : " + request.getPaperId());
         }
 
-        List<Long> invalidIds = collections.stream().filter(c -> c.getCreatedBy().getId() != user.getId()).map(Collection::getId).collect(Collectors.toList());
-        if (!invalidIds.isEmpty()) {
-            throw new AuthorizationServiceException("Updating collection is only possible by its creator : " + invalidIds);
-        }
-
-        collectionService.addPaper(request.toEntities());
-    }
-
-    @Transactional
-    public void delete(JwtUser user, long collectionId, List<Long> paperIds) {
-        Collection one = collectionService.find(collectionId);
+        Collection one = collectionService.find(request.getCollectionId());
         if (one == null) {
-            throw new ResourceNotFoundException("Collection not found : " + collectionId);
+            throw new ResourceNotFoundException("Collection not found : " + request.getCollectionId());
         }
 
         if (one.getCreatedBy().getId() != user.getId()) {
             throw new AuthorizationServiceException("Deleting collection paper is only possible by its creator");
         }
 
-        collectionService.delete(collectionId, paperIds);
+        collectionService.addPaper(request.toEntity());
     }
 
     @Transactional
@@ -162,7 +172,7 @@ public class CollectionFacade {
         }
 
         if (one.getCreatedBy().getId() != user.getId()) {
-            throw new AuthorizationServiceException("Deleting collection paper is only possible by its creator");
+            throw new AuthorizationServiceException("Adding collection paper is only possible by its creator");
         }
 
         CollectionPaper collectionPaper = collectionService.findCollectionPaper(collectionId, paperId);
@@ -172,6 +182,20 @@ public class CollectionFacade {
 
         CollectionPaper updated = collectionService.updateCollectionPaperNote(collectionPaper, newNote);
         return CollectionPaperDto.of(updated);
+    }
+
+    @Transactional
+    public void deletePapers(JwtUser user, long collectionId, List<Long> paperIds) {
+        Collection one = collectionService.find(collectionId);
+        if (one == null) {
+            throw new ResourceNotFoundException("Collection not found : " + collectionId);
+        }
+
+        if (one.getCreatedBy().getId() != user.getId()) {
+            throw new AuthorizationServiceException("Deleting collection paper is only possible by its creator");
+        }
+
+        collectionService.delete(collectionId, paperIds);
     }
 
 }

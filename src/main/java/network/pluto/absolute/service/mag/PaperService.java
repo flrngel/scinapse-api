@@ -72,6 +72,10 @@ public class PaperService {
                 .collect(Collectors.toList());
     }
 
+    public boolean exists(long paperId) {
+        return paperRepository.exists(paperId);
+    }
+
     public CitationTextDto citation(String doiStr, CitationFormat format) {
         String doi = TextUtils.parseDoi(doiStr);
 
