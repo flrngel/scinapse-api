@@ -5,7 +5,7 @@ import network.pluto.absolute.dto.CompletionDto;
 import network.pluto.absolute.dto.SuggestionDto;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.service.SearchService;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,7 +23,7 @@ public class CompletionController {
 
     @RequestMapping(value = "/complete", method = RequestMethod.GET)
     public Map<String, Object> complete(@RequestParam("q") String keyword) {
-        if (!StringUtils.hasText(keyword) || keyword.trim().length() < 2) {
+        if (StringUtils.isBlank(keyword) || keyword.trim().length() < 2) {
             throw new BadRequestException("Keyword is too short. Only keywords with two or more characters are allowed.");
         }
 
@@ -37,6 +37,7 @@ public class CompletionController {
 
     @RequestMapping(value = "/suggest", method = RequestMethod.GET)
     public Map<String, Object> suggest(@RequestParam("q") String keyword) {
+        keyword = StringUtils.strip(keyword);
         SuggestionDto suggest = searchService.suggest(keyword);
 
         Map<String, Object> result = new HashMap<>();

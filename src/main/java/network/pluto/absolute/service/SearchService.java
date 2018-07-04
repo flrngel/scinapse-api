@@ -11,6 +11,7 @@ import network.pluto.absolute.enums.CompletionType;
 import network.pluto.absolute.util.Query;
 import network.pluto.bibliotheca.repositories.mag.FieldsOfStudyRepository;
 import network.pluto.bibliotheca.repositories.mag.JournalRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -46,14 +47,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.Year;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @XRayEnabled
@@ -202,7 +199,7 @@ public class SearchService {
     }
 
     public SuggestionDto suggest(String keyword) {
-        if (!StringUtils.hasText(keyword)) {
+        if (StringUtils.isBlank(keyword)) {
             return null;
         }
 
@@ -216,12 +213,17 @@ public class SearchService {
             candidate.maxTermFreq(300);
         }
 
+        Map<String, Object> params = new HashMap<>();
+        params.put("field_name", "title");
+
         PhraseSuggestionBuilder phraseSuggest = SuggestBuilders.phraseSuggestion("title")
                 .text(keyword)
                 .addCandidateGenerator(candidate)
                 .size(1)
                 .maxErrors(3)
-                .highlight("<b>", "</b>");
+                .highlight("<b>", "</b>")
+                .collateQuery("{\"match\": {\"{{field_name}}\": {\"query\": \"{{suggestion}}\", \"operator\": \"and\"}}}")
+                .collateParams(params);
 
         SuggestBuilder suggest = new SuggestBuilder()
                 .addSuggestion("suggest", phraseSuggest);
