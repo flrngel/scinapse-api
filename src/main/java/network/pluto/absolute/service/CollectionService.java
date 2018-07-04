@@ -10,6 +10,7 @@ import network.pluto.bibliotheca.repositories.CollectionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -28,12 +29,24 @@ public class CollectionService {
         return collectionRepository.save(dto);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Collection createDefault(Member member) {
+        Collection collection = new Collection();
+        collection.setCreatedBy(member);
+        collection.setTitle(member.getName() + "'s collection");
+        return collectionRepository.save(collection);
+    }
+
     public Collection find(long collectionId) {
         return collectionRepository.findOne(collectionId);
     }
 
     public Page<Collection> findByCreator(Member creator, Pageable pageable) {
         return collectionRepository.findByCreatedByOrderByCreatedAtDesc(creator, pageable);
+    }
+
+    public long collectionCount(Member creator) {
+        return collectionRepository.countByCreatedBy(creator);
     }
 
     @Transactional

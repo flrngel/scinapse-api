@@ -6,6 +6,7 @@ import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.dto.collection.CollectionDto;
 import network.pluto.absolute.dto.collection.CollectionPaperDto;
 import network.pluto.absolute.dto.collection.MyCollectionDto;
+import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.CollectionService;
@@ -15,11 +16,14 @@ import network.pluto.bibliotheca.models.Collection;
 import network.pluto.bibliotheca.models.CollectionPaper;
 import network.pluto.bibliotheca.models.Member;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -39,6 +43,14 @@ public class CollectionFacade {
     @Transactional
     public CollectionDto create(JwtUser user, CollectionDto dto) {
         Member member = memberService.getMember(user.getId());
+        if (member == null) {
+            throw new ResourceNotFoundException("Member not found : " + member.getId());
+        }
+
+        long count = collectionService.collectionCount(member);
+        if (count >= 50) {
+            throw new BadRequestException("Each member can create up to 50 collections");
+        }
 
         Collection entity = dto.toEntity();
         entity.setCreatedBy(member);
@@ -71,11 +83,18 @@ public class CollectionFacade {
             throw new ResourceNotFoundException("Member not found : " + user.getId());
         }
 
-        if (paperId == null) {
-            return collectionService.findByCreator(member, pageable).map(MyCollectionDto::of);
+        Page<Collection> collections = collectionService.findByCreator(member, pageable);
+        if (collections.getTotalElements() == 0) {
+            // Member doesn't have any collections. Create default collection.
+            Collection collection = collectionService.createDefault(member);
+            PageRequest defaultPageable = new PageRequest(0, 10);
+            collections = new PageImpl<>(Collections.singletonList(collection), defaultPageable, 1);
         }
 
-        Page<Collection> collections = collectionService.findByCreator(member, pageable);
+        if (paperId == null) {
+            return collections.map(MyCollectionDto::of);
+        }
+
         List<Long> collectionIds = collections.getContent().stream().map(Collection::getId).collect(Collectors.toList());
         Map<Long, CollectionPaper> collectionPaperMap = collectionService.findByIds(collectionIds, paperId)
                 .stream()
@@ -155,6 +174,10 @@ public class CollectionFacade {
         Collection one = collectionService.find(request.getCollectionId());
         if (one == null) {
             throw new ResourceNotFoundException("Collection not found : " + request.getCollectionId());
+        }
+
+        if (one.getPaperCount() >= 100) {
+            throw new BadRequestException("You can only add up to 100 papers to a collection");
         }
 
         if (one.getCreatedBy().getId() != user.getId()) {
