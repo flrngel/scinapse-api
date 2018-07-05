@@ -2,8 +2,8 @@ package network.pluto.absolute.controller;
 
 import network.pluto.absolute.WithMockJwtUser;
 import network.pluto.absolute.enums.AuthorityName;
-import network.pluto.absolute.models.Authority;
-import network.pluto.absolute.models.Member;
+import network.pluto.absolute.model.Authority;
+import network.pluto.absolute.model.Member;
 import network.pluto.absolute.service.MemberService;
 import org.junit.Test;
 import org.junit.runner.RunWith;

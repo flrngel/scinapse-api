@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import network.pluto.absolute.dto.PaperDto;
-import network.pluto.absolute.models.CollectionPaper;
+import network.pluto.absolute.model.CollectionPaper;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter

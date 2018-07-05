@@ -1,7 +1,7 @@
 package network.pluto.absolute.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import network.pluto.absolute.models.Bookmark;
+import network.pluto.absolute.model.Bookmark;
 
 import java.time.LocalDateTime;
 

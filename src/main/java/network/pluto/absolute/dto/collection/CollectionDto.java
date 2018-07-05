@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import network.pluto.absolute.dto.MemberDto;
-import network.pluto.absolute.models.Collection;
+import network.pluto.absolute.model.Collection;
 import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;

@@ -7,7 +7,7 @@ import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.enums.PaperSort;
 import network.pluto.absolute.error.BadRequestException;
 import network.pluto.absolute.error.ResourceNotFoundException;
-import network.pluto.absolute.models.mag.Journal;
+import network.pluto.absolute.model.mag.Journal;
 import network.pluto.absolute.service.mag.JournalService;
 import network.pluto.absolute.util.Query;
 import network.pluto.absolute.util.QueryFilter;

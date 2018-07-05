@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import network.pluto.absolute.WithMockJwtUser;
 import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.facade.MemberFacade;
-import network.pluto.absolute.models.Member;
+import network.pluto.absolute.model.Member;
 import network.pluto.absolute.service.MemberService;
 import org.junit.Before;
 import org.junit.Test;

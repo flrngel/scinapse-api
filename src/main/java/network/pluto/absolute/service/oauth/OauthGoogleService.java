@@ -2,8 +2,8 @@ package network.pluto.absolute.service.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.RequiredArgsConstructor;
-import network.pluto.absolute.models.oauth.OauthGoogle;
-import network.pluto.absolute.repositories.oauth.OauthGoogleRepository;
+import network.pluto.absolute.model.oauth.OauthGoogle;
+import network.pluto.absolute.repository.oauth.OauthGoogleRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

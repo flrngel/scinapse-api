@@ -8,7 +8,7 @@ import network.pluto.absolute.dto.OAuthRequest;
 import network.pluto.absolute.dto.oauth.OauthUserDto;
 import network.pluto.absolute.enums.OauthVendor;
 import network.pluto.absolute.facade.OauthFacade;
-import network.pluto.absolute.models.Member;
+import network.pluto.absolute.model.Member;
 import network.pluto.absolute.security.LoginRequest;
 import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.security.jwt.JwtUser;

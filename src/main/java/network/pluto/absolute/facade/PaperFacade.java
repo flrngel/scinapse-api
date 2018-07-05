@@ -8,7 +8,7 @@ import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.enums.CitationFormat;
 import network.pluto.absolute.enums.PaperSort;
 import network.pluto.absolute.error.ResourceNotFoundException;
-import network.pluto.absolute.models.mag.Paper;
+import network.pluto.absolute.model.mag.Paper;
 import network.pluto.absolute.service.CommentService;
 import network.pluto.absolute.service.SearchService;
 import network.pluto.absolute.service.mag.AuthorService;

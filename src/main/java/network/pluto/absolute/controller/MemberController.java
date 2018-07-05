@@ -6,7 +6,7 @@ import network.pluto.absolute.dto.MemberDto;
 import network.pluto.absolute.dto.MemberDuplicationCheckDto;
 import network.pluto.absolute.error.ResourceNotFoundException;
 import network.pluto.absolute.facade.MemberFacade;
-import network.pluto.absolute.models.Member;
+import network.pluto.absolute.model.Member;
 import network.pluto.absolute.security.jwt.JwtUser;
 import network.pluto.absolute.service.MemberService;
 import network.pluto.absolute.validator.Update;

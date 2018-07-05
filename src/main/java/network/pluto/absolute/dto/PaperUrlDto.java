@@ -3,7 +3,7 @@ package network.pluto.absolute.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.absolute.models.mag.PaperUrl;
+import network.pluto.absolute.model.mag.PaperUrl;
 
 @NoArgsConstructor
 @Getter

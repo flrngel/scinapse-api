@@ -1,7 +1,7 @@
 package network.pluto.absolute.validator;
 
 import network.pluto.absolute.dto.MemberDto;
-import network.pluto.absolute.models.Member;
+import network.pluto.absolute.model.Member;
 import network.pluto.absolute.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

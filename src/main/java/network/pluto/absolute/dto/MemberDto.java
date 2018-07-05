@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import network.pluto.absolute.dto.oauth.OauthUserDto;
-import network.pluto.absolute.models.Member;
+import network.pluto.absolute.model.Member;
 import network.pluto.absolute.validator.Update;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.URL;

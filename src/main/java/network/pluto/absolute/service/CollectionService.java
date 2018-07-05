@@ -2,11 +2,11 @@ package network.pluto.absolute.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import lombok.RequiredArgsConstructor;
-import network.pluto.absolute.models.Collection;
-import network.pluto.absolute.models.CollectionPaper;
-import network.pluto.absolute.models.Member;
-import network.pluto.absolute.repositories.CollectionPaperRepository;
-import network.pluto.absolute.repositories.CollectionRepository;
+import network.pluto.absolute.model.Collection;
+import network.pluto.absolute.model.CollectionPaper;
+import network.pluto.absolute.model.Member;
+import network.pluto.absolute.repository.CollectionPaperRepository;
+import network.pluto.absolute.repository.CollectionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
