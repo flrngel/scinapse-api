@@ -28,4 +28,7 @@ public class Collection extends BaseEntity {
     @Column
     private int paperCount = 0;
 
+    @Column
+    private boolean isDefault = false;
+
 }

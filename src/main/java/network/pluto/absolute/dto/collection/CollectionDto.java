@@ -33,6 +33,9 @@ public class CollectionDto {
     @JsonProperty("paper_count")
     private long paperCount;
 
+    @JsonProperty("is_default")
+    private boolean isDefault;
+
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
@@ -45,6 +48,7 @@ public class CollectionDto {
         this.title = collection.getTitle();
         this.description = collection.getDescription();
         this.paperCount = collection.getPaperCount();
+        this.isDefault = collection.isDefault();
         this.createdAt = collection.getCreatedAt();
         this.updatedAt = collection.getUpdatedAt();
     }

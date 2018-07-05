@@ -52,6 +52,11 @@ public class CollectionFacade {
             throw new BadRequestException("Each member can create up to 50 collections");
         }
 
+        if (count == 0) {
+            // Member does not have default collection. Creating default one.
+            return CollectionDto.of(collectionService.createDefault(member));
+        }
+
         Collection entity = dto.toEntity();
         entity.setCreatedBy(member);
 
@@ -117,6 +122,10 @@ public class CollectionFacade {
             throw new AuthorizationServiceException("Updating collection is only possible by its creator");
         }
 
+        if (one.isDefault()) {
+            throw new ResourceNotFoundException("Cannot update default collection : " + collectionId);
+        }
+
         Collection updated = collectionService.update(one, dto.toEntity());
         return CollectionDto.of(updated);
     }
@@ -130,6 +139,10 @@ public class CollectionFacade {
 
         if (one.getCreatedBy().getId() != user.getId()) {
             throw new AuthorizationServiceException("Deleting collection is only possible by its creator");
+        }
+
+        if (one.isDefault()) {
+            throw new ResourceNotFoundException("Cannot delete default collection : " + collectionId);
         }
 
         collectionService.delete(one);
