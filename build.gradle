@@ -5,13 +5,6 @@ plugins {
     id 'com.ewerk.gradle.plugins.querydsl' version '1.0.9'
 }
 
-group = 'plutonet'
-
-jar {
-    baseName = 'absolute'
-    version = '0.0.1'
-}
-
 springBoot {
     executable = true
 }

@@ -19,7 +19,7 @@ public class SwaggerConfiguration {
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
-                .groupName("absolute-api")
+                .groupName("scinapse-api")
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("io.scinapse.api.controller"))
                 .paths(PathSelectors.any())
@@ -29,8 +29,8 @@ public class SwaggerConfiguration {
 
     private ApiInfo metaData() {
         return new ApiInfo(
-                "Absolute REST API",
-                "Absolute REST API for Absolute",
+                "Scinapse REST API",
+                "Scinapse REST API",
                 "1.0",
                 "Terms of Service",
                 new Contact("Pluto", "https://github.com/pluto-net/", "dev@pluto.network"),

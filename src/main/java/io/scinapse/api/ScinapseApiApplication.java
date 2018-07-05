@@ -11,12 +11,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableCaching
 @EnableJpaAuditing
 @EnableJpaRepositories
-@EntityScan(basePackageClasses = { Absolute.class, Jsr310JpaConverters.class })
+@EntityScan(basePackageClasses = { ScinapseApi.class, Jsr310JpaConverters.class })
 @SpringBootApplication
-public class AbsoluteApplication {
+public class ScinapseApiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(AbsoluteApplication.class, args);
+        SpringApplication.run(ScinapseApiApplication.class, args);
     }
 
 }

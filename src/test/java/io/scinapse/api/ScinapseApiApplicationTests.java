@@ -9,7 +9,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @ActiveProfiles("test")
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class AbsoluteApplicationTests {
+public class ScinapseApiApplicationTests {
 
     @Test
     public void contextLoads() {
