@@ -1,8 +1,8 @@
 package network.pluto.absolute.service;
 
 import lombok.RequiredArgsConstructor;
-import network.pluto.bibliotheca.models.Bookmark;
-import network.pluto.bibliotheca.repositories.BookmarkRepository;
+import network.pluto.absolute.models.Bookmark;
+import network.pluto.absolute.repositories.BookmarkRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

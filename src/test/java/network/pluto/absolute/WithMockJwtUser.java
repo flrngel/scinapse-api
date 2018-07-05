@@ -1,6 +1,6 @@
 package network.pluto.absolute;
 
-import network.pluto.bibliotheca.enums.AuthorityName;
+import network.pluto.absolute.enums.AuthorityName;
 import org.springframework.security.test.context.support.WithSecurityContext;
 
 import java.lang.annotation.Retention;

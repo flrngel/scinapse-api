@@ -1,10 +1,10 @@
 package network.pluto.absolute.configuration;
 
 import lombok.RequiredArgsConstructor;
+import network.pluto.absolute.enums.AuthorityName;
 import network.pluto.absolute.security.jwt.JwtAuthenticationFilter;
 import network.pluto.absolute.security.rest.RestAccessDeniedHandler;
 import network.pluto.absolute.security.rest.RestAuthExceptionHandler;
-import network.pluto.bibliotheca.enums.AuthorityName;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;

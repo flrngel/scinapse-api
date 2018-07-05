@@ -3,7 +3,7 @@ package network.pluto.absolute.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.bibliotheca.models.mag.Affiliation;
+import network.pluto.absolute.models.mag.Affiliation;
 
 @NoArgsConstructor
 @Getter

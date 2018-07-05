@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.bibliotheca.models.mag.Author;
+import network.pluto.absolute.models.mag.Author;
 
 @NoArgsConstructor
 @Getter

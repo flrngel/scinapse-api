@@ -2,8 +2,8 @@ package network.pluto.absolute.controller;
 
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.facade.PaperFacade;
+import network.pluto.absolute.models.mag.Paper;
 import network.pluto.absolute.util.Query;
-import network.pluto.bibliotheca.models.mag.Paper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

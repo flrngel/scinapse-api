@@ -2,12 +2,12 @@ package network.pluto.absolute.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import network.pluto.absolute.WithMockJwtUser;
+import network.pluto.absolute.enums.AuthorityName;
+import network.pluto.absolute.models.Authority;
+import network.pluto.absolute.models.Member;
 import network.pluto.absolute.security.TokenHelper;
 import network.pluto.absolute.service.EmailVerificationService;
 import network.pluto.absolute.service.MemberService;
-import network.pluto.bibliotheca.enums.AuthorityName;
-import network.pluto.bibliotheca.models.Authority;
-import network.pluto.bibliotheca.models.Member;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

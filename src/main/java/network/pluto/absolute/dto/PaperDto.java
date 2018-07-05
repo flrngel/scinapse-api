@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.bibliotheca.models.mag.Paper;
+import network.pluto.absolute.models.mag.Paper;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -6,13 +6,11 @@ import network.pluto.absolute.dto.PaperAuthorDto;
 import network.pluto.absolute.dto.PaperDto;
 import network.pluto.absolute.enums.PaperSort;
 import network.pluto.absolute.error.ResourceNotFoundException;
-import network.pluto.bibliotheca.dtos.AffiliationDto;
-import network.pluto.bibliotheca.dtos.AuthorDto;
-import network.pluto.bibliotheca.models.mag.Author;
-import network.pluto.bibliotheca.models.mag.Paper;
-import network.pluto.bibliotheca.models.mag.PaperAuthorAffiliation;
-import network.pluto.bibliotheca.repositories.mag.AuthorRepository;
-import network.pluto.bibliotheca.repositories.mag.PaperAuthorAffiliationRepository;
+import network.pluto.absolute.models.mag.Author;
+import network.pluto.absolute.models.mag.Paper;
+import network.pluto.absolute.models.mag.PaperAuthorAffiliation;
+import network.pluto.absolute.repositories.mag.AuthorRepository;
+import network.pluto.absolute.repositories.mag.PaperAuthorAffiliationRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -65,37 +63,18 @@ public class AuthorService {
 
     public void setDefaultAuthors(List<PaperDto> paperDtos) {
         List<PaperAuthorAffiliation> results = authorRepository.getAuthorsByPaperIdIn(paperDtos.stream().map(PaperDto::getId).collect(Collectors.toList()));
-        Map<Long, List<AuthorDto>> authors = results.stream()
-                .map(r -> {
-                    AuthorDto authorDto = new AuthorDto();
-                    authorDto.setPaperId(r.getId().getPaperId());
-                    authorDto.setOrder(r.getAuthorSequenceNumber());
-                    authorDto.setId(r.getId().getAuthorId());
-                    authorDto.setName(r.getAuthor().getDisplayName());
-
-                    if (r.getAuthor().getAuthorHIndex() != null) {
-                        authorDto.setHIndex(r.getAuthor().getAuthorHIndex().getHIndex());
-                    }
-
-                    if (r.getAffiliation() != null) {
-                        AffiliationDto affiliationDto = new AffiliationDto();
-                        affiliationDto.setId(r.getAffiliation().getId());
-                        affiliationDto.setName(r.getAffiliation().getDisplayName());
-                        authorDto.setAffiliation(affiliationDto);
-                    }
-
-                    return authorDto;
-                })
+        Map<Long, List<PaperAuthorDto>> authors = results.stream()
+                .map(PaperAuthorDto::new)
                 .collect(Collectors.collectingAndThen(
-                        Collectors.groupingBy(AuthorDto::getPaperId),
+                        Collectors.groupingBy(PaperAuthorDto::getPaperId),
                         map -> {
-                            map.values().forEach(list -> list.sort(Comparator.comparing(AuthorDto::getOrder)));
+                            map.values().forEach(list -> list.sort(Comparator.comparing(PaperAuthorDto::getOrder)));
                             return map;
                         }));
         paperDtos.forEach(p -> {
-            List<AuthorDto> authorDtos = authors.get(p.getId());
+            List<PaperAuthorDto> authorDtos = authors.get(p.getId());
             if (authorDtos != null) {
-                p.setAuthors(authorDtos.stream().map(PaperAuthorDto::new).collect(Collectors.toList()));
+                p.setAuthors(authorDtos);
             }
         });
     }
