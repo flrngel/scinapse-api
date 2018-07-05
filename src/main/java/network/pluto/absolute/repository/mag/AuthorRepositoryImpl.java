@@ -22,6 +22,8 @@ public class AuthorRepositoryImpl extends QueryDslRepositorySupport implements A
 
         QPaperAuthorAffiliation auAf = QPaperAuthorAffiliation.paperAuthorAffiliation;
         return from(auAf)
+                .join(auAf.author).fetchJoin()
+                .leftJoin(auAf.affiliation).fetchJoin()
                 .where(auAf.id.paperId.in(paperIds), auAf.authorSequenceNumber.lt(11))
                 .fetch();
     }
