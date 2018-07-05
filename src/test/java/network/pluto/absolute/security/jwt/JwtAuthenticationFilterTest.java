@@ -1,9 +1,9 @@
 package network.pluto.absolute.security.jwt;
 
 import io.jsonwebtoken.impl.DefaultClaims;
+import network.pluto.absolute.enums.AuthorityName;
 import network.pluto.absolute.security.TokenExpiredException;
 import network.pluto.absolute.security.TokenHelper;
-import network.pluto.bibliotheca.enums.AuthorityName;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

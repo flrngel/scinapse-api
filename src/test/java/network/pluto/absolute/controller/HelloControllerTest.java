@@ -1,7 +1,7 @@
 package network.pluto.absolute.controller;
 
 import network.pluto.absolute.WithMockJwtUser;
-import network.pluto.bibliotheca.enums.AuthorityName;
+import network.pluto.absolute.enums.AuthorityName;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

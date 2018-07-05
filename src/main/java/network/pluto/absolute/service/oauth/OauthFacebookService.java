@@ -2,8 +2,8 @@ package network.pluto.absolute.service.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.RequiredArgsConstructor;
-import network.pluto.bibliotheca.models.oauth.OauthFacebook;
-import network.pluto.bibliotheca.repositories.oauth.OauthFacebookRepository;
+import network.pluto.absolute.model.oauth.OauthFacebook;
+import network.pluto.absolute.repository.oauth.OauthFacebookRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

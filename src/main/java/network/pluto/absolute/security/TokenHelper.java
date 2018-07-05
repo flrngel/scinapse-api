@@ -2,8 +2,8 @@ package network.pluto.absolute.security;
 
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
-import network.pluto.bibliotheca.models.Authority;
-import network.pluto.bibliotheca.models.Member;
+import network.pluto.absolute.model.Authority;
+import network.pluto.absolute.model.Member;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.WebUtils;

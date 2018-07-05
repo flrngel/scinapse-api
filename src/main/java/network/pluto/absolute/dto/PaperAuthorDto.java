@@ -3,7 +3,7 @@ package network.pluto.absolute.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.bibliotheca.models.mag.PaperAuthorAffiliation;
+import network.pluto.absolute.model.mag.PaperAuthorAffiliation;
 
 @NoArgsConstructor
 @Getter
@@ -31,24 +31,6 @@ public class PaperAuthorDto {
 
         if (relation.getAuthor().getAuthorHIndex() != null) {
             this.hIndex = relation.getAuthor().getAuthorHIndex().getHIndex();
-        }
-    }
-
-    public PaperAuthorDto(network.pluto.bibliotheca.dtos.AuthorDto dto) {
-        this.paperId = dto.getId();
-        this.id = dto.getId();
-        this.name = dto.getName();
-        this.order = dto.getOrder();
-        this.hIndex = dto.getHIndex();
-
-        network.pluto.bibliotheca.dtos.AffiliationDto affiliation = dto.getAffiliation();
-        if (affiliation != null) {
-            AffiliationDto affiliationDto = new AffiliationDto();
-            affiliationDto.setId(affiliation.getId());
-            affiliationDto.setName(affiliation.getName());
-
-            this.affiliation = affiliationDto;
-            this.organization = affiliation.getName();
         }
     }
 

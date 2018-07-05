@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.bibliotheca.models.Collection;
+import network.pluto.absolute.model.Collection;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter

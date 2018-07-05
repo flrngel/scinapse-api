@@ -2,9 +2,9 @@ package network.pluto.absolute.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import lombok.RequiredArgsConstructor;
+import network.pluto.absolute.model.mag.Journal;
+import network.pluto.absolute.repository.mag.JournalRepository;
 import network.pluto.absolute.service.SearchService;
-import network.pluto.bibliotheca.models.mag.Journal;
-import network.pluto.bibliotheca.repositories.mag.JournalRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

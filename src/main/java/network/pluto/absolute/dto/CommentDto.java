@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import network.pluto.bibliotheca.models.Comment;
+import network.pluto.absolute.model.Comment;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
