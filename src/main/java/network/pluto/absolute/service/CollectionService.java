@@ -42,7 +42,7 @@ public class CollectionService {
     }
 
     public Page<Collection> findByCreator(Member creator, Pageable pageable) {
-        return collectionRepository.findByCreatedByOrderByCreatedAtDesc(creator, pageable);
+        return collectionRepository.findByCreatedByOrderByUpdatedAtDesc(creator, pageable);
     }
 
     public long collectionCount(Member creator) {
