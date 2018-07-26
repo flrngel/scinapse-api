@@ -18,6 +18,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -27,6 +28,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,6 +50,7 @@ public class PaperService {
     @PostConstruct
     public void setup() {
         restTemplateForCitation = new RestTemplateBuilder().setConnectTimeout(3000).setReadTimeout(2000).build();
+        restTemplateForCitation.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
     }
 
     public Paper find(long paperId) {
