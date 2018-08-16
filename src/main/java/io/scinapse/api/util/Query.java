@@ -170,7 +170,7 @@ public class Query {
     }
 
     private QueryBuilder toDoiSearchQuery() {
-        return QueryBuilders.matchQuery("doi.keyword", getDoi());
+        return QueryBuilders.matchQuery("doi", getDoi());
     }
 
     private QueryBuilder toJournalQuery() {
