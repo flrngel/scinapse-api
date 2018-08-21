@@ -1,6 +1,7 @@
 package io.scinapse.api.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.CitationTextDto;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.error.ExternalApiCallException;
@@ -15,8 +16,6 @@ import io.scinapse.api.repository.mag.RelPaperReferenceRepository;
 import io.scinapse.api.util.TextUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
@@ -61,15 +60,15 @@ public class PaperService {
         return paperRepository.findByIdIn(paperIds);
     }
 
-    public List<Long> findReferences(long paperId, Pageable pageable) {
-        return paperReferenceRepository.findByPaperId(paperId, pageable)
+    public List<Long> findReferences(long paperId, PageRequest pageRequest) {
+        return paperReferenceRepository.findByPaperId(paperId, pageRequest.toPageable())
                 .stream()
                 .map(RelPaperReference::getPaperReferenceId)
                 .collect(Collectors.toList());
     }
 
-    public List<Long> findCited(long paperId, Pageable pageable) {
-        return paperReferenceRepository.findByPaperReferenceId(paperId, pageable)
+    public List<Long> findCited(long paperId, PageRequest pageRequest) {
+        return paperReferenceRepository.findByPaperReferenceId(paperId, pageRequest.toPageable())
                 .stream()
                 .map(RelPaperReference::getPaperId)
                 .collect(Collectors.toList());
@@ -122,7 +121,7 @@ public class PaperService {
     }
 
     public List<Paper> getAuthorRelatedPapers(long paperId, long authorId) {
-        return paperAuthorAffiliationRepository.getAuthorMainPapers(paperId, authorId, new PageRequest(0, 5));
+        return paperAuthorAffiliationRepository.getAuthorMainPapers(paperId, authorId, PageRequest.defaultPageable(5));
     }
 
 }

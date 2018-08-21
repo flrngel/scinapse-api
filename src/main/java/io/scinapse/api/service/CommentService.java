@@ -1,6 +1,7 @@
 package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.CommentDto;
 import io.scinapse.api.dto.CommentWrapper;
 import io.scinapse.api.dto.PaperDto;
@@ -9,7 +10,6 @@ import io.scinapse.api.model.Member;
 import io.scinapse.api.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,8 +37,8 @@ public class CommentService {
         return commentRepository.findOne(commentId);
     }
 
-    public Page<Comment> findByPaperId(long paperId, Pageable pageable) {
-        return commentRepository.findByPaperIdOrderByUpdatedAtDesc(paperId, pageable);
+    public Page<Comment> findByPaperId(long paperId, PageRequest pageRequest) {
+        return commentRepository.findByPaperIdOrderByUpdatedAtDesc(paperId, pageRequest.toPageable());
     }
 
     public void setDefaultComments(List<PaperDto> paperDtos) {

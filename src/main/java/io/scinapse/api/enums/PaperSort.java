@@ -1,5 +1,6 @@
 package io.scinapse.api.enums;
 
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -12,11 +13,16 @@ public enum PaperSort {
     NEWEST_FIRST;
 
     public static PaperSort find(String name) {
+        if (StringUtils.isBlank(name)) {
+            return null;
+        }
+
         for (PaperSort sort : values()) {
             if (sort.name().equals(name)) {
                 return sort;
             }
         }
+
         return null;
     }
 
@@ -34,6 +40,10 @@ public enum PaperSort {
             default:
                 return null;
         }
+    }
+
+    public static SortBuilder toSortBuilder(String sort) {
+        return toSortBuilder(find(sort));
     }
 
 }

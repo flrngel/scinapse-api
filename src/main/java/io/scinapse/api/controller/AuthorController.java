@@ -2,7 +2,6 @@ package io.scinapse.api.controller;
 
 import io.scinapse.api.dto.AuthorDto;
 import io.scinapse.api.dto.PaperDto;
-import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.facade.PaperFacade;
 import io.scinapse.api.model.mag.Author;
@@ -11,10 +10,10 @@ import io.scinapse.api.service.mag.AuthorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,13 +43,10 @@ public class AuthorController {
     }
 
     @RequestMapping(value = "/authors/{authorId}/papers", method = RequestMethod.GET)
-    public Page<PaperDto> getAuthorPapers(@PathVariable long authorId, @RequestParam(required = false) PaperSort sort, @PageableDefault Pageable pageable) {
-        // FIXME need to create custom pageable converter
-        // do this for temporary remove sort from pageable
-        PageRequest pageableReplace = new PageRequest(pageable.getPageNumber(), pageable.getPageSize());
-        Page<Paper> papers = authorService.getAuthorPaper(authorId, sort, pageableReplace);
+    public Page<PaperDto> getAuthorPapers(@PathVariable long authorId, PageRequest pageRequest) {
+        Page<Paper> papers = authorService.getAuthorPaper(authorId, pageRequest);
         List<PaperDto> paperDtos = paperFacade.convert(papers.getContent(), PaperDto.detail());
-        return new PageImpl<>(paperDtos, pageable, papers.getTotalElements());
+        return new PageImpl<>(paperDtos, pageRequest.toPageable(), papers.getTotalElements());
     }
 
     @RequestMapping(value = "/authors/{authorId}/co-authors", method = RequestMethod.GET)

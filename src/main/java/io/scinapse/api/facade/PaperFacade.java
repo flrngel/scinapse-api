@@ -1,6 +1,7 @@
 package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CitationTextDto;
 import io.scinapse.api.dto.PaperDto;
@@ -20,8 +21,6 @@ import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,76 +84,74 @@ public class PaperFacade {
     }
 
     @Transactional(readOnly = true)
-    public Page<PaperDto> findReferences(long paperId, Pageable pageable) {
+    public Page<PaperDto> findReferences(long paperId, PageRequest pageRequest) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }
 
-        List<Long> referenceIds = paperService.findReferences(paperId, pageable);
+        List<Long> referenceIds = paperService.findReferences(paperId, pageRequest);
         List<PaperDto> dtos = findIn(referenceIds);
-        return new PageImpl<>(dtos, pageable, paper.getPaperCount());
+        return new PageImpl<>(dtos, pageRequest.toPageable(), paper.getPaperCount());
     }
 
     @Transactional(readOnly = true)
-    public Page<PaperDto> findCited(long paperId, Pageable pageable) {
+    public Page<PaperDto> findCited(long paperId, PageRequest pageRequest) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }
 
-        List<Long> citedIds = paperService.findCited(paperId, pageable);
+        List<Long> citedIds = paperService.findCited(paperId, pageRequest);
         List<PaperDto> dtos = findIn(citedIds);
-        return new PageImpl<>(dtos, pageable, paper.getCitationCount());
+        return new PageImpl<>(dtos, pageRequest.toPageable(), paper.getCitationCount());
     }
 
     @Transactional(readOnly = true)
-    public Page<PaperDto> search(Query query, Pageable pageable) {
+    public Page<PaperDto> search(Query query, PageRequest pageRequest) {
         SearchHit journal = searchService.findJournal(query.getText());
         if (journal != null) {
             query.setJournalSearch(true);
             query.setJournalId(Long.parseLong(journal.getId()));
-            return searchByJournal(query, pageable);
+            return searchByJournal(query, pageRequest);
         }
 
-        return searchFromES(query, pageable);
+        return searchFromES(query, pageRequest);
     }
 
-    private Page<PaperDto> searchByJournal(Query query, Pageable pageable) {
+    private Page<PaperDto> searchByJournal(Query query, PageRequest pageRequest) {
         return searchFromES(
                 query,
                 Arrays.asList(
                         SortBuilders.fieldSort("year").order(SortOrder.DESC),
                         SortBuilders.fieldSort("citation_count").order(SortOrder.DESC)),
-                pageable);
+                pageRequest);
     }
 
-    public Page<PaperDto> searchFromES(Query query, Pageable pageable) {
-        Sort sort = pageable.getSort();
-        if (sort != null && sort.iterator().hasNext()) {
-            Sort.Order next = sort.iterator().next();
-            String property = next.getProperty();
-            SortBuilder sortBuilder = PaperSort.toSortBuilder(PaperSort.find(property));
+    public Page<PaperDto> searchFromES(Query query, PageRequest pageRequest) {
+        String sort = pageRequest.getSort();
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(sort)) {
+            SortBuilder sortBuilder = PaperSort.toSortBuilder(sort);
             if (sortBuilder != null) {
-                return searchFromES(query, Collections.singletonList(sortBuilder), pageable);
+                return searchFromES(query, Collections.singletonList(sortBuilder), pageRequest);
             }
         }
 
-        return searchFromES(query, new ArrayList<>(), pageable);
+        return searchFromES(query, new ArrayList<>(), pageRequest);
     }
 
-    public Page<PaperDto> searchFromES(Query query, List<SortBuilder> sorts, Pageable pageable) {
+    public Page<PaperDto> searchFromES(Query query, List<SortBuilder> sorts, PageRequest pageRequest) {
         Page<Long> paperIds;
         if (sorts.isEmpty()) {
-            paperIds = searchService.search(query, pageable);
+            paperIds = searchService.search(query, pageRequest);
         } else {
-            paperIds = searchService.searchWithSort(query, sorts, pageable);
+            paperIds = searchService.searchWithSort(query, sorts, pageRequest);
         }
-        return convertToDto(paperIds, pageable);
+        return convertToDto(paperIds, pageRequest);
     }
 
-    private Page<PaperDto> convertToDto(Page<Long> paperIds, Pageable pageable) {
-        return new PageImpl<>(findIn(paperIds.getContent()), pageable, paperIds.getTotalElements());
+    private Page<PaperDto> convertToDto(Page<Long> paperIds, PageRequest pageRequest) {
+        return new PageImpl<>(findIn(paperIds.getContent()), pageRequest.toPageable(), paperIds.getTotalElements());
     }
 
     public CitationTextDto citation(long paperId, CitationFormat format) {

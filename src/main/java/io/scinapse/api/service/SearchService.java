@@ -2,6 +2,7 @@ package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import com.google.common.base.Preconditions;
+import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CompletionDto;
 import io.scinapse.api.dto.SuggestionDto;
@@ -45,7 +46,6 @@ import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -82,9 +82,9 @@ public class SearchService {
     private static final String IF_AGG_NAME = "if";
     private static final String IF_10_AGG_NAME = "if10";
 
-    public Page<Long> search(Query query, Pageable pageable) {
+    public Page<Long> search(Query query, PageRequest pageRequest) {
         Preconditions.checkNotNull(query);
-        Preconditions.checkNotNull(pageable);
+        Preconditions.checkNotNull(pageRequest);
 
         SearchRequest request = new SearchRequest(indexName);
 
@@ -97,8 +97,8 @@ public class SearchService {
         builder.fetchSource(false);
 
         // apply pagination
-        builder.from(pageable.getOffset());
-        builder.size(pageable.getPageSize());
+        builder.from(pageRequest.getOffset());
+        builder.size(pageRequest.getSize());
 
         if (query.shouldRescore()) {
             builder.addRescorer(query.getPhraseRescoreQuery());
@@ -114,19 +114,19 @@ public class SearchService {
             for (SearchHit hit : response.getHits()) {
                 list.add(Long.valueOf(hit.getId()));
             }
-            return new PageImpl<>(list, pageable, response.getHits().getTotalHits());
+            return new PageImpl<>(list, pageRequest.toPageable(), response.getHits().getTotalHits());
 
         } catch (IOException | NumberFormatException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }
     }
 
-    public Page<Long> searchWithSort(Query query, List<SortBuilder> sorts, Pageable pageable) {
+    public Page<Long> searchWithSort(Query query, List<SortBuilder> sorts, PageRequest pageRequest) {
         SearchSourceBuilder builder = SearchSourceBuilder.searchSource()
                 .query(query.toSortQuery())
                 .fetchSource(false)
-                .from(pageable.getOffset())
-                .size(pageable.getPageSize());
+                .from(pageRequest.getOffset())
+                .size(pageRequest.getSize());
 
         sorts.forEach(builder::sort);
 
@@ -138,7 +138,7 @@ public class SearchService {
             for (SearchHit hit : response.getHits()) {
                 list.add(Long.valueOf(hit.getId()));
             }
-            return new PageImpl<>(list, pageable, response.getHits().getTotalHits());
+            return new PageImpl<>(list, pageRequest.toPageable(), response.getHits().getTotalHits());
         } catch (IOException | NumberFormatException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }

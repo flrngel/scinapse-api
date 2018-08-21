@@ -12,7 +12,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,7 +51,7 @@ public class PaperControllerTest {
         PaperDto dto = PaperDto.of(paper);
         PageImpl<PaperDto> page = new PageImpl<>(Collections.singletonList(dto));
 
-        when(paperFacade.search(any(Query.class), any(Pageable.class))).thenReturn(page);
+        when(paperFacade.search(any(Query.class), any(PageRequest.class))).thenReturn(page);
 
         mvc
                 .perform(get("/papers")
@@ -62,7 +61,7 @@ public class PaperControllerTest {
                 .andExpect(jsonPath("$.content", List.class).isArray())
                 .andExpect(jsonPath("$.content[0].id", Long.class).value(1));
 
-        verify(paperFacade, only()).search(any(Query.class), any(Pageable.class));
+        verify(paperFacade, only()).search(any(Query.class), any(PageRequest.class));
     }
 
     @Test

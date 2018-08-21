@@ -11,8 +11,6 @@ import io.scinapse.api.service.MemberService;
 import io.scinapse.api.service.mag.PaperService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -46,13 +44,13 @@ public class CommentController {
 
     @RequestMapping(value = "/comments", method = RequestMethod.GET)
     public Page<CommentDto> findComments(@RequestParam Long paperId,
-                                         @PageableDefault Pageable pageable) {
+                                         PageRequest pageRequest) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
             throw new ResourceNotFoundException("Paper not found");
         }
 
-        return commentService.findByPaperId(paperId, pageable).map(CommentDto::new);
+        return commentService.findByPaperId(paperId, pageRequest).map(CommentDto::new);
     }
 
     @RequestMapping(value = "/comments/{commentId}", method = RequestMethod.PUT)

@@ -9,8 +9,6 @@ import io.scinapse.api.facade.CollectionFacade;
 import io.scinapse.api.security.jwt.JwtUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -74,8 +72,8 @@ public class CollectionController {
 
     @RequestMapping(value = "/members/{memberId}/collections", method = RequestMethod.GET)
     public Map<String, Object> findByCreators(@PathVariable long memberId,
-                                              @PageableDefault Pageable pageable) {
-        Page<CollectionDto> dtos = collectionFacade.findByCreator(memberId, pageable);
+                                              PageRequest pageRequest) {
+        Page<CollectionDto> dtos = collectionFacade.findByCreator(memberId, pageRequest);
 
         Map<String, Object> result = new HashMap<>();
         result.put("data", dtos);
@@ -86,8 +84,8 @@ public class CollectionController {
     @RequestMapping(value = "/members/me/collections", method = RequestMethod.GET)
     public Map<String, Object> myCollection(@ApiIgnore JwtUser user,
                                             @RequestParam(value = "paper_id", required = false) Long paperId,
-                                            @PageableDefault Pageable pageable) {
-        Page<MyCollectionDto> dtos = collectionFacade.findMyCollection(user, paperId, pageable);
+                                            PageRequest pageRequest) {
+        Page<MyCollectionDto> dtos = collectionFacade.findMyCollection(user, paperId, pageRequest);
 
         Map<String, Object> result = new HashMap<>();
         result.put("data", dtos);

@@ -6,8 +6,6 @@ import io.scinapse.api.facade.JournalFacade;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -32,12 +30,12 @@ public class JournalController {
     @RequestMapping(value = "/journals/{journalId}/papers", method = RequestMethod.GET)
     public Map<String, Object> getPapers(@PathVariable long journalId,
                                          @RequestParam(value = "query", required = false) String queryStr,
-                                         @PageableDefault Pageable pageable) {
+                                         PageRequest pageRequest) {
         Page<PaperDto> dtos;
         if (StringUtils.isBlank(queryStr)) {
-            dtos = journalFacade.getDefaultPapers(journalId, pageable);
+            dtos = journalFacade.getDefaultPapers(journalId, pageRequest);
         } else {
-            dtos = journalFacade.getPapers(journalId, queryStr, pageable);
+            dtos = journalFacade.getPapers(journalId, queryStr, pageRequest);
         }
 
         Map<String, Object> result = new HashMap<>();

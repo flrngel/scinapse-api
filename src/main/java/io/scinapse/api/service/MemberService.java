@@ -8,8 +8,6 @@ import io.scinapse.api.repository.AuthorityRepository;
 import io.scinapse.api.repository.MemberRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,10 +54,6 @@ public class MemberService {
     public void updateAuthority(Member member, AuthorityName name) {
         Authority authority = authorityRepository.findByName(name);
         member.setAuthorities(Collections.singletonList(authority));
-    }
-
-    public Page<Member> findAll(Pageable pageable) {
-        return memberRepository.findAll(pageable);
     }
 
     public Member findMember(long id) {

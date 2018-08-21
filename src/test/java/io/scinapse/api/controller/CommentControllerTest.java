@@ -18,7 +18,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -161,7 +160,7 @@ public class CommentControllerTest {
 
 
         when(paperService.find(paperId)).thenReturn(paper);
-        when(commentService.findByPaperId(eq(paperId), any(Pageable.class))).thenReturn(page);
+        when(commentService.findByPaperId(eq(paperId), any(PageRequest.class))).thenReturn(page);
 
         mvc
                 .perform(get("/comments")
@@ -171,7 +170,7 @@ public class CommentControllerTest {
                 .andExpect(jsonPath("$.content[0].comment", String.class).value(commentMessage));
 
         verify(paperService, only()).find(paperId);
-        verify(commentService, only()).findByPaperId(eq(paperId), any(Pageable.class));
+        verify(commentService, only()).findByPaperId(eq(paperId), any(PageRequest.class));
     }
 
     @WithMockJwtUser

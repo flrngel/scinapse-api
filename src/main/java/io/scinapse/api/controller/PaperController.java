@@ -9,8 +9,6 @@ import io.scinapse.api.facade.PaperFacade;
 import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -31,13 +29,13 @@ public class PaperController {
     @RequestMapping(value = "/papers", method = RequestMethod.GET)
     public Page<PaperDto> search(@RequestParam("query") String queryStr,
                                  @RequestParam(value = "filter", required = false) String filterStr,
-                                 @PageableDefault Pageable pageable) {
+                                 PageRequest pageRequest) {
         Query query = Query.parse(queryStr, filterStr);
         if (!query.isValid()) {
             throw new BadRequestException("Invalid query: too short or long query text");
         }
 
-        return paperFacade.search(query, pageable);
+        return paperFacade.search(query, pageRequest);
     }
 
     @RequestMapping(value = "/papers/aggregate", method = RequestMethod.GET)
@@ -62,14 +60,14 @@ public class PaperController {
 
     @RequestMapping(value = "/papers/{paperId}/references", method = RequestMethod.GET)
     public Page<PaperDto> paperReferences(@PathVariable long paperId,
-                                          @PageableDefault Pageable pageable) {
-        return paperFacade.findReferences(paperId, pageable);
+                                          PageRequest pageRequest) {
+        return paperFacade.findReferences(paperId, pageRequest);
     }
 
     @RequestMapping(value = "/papers/{paperId}/cited", method = RequestMethod.GET)
     public Page<PaperDto> paperCited(@PathVariable long paperId,
-                                     @PageableDefault Pageable pageable) {
-        return paperFacade.findCited(paperId, pageable);
+                                     PageRequest pageRequest) {
+        return paperFacade.findCited(paperId, pageRequest);
     }
 
     @RequestMapping(value = "/papers/{paperId}/citation", method = RequestMethod.GET)

@@ -1,6 +1,7 @@
 package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.PaperDto;
 import io.scinapse.api.dto.collection.CollectionDto;
 import io.scinapse.api.dto.collection.CollectionPaperDto;
@@ -17,8 +18,6 @@ import io.scinapse.api.service.mag.PaperService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,27 +72,26 @@ public class CollectionFacade {
         return CollectionDto.of(one);
     }
 
-    public Page<CollectionDto> findByCreator(long creatorId, Pageable pageable) {
+    public Page<CollectionDto> findByCreator(long creatorId, PageRequest pageRequest) {
         Member creator = memberService.findMember(creatorId);
         if (creator == null) {
             throw new ResourceNotFoundException("Member not found : " + creatorId);
         }
 
-        return collectionService.findByCreator(creator, pageable).map(CollectionDto::of);
+        return collectionService.findByCreator(creator, pageRequest.toPageable()).map(CollectionDto::of);
     }
 
-    public Page<MyCollectionDto> findMyCollection(JwtUser user, Long paperId, Pageable pageable) {
+    public Page<MyCollectionDto> findMyCollection(JwtUser user, Long paperId, PageRequest pageRequest) {
         Member member = memberService.findMember(user.getId());
         if (member == null) {
             throw new ResourceNotFoundException("Member not found : " + user.getId());
         }
 
-        Page<Collection> collections = collectionService.findByCreator(member, pageable);
+        Page<Collection> collections = collectionService.findByCreator(member, pageRequest.toPageable());
         if (collections.getTotalElements() == 0) {
             // Member doesn't have any collections. Create default collection.
             Collection collection = collectionService.createDefault(member);
-            PageRequest defaultPageable = new PageRequest(0, 10);
-            collections = new PageImpl<>(Collections.singletonList(collection), defaultPageable, 1);
+            collections = new PageImpl<>(Collections.singletonList(collection), PageRequest.defaultPageable(), 1);
         }
 
         if (paperId == null) {
