@@ -22,7 +22,6 @@ import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.filter.*;
@@ -65,9 +64,6 @@ public class SearchService {
 
     @Value("${pluto.server.es.index}")
     private String indexName;
-
-    @Value("${pluto.server.es.index.journal}")
-    private String journalIndexName;
 
     @Value("${pluto.server.es.index.suggestion.fos}")
     private String fosSuggestionIndex;
@@ -140,28 +136,6 @@ public class SearchService {
             }
             return new PageImpl<>(list, pageRequest.toPageable(), response.getHits().getTotalHits());
         } catch (IOException | NumberFormatException e) {
-            throw new RuntimeException("Elasticsearch exception", e);
-        }
-    }
-
-    public SearchHit findJournal(String journalTitle) {
-        MatchQueryBuilder query = QueryBuilders.matchQuery("title.keyword", journalTitle);
-
-        SearchSourceBuilder builder = new SearchSourceBuilder();
-        builder.query(query);
-
-        SearchRequest request = new SearchRequest(journalIndexName);
-        request.source(builder);
-
-        try {
-            SearchResponse response = restHighLevelClient.search(request);
-            SearchHits hits = response.getHits();
-            if (hits.getTotalHits() != 1) {
-                return null;
-            }
-
-            return hits.getAt(0);
-        } catch (IOException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }
     }

@@ -4,7 +4,6 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.JournalDto;
 import io.scinapse.api.dto.PaperDto;
-import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.model.mag.Journal;
@@ -13,11 +12,14 @@ import io.scinapse.api.util.Query;
 import io.scinapse.api.util.QueryFilter;
 import lombok.RequiredArgsConstructor;
 import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.List;
 
 
 @XRayEnabled
@@ -52,12 +54,12 @@ public class JournalFacade {
     }
 
     public Page<PaperDto> getDefaultPapers(long journalId, PageRequest pageRequest) {
-        Query query = Query.parse(null);
-        query.setJournalId(journalId);
-        query.setJournalSearch(true);
+        Query query = Query.journal(journalId);
 
-        SortBuilder sortBuilder = PaperSort.toSortBuilder(PaperSort.NEWEST_FIRST);
-        return paperFacade.searchFromES(query, Collections.singletonList(sortBuilder), pageRequest);
+        List<SortBuilder> sorts = Arrays.asList(
+                SortBuilders.fieldSort("year").order(SortOrder.DESC),
+                SortBuilders.fieldSort("citation_count").order(SortOrder.DESC));
+        return paperFacade.searchFromES(query, sorts, pageRequest);
     }
 
 }

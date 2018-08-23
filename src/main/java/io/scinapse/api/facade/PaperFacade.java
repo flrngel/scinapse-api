@@ -15,10 +15,7 @@ import io.scinapse.api.service.mag.AuthorService;
 import io.scinapse.api.service.mag.PaperService;
 import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
@@ -109,23 +106,7 @@ public class PaperFacade {
 
     @Transactional(readOnly = true)
     public Page<PaperDto> search(Query query, PageRequest pageRequest) {
-        SearchHit journal = searchService.findJournal(query.getText());
-        if (journal != null) {
-            query.setJournalSearch(true);
-            query.setJournalId(Long.parseLong(journal.getId()));
-            return searchByJournal(query, pageRequest);
-        }
-
         return searchFromES(query, pageRequest);
-    }
-
-    private Page<PaperDto> searchByJournal(Query query, PageRequest pageRequest) {
-        return searchFromES(
-                query,
-                Arrays.asList(
-                        SortBuilders.fieldSort("year").order(SortOrder.DESC),
-                        SortBuilders.fieldSort("citation_count").order(SortOrder.DESC)),
-                pageRequest);
     }
 
     public Page<PaperDto> searchFromES(Query query, PageRequest pageRequest) {
@@ -165,11 +146,6 @@ public class PaperFacade {
 
     public AggregationDto aggregate(Query query) {
         if (query.isDoi()) {
-            return AggregationDto.unavailable();
-        }
-
-        SearchHit journal = searchService.findJournal(query.getText());
-        if (journal != null) {
             return AggregationDto.unavailable();
         }
 

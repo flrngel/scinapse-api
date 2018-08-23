@@ -41,6 +41,13 @@ public class Query {
         return query;
     }
 
+    public static Query journal(long journalId) {
+        Query query = new Query(null);
+        query.setJournalSearch(true);
+        query.setJournalId(journalId);
+        return query;
+    }
+
     public boolean isValid() {
         return StringUtils.isNotBlank(text) && text.length() >= 2 && text.length() < 200;
     }
@@ -162,7 +169,7 @@ public class Query {
     }
 
     public boolean shouldRescore() {
-        return !isDoi() && !journalSearch;
+        return !isDoi();
     }
 
     public boolean isDoi() {
