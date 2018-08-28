@@ -9,10 +9,12 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.Filter;
+import java.nio.charset.Charset;
 
 @Configuration
 public class CommonConfig {
@@ -24,8 +26,12 @@ public class CommonConfig {
 
     @Bean
     public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        builder.additionalMessageConverters(new FormHttpMessageConverter());
-        return builder.build();
+        return builder
+                .additionalMessageConverters(new FormHttpMessageConverter())
+                .additionalMessageConverters(new StringHttpMessageConverter(Charset.forName("UTF-8")))
+                .setConnectTimeout(2000)
+                .setReadTimeout(3000)
+                .build();
     }
 
     @Bean

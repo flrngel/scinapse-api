@@ -15,9 +15,7 @@ import io.scinapse.api.repository.mag.PaperRepository;
 import io.scinapse.api.repository.mag.RelPaperReferenceRepository;
 import io.scinapse.api.util.TextUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -25,9 +23,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.PostConstruct;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,13 +40,7 @@ public class PaperService {
     private final RelPaperReferenceRepository paperReferenceRepository;
     private final PaperAuthorAffiliationRepository paperAuthorAffiliationRepository;
     private final PaperRecommendationRepository paperRecommendationRepository;
-    private RestTemplate restTemplateForCitation;
-
-    @PostConstruct
-    public void setup() {
-        restTemplateForCitation = new RestTemplateBuilder().setConnectTimeout(3000).setReadTimeout(2000).build();
-        restTemplateForCitation.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
-    }
+    private final RestTemplate restTemplate;
 
     public Paper find(long paperId) {
         return paperRepository.findOne(paperId);
@@ -93,7 +83,7 @@ public class PaperService {
         HttpEntity entity = new HttpEntity(httpHeaders);
 
         try {
-            ResponseEntity<String> responseEntity = restTemplateForCitation.exchange(uri, HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
             String formattedCitation = responseEntity.getBody();
 
             CitationTextDto dto = new CitationTextDto();
