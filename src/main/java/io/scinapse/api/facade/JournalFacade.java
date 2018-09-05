@@ -4,6 +4,7 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.JournalDto;
 import io.scinapse.api.dto.PaperDto;
+import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.model.mag.Journal;
@@ -56,10 +57,17 @@ public class JournalFacade {
     public Page<PaperDto> getDefaultPapers(long journalId, PageRequest pageRequest) {
         Query query = Query.journal(journalId);
 
-        List<SortBuilder> sorts = Arrays.asList(
-                SortBuilders.fieldSort("year").order(SortOrder.DESC),
-                SortBuilders.fieldSort("citation_count").order(SortOrder.DESC));
-        return paperFacade.searchFromES(query, sorts, pageRequest);
+        PaperSort sort = PaperSort.find(pageRequest.getSort());
+
+        // apply default sorting for invalid sort param
+        if (sort == null || sort == PaperSort.RELEVANCE) {
+            List<SortBuilder> sorts = Arrays.asList(
+                    SortBuilders.fieldSort("year").order(SortOrder.DESC),
+                    SortBuilders.fieldSort("citation_count").order(SortOrder.DESC));
+            return paperFacade.searchFromES(query, sorts, pageRequest);
+        }
+
+        return paperFacade.searchFromES(query, pageRequest);
     }
 
 }
