@@ -5,7 +5,7 @@ import lombok.Getter;
 import javax.persistence.*;
 
 @Getter
-@Table(schema = "mcsa", name = "paper_url")
+@Table(schema = "scinapse", name = "paper_url")
 @Entity
 public class PaperUrl {
 

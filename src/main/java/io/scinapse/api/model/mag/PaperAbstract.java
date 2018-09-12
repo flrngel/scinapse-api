@@ -5,6 +5,7 @@ import com.google.common.base.Joiner;
 import io.scinapse.api.util.JsonUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.StringEscapeUtils;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.StringUtils;
@@ -15,7 +16,7 @@ import java.io.IOException;
 @Slf4j
 @Getter
 @BatchSize(size = 10)
-@Table(schema = "mcsa", name = "paper_abstract_inverted_index")
+@Table(schema = "scinapse", name = "paper_abstract")
 @Entity
 public class PaperAbstract {
 
@@ -59,7 +60,9 @@ public class PaperAbstract {
             }
 
             try {
-                return JsonUtils.fromJson(abstractJson, InvertedAbstract.class);
+                // json string escaped by csv format
+                String unescaped = StringEscapeUtils.unescapeCsv(abstractJson);
+                return JsonUtils.fromJson(unescaped, InvertedAbstract.class);
             } catch (IOException e) {
                 log.error("Fail to convert inverted abstract json", e);
                 return null;

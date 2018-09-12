@@ -6,13 +6,14 @@ import io.scinapse.api.dto.CitationTextDto;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.error.ExternalApiCallException;
 import io.scinapse.api.error.ResourceNotFoundException;
+import io.scinapse.api.model.mag.AuthorTopPaper;
 import io.scinapse.api.model.mag.Paper;
 import io.scinapse.api.model.mag.PaperRecommendation;
-import io.scinapse.api.model.mag.RelPaperReference;
-import io.scinapse.api.repository.mag.PaperAuthorAffiliationRepository;
+import io.scinapse.api.model.mag.PaperReference;
+import io.scinapse.api.repository.mag.AuthorTopPaperRepository;
 import io.scinapse.api.repository.mag.PaperRecommendationRepository;
+import io.scinapse.api.repository.mag.PaperReferenceRepository;
 import io.scinapse.api.repository.mag.PaperRepository;
-import io.scinapse.api.repository.mag.RelPaperReferenceRepository;
 import io.scinapse.api.util.TextUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -37,9 +38,9 @@ public class PaperService {
     private static final String DOI_PREFIX = "https://doi.org/";
 
     private final PaperRepository paperRepository;
-    private final RelPaperReferenceRepository paperReferenceRepository;
-    private final PaperAuthorAffiliationRepository paperAuthorAffiliationRepository;
+    private final PaperReferenceRepository paperReferenceRepository;
     private final PaperRecommendationRepository paperRecommendationRepository;
+    private final AuthorTopPaperRepository authorTopPaperRepository;
     private final RestTemplate restTemplate;
 
     public Paper find(long paperId) {
@@ -53,14 +54,14 @@ public class PaperService {
     public List<Long> findReferences(long paperId, PageRequest pageRequest) {
         return paperReferenceRepository.findByPaperId(paperId, pageRequest.toPageable())
                 .stream()
-                .map(RelPaperReference::getPaperReferenceId)
+                .map(PaperReference::getPaperReferenceId)
                 .collect(Collectors.toList());
     }
 
     public List<Long> findCited(long paperId, PageRequest pageRequest) {
         return paperReferenceRepository.findByPaperReferenceId(paperId, pageRequest.toPageable())
                 .stream()
-                .map(RelPaperReference::getPaperId)
+                .map(PaperReference::getPaperId)
                 .collect(Collectors.toList());
     }
 
@@ -111,7 +112,7 @@ public class PaperService {
     }
 
     public List<Paper> getAuthorRelatedPapers(long paperId, long authorId) {
-        return paperAuthorAffiliationRepository.getAuthorMainPapers(paperId, authorId, PageRequest.defaultPageable(5));
+        return authorTopPaperRepository.findByAuthorIdAndPaperIdNot(authorId, paperId).stream().map(AuthorTopPaper::getPaper).collect(Collectors.toList());
     }
 
 }

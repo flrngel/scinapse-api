@@ -18,8 +18,8 @@ public class FosDto {
     public FosDto(PaperFieldsOfStudy fos) {
         this.paperId = fos.getPaper().getId();
         this.id = fos.getFieldsOfStudy().getId();
-        this.fos = fos.getFieldsOfStudy().getDisplayName();
-        this.name = fos.getFieldsOfStudy().getDisplayName();
+        this.fos = fos.getFieldsOfStudy().getName();
+        this.name = fos.getFieldsOfStudy().getName();
     }
 
 }

@@ -8,12 +8,12 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Getter
-@Table(schema = "mcsa", name = "rel_paper_author_affiliation")
+@Table(schema = "scinapse", name = "paper_author")
 @Entity
-public class PaperAuthorAffiliation {
+public class PaperAuthor {
 
     @EmbeddedId
-    private PaperAuthorAffiliationId id;
+    private PaperAuthorId id;
 
     @MapsId("paperId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -36,7 +36,7 @@ public class PaperAuthorAffiliation {
     @Getter
     @Setter
     @Embeddable
-    public static class PaperAuthorAffiliationId implements Serializable {
+    public static class PaperAuthorId implements Serializable {
 
         @Column
         private long paperId;

@@ -4,14 +4,17 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.Table;
 import java.io.Serializable;
 
 @Getter
-@IdClass(RelPaperCitationContext.RelPaperCitationContextId.class)
-@Table(schema = "mcsa", name = "rel_paper_citation_context")
+@IdClass(PaperReference.PaperReferenceId.class)
+@Table(schema = "scinapse", name = "paper_reference")
 @Entity
-public class RelPaperCitationContext {
+public class PaperReference {
 
     @Id
     private long paperId;
@@ -19,13 +22,10 @@ public class RelPaperCitationContext {
     @Id
     private long paperReferenceId;
 
-    @Column
-    private String citationContext;
-
     @EqualsAndHashCode
     @Getter
     @Setter
-    public static class RelPaperCitationContextId implements Serializable {
+    public static class PaperReferenceId implements Serializable {
         private long paperId;
         private long paperReferenceId;
     }

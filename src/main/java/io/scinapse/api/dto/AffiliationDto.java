@@ -15,7 +15,7 @@ public class AffiliationDto {
 
     public AffiliationDto(Affiliation affiliation) {
         this.id = affiliation.getId();
-        this.name = affiliation.getDisplayName();
+        this.name = affiliation.getName();
     }
 
 }

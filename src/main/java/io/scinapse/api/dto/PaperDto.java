@@ -31,10 +31,6 @@ public class PaperDto {
 
     private String doi;
 
-    private String publisher;
-
-    private String venue;
-
     private String volume;
 
     private String issue;
@@ -65,10 +61,9 @@ public class PaperDto {
 
     private PaperDto(Paper paper) {
         this.id = paper.getId();
-        this.title = paper.getOriginalTitle();
+        this.title = paper.getTitle();
         this.year = paper.getYear();
         this.doi = paper.getDoi();
-        this.publisher = paper.getPublisher();
         this.volume = paper.getVolume();
         this.issue = paper.getIssue();
         this.referenceCount = paper.getPaperCount() != null ? paper.getPaperCount() : 0;

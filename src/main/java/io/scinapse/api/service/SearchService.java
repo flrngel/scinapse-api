@@ -454,7 +454,7 @@ public class SearchService {
                 .map(j -> {
                     AggregationDto.Journal journalDto = new AggregationDto.Journal();
                     journalDto.id = j.getId();
-                    journalDto.title = j.getDisplayName();
+                    journalDto.title = j.getTitle();
                     journalDto.impactFactor = j.getImpactFactor();
                     return journalDto;
                 })
@@ -472,7 +472,7 @@ public class SearchService {
                 .map(f -> {
                     AggregationDto.Fos fosDto = new AggregationDto.Fos();
                     fosDto.id = f.getId();
-                    fosDto.name = f.getDisplayName();
+                    fosDto.name = f.getName();
                     return fosDto;
                 })
                 .collect(Collectors.toList());

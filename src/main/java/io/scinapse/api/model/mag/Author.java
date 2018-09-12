@@ -9,7 +9,7 @@ import java.util.List;
 
 @BatchSize(size = 50)
 @Getter
-@Table(schema = "mcsa", name = "author")
+@Table(schema = "scinapse", name = "author")
 @Entity
 public class Author {
 
@@ -17,13 +17,7 @@ public class Author {
     private long id;
 
     @Column
-    private Long rank;
-
-    @Column
-    private String normalizedName;
-
-    @Column
-    private String displayName;
+    private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Affiliation lastKnownAffiliation;

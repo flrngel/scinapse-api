@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 @Getter
 @IdClass(PaperRecommendation.PaperRecommendationId.class)
-@Table(schema = "mcsa", name = "paper_recommendation")
+@Table(schema = "scinapse", name = "paper_recommendation")
 @Entity
 public class PaperRecommendation {
 

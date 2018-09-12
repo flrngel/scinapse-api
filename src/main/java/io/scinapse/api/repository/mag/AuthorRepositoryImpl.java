@@ -1,8 +1,8 @@
 package io.scinapse.api.repository.mag;
 
 import io.scinapse.api.model.mag.Author;
-import io.scinapse.api.model.mag.PaperAuthorAffiliation;
-import io.scinapse.api.model.mag.QPaperAuthorAffiliation;
+import io.scinapse.api.model.mag.PaperAuthor;
+import io.scinapse.api.model.mag.QPaperAuthor;
 import org.springframework.data.jpa.repository.support.QueryDslRepositorySupport;
 
 import java.util.ArrayList;
@@ -15,16 +15,16 @@ public class AuthorRepositoryImpl extends QueryDslRepositorySupport implements A
     }
 
     @Override
-    public List<PaperAuthorAffiliation> getAuthorsByPaperIdIn(List<Long> paperIds) {
+    public List<PaperAuthor> getAuthorsByPaperIdIn(List<Long> paperIds) {
         if (paperIds.isEmpty()) {
             return new ArrayList<>();
         }
 
-        QPaperAuthorAffiliation auAf = QPaperAuthorAffiliation.paperAuthorAffiliation;
-        return from(auAf)
-                .join(auAf.author).fetchJoin()
-                .leftJoin(auAf.affiliation).fetchJoin()
-                .where(auAf.id.paperId.in(paperIds), auAf.authorSequenceNumber.lt(11))
+        QPaperAuthor paperAuthor = QPaperAuthor.paperAuthor;
+        return from(paperAuthor)
+                .join(paperAuthor.author).fetchJoin()
+                .leftJoin(paperAuthor.affiliation).fetchJoin()
+                .where(paperAuthor.id.paperId.in(paperIds), paperAuthor.authorSequenceNumber.lt(11))
                 .fetch();
     }
 

@@ -5,7 +5,7 @@ import lombok.Getter;
 import javax.persistence.*;
 
 @Getter
-@Table(schema = "mcsa", name = "paper_language")
+@Table(schema = "scinapse", name = "paper_language")
 @Entity
 public class PaperLanguage {
 

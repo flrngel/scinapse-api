@@ -7,10 +7,13 @@ import io.scinapse.api.dto.PaperDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.model.mag.Author;
+import io.scinapse.api.model.mag.AuthorCoauthor;
 import io.scinapse.api.model.mag.Paper;
-import io.scinapse.api.model.mag.PaperAuthorAffiliation;
+import io.scinapse.api.model.mag.PaperTopAuthor;
+import io.scinapse.api.repository.mag.AuthorCoauthorRepository;
 import io.scinapse.api.repository.mag.AuthorRepository;
-import io.scinapse.api.repository.mag.PaperAuthorAffiliationRepository;
+import io.scinapse.api.repository.mag.PaperAuthorRepository;
+import io.scinapse.api.repository.mag.PaperTopAuthorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,7 +33,9 @@ import java.util.stream.Collectors;
 public class AuthorService {
 
     private final AuthorRepository authorRepository;
-    private final PaperAuthorAffiliationRepository repository;
+    private final PaperAuthorRepository paperAuthorRepository;
+    private final PaperTopAuthorRepository paperTopAuthorRepository;
+    private final AuthorCoauthorRepository authorCoauthorRepository;
 
     public Author find(long authorId) {
         return authorRepository.findOne(authorId);
@@ -49,22 +54,28 @@ public class AuthorService {
     private List<Paper> getAuthorPaperList(long authorId, PageRequest pageRequest) {
         PaperSort sort = PaperSort.find(pageRequest.getSort());
         if (sort == null) {
-            return repository.getAuthorPapersMostCitations(authorId, pageRequest.toPageable());
+            return paperAuthorRepository.getAuthorPapersMostCitations(authorId, pageRequest.toPageable());
         }
 
         switch (sort) {
             case NEWEST_FIRST:
-                return repository.getAuthorPapersNewest(authorId, pageRequest.toPageable());
+                return paperAuthorRepository.getAuthorPapersNewest(authorId, pageRequest.toPageable());
             case OLDEST_FIRST:
-                return repository.getAuthorPapersOldest(authorId, pageRequest.toPageable());
+                return paperAuthorRepository.getAuthorPapersOldest(authorId, pageRequest.toPageable());
             default:
-                return repository.getAuthorPapersMostCitations(authorId, pageRequest.toPageable());
+                return paperAuthorRepository.getAuthorPapersMostCitations(authorId, pageRequest.toPageable());
         }
     }
 
     public void setDefaultAuthors(List<PaperDto> paperDtos) {
-        List<PaperAuthorAffiliation> results = authorRepository.getAuthorsByPaperIdIn(paperDtos.stream().map(PaperDto::getId).collect(Collectors.toList()));
+        if (paperDtos == null || paperDtos.isEmpty()) {
+            return;
+        }
+
+        List<PaperTopAuthor> results = paperTopAuthorRepository.findByPaperIdIn(paperDtos.stream().map(PaperDto::getId).collect(Collectors.toList()));
+
         Map<Long, List<PaperAuthorDto>> authors = results.stream()
+                .filter(pa -> pa.getAuthor() != null) // prevent exception, due to ghost authors
                 .map(PaperAuthorDto::new)
                 .collect(Collectors.collectingAndThen(
                         Collectors.groupingBy(PaperAuthorDto::getPaperId),
@@ -85,7 +96,9 @@ public class AuthorService {
     }
 
     public List<Author> findCoAuthors(long authorId) {
-        return authorRepository.findCoAuthors(authorId);
+        return authorCoauthorRepository.findByAuthorId(authorId).stream()
+                .map(AuthorCoauthor::getCoauthor)
+                .collect(Collectors.toList());
     }
 
 }

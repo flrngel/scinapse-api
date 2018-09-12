@@ -27,7 +27,7 @@ public class AuthorDto {
 
     public AuthorDto(Author author) {
         this.id = author.getId();
-        this.name = author.getDisplayName();
+        this.name = author.getName();
         this.paperCount = author.getPaperCount();
         this.citationCount = author.getCitationCount();
 

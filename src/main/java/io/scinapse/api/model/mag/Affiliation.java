@@ -10,7 +10,7 @@ import javax.persistence.Table;
 
 @Getter
 @BatchSize(size = 50)
-@Table(schema = "mcsa", name = "affiliation")
+@Table(schema = "scinapse", name = "affiliation")
 @Entity
 public class Affiliation {
 
@@ -18,13 +18,13 @@ public class Affiliation {
     private long id;
 
     @Column
-    private Long rank;
+    private String name;
 
     @Column
-    private String normalizedName;
+    private String officialPage;
 
     @Column
-    private String displayName;
+    private String wikiPage;
 
     @Column
     private Long paperCount;

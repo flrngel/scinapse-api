@@ -8,7 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Getter
-@Table(schema = "mcsa", name = "fields_of_study")
+@Table(schema = "scinapse", name = "fields_of_study")
 @Entity
 public class FieldsOfStudy {
 
@@ -16,13 +16,7 @@ public class FieldsOfStudy {
     private long id;
 
     @Column
-    private Long rank;
-
-    @Column
-    private String normalizedName;
-
-    @Column
-    private String displayName;
+    private String name;
 
     @Column
     private Integer level;

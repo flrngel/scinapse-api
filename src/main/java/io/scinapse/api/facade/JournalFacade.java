@@ -38,7 +38,7 @@ public class JournalFacade {
             throw new ResourceNotFoundException("Journal not found : " + journalId);
         }
 
-        return new JournalDto(journal);
+        return new JournalDto(journal, true);
     }
 
     public Page<PaperDto> getPapers(long journalId, String queryStr, PageRequest pageRequest) {

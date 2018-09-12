@@ -1,6 +1,7 @@
 package io.scinapse.api.dto;
 
-import io.scinapse.api.model.mag.PaperAuthorAffiliation;
+import io.scinapse.api.model.mag.PaperAuthor;
+import io.scinapse.api.model.mag.PaperTopAuthor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,19 +19,35 @@ public class PaperAuthorDto {
     private AffiliationDto affiliation;
     private int order;
 
-    public PaperAuthorDto(PaperAuthorAffiliation relation) {
+    public PaperAuthorDto(PaperAuthor relation) {
         this.paperId = relation.getPaper().getId();
         this.id = relation.getAuthor().getId();
-        this.name = relation.getAuthor().getDisplayName();
+        this.name = relation.getAuthor().getName();
         this.order = relation.getAuthorSequenceNumber();
 
         if (relation.getAffiliation() != null) {
             this.affiliation = new AffiliationDto(relation.getAffiliation());
-            this.organization = relation.getAffiliation().getDisplayName();
+            this.organization = relation.getAffiliation().getName();
         }
 
         if (relation.getAuthor().getAuthorHIndex() != null) {
             this.hIndex = relation.getAuthor().getAuthorHIndex().getHIndex();
+        }
+    }
+
+    public PaperAuthorDto(PaperTopAuthor paperTopAuthor) {
+        this.paperId = paperTopAuthor.getId().getPaperId();
+        this.id = paperTopAuthor.getId().getAuthorId();
+        this.name = paperTopAuthor.getAuthor().getName();
+        this.order = paperTopAuthor.getAuthorSequenceNumber();
+
+        if (paperTopAuthor.getAffiliation() != null) {
+            this.affiliation = new AffiliationDto(paperTopAuthor.getAffiliation());
+            this.organization = paperTopAuthor.getAffiliation().getName();
+        }
+
+        if (paperTopAuthor.getAuthor().getAuthorHIndex() != null) {
+            this.hIndex = paperTopAuthor.getAuthor().getAuthorHIndex().getHIndex();
         }
     }
 

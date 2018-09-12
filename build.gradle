@@ -57,6 +57,7 @@ dependencies {
     compile('org.projectlombok:lombok')
 
     compile('org.apache.commons:commons-lang3:3.7')
+    compile('org.apache.commons:commons-text:1.4')
 
     testCompile('com.h2database:h2')
     testCompile('org.springframework.boot:spring-boot-starter-test')

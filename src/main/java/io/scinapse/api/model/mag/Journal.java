@@ -3,14 +3,13 @@ package io.scinapse.api.model.mag;
 import lombok.Getter;
 import org.hibernate.annotations.BatchSize;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @BatchSize(size = 10)
-@Table(schema = "mcsa", name = "journal")
+@Table(schema = "scinapse", name = "journal")
 @Entity
 public class Journal {
 
@@ -18,13 +17,13 @@ public class Journal {
     private long id;
 
     @Column
-    private Long rank;
+    private String title;
 
     @Column
-    private String normalizedName;
+    private String issn;
 
     @Column
-    private String displayName;
+    private String webPage;
 
     @Column
     private Long paperCount;
@@ -32,7 +31,11 @@ public class Journal {
     @Column
     private Long citationCount;
 
-    @Column(name = "jcr_if")
+    @Column
     private Double impactFactor;
+
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "journal")
+    private List<JournalFos> fosList = new ArrayList<>();
 
 }
