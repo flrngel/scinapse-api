@@ -3,6 +3,7 @@ package io.scinapse.api.configuration;
 import com.amazonaws.xray.javax.servlet.AWSXRayServletFilter;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -38,8 +39,13 @@ public class CommonConfig {
     public RestHighLevelClient restHighLevelClient(@Value("${pluto.server.es.hostname}") String hostname,
                                                    @Value("${pluto.server.es.port}") int port,
                                                    @Value("${pluto.server.es.scheme}") String scheme) {
-        return new RestHighLevelClient(
-                RestClient.builder(new HttpHost(hostname, port, scheme)));
+
+        RestClientBuilder builder = RestClient
+                .builder(new HttpHost(hostname, port, scheme))
+                // we cannot use bug fixed client(6.3.1+) due to ES version conflict(6.2)
+                .setRequestConfigCallback(requestConfigBuilder -> requestConfigBuilder.setConnectionRequestTimeout(0));
+
+        return new RestHighLevelClient(builder);
     }
 
     @Bean
