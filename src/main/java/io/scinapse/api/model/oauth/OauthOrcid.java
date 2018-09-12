@@ -38,4 +38,5 @@ public class OauthOrcid extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID", unique = true)
     private Member member;
+
 }

@@ -2,8 +2,8 @@ package io.scinapse.api.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
-import io.scinapse.api.dto.PaperAuthorDto;
-import io.scinapse.api.dto.PaperDto;
+import io.scinapse.api.dto.mag.PaperAuthorDto;
+import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.model.mag.Author;
@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -68,7 +69,7 @@ public class AuthorService {
     }
 
     public void setDefaultAuthors(List<PaperDto> paperDtos) {
-        if (paperDtos == null || paperDtos.isEmpty()) {
+        if (CollectionUtils.isEmpty(paperDtos)) {
             return;
         }
 

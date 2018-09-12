@@ -4,7 +4,7 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CitationTextDto;
-import io.scinapse.api.dto.PaperDto;
+import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;

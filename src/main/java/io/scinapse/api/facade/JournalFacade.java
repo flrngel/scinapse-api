@@ -2,8 +2,8 @@ package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
-import io.scinapse.api.dto.JournalDto;
-import io.scinapse.api.dto.PaperDto;
+import io.scinapse.api.dto.mag.JournalDto;
+import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;

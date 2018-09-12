@@ -1,7 +1,7 @@
 package io.scinapse.api.controller;
 
-import io.scinapse.api.dto.AuthorDto;
-import io.scinapse.api.dto.PaperDto;
+import io.scinapse.api.dto.mag.AuthorDto;
+import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.facade.PaperFacade;
 import io.scinapse.api.model.mag.Author;

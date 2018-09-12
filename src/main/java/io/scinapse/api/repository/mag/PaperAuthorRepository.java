@@ -13,9 +13,6 @@ import java.util.List;
 @XRayEnabled
 public interface PaperAuthorRepository extends JpaRepository<PaperAuthor, PaperAuthor.PaperAuthorId> {
 
-    @Query("select r.paper from PaperAuthor r join r.paper where r.id.authorId = :authorId and r.id.paperId <> :paperId and r.authorSequenceNumber < 10 order by r.paper.citationCount desc")
-    List<Paper> getAuthorMainPapers(@Param("paperId") long paperId, @Param("authorId") long authorId, Pageable pageable);
-
     @Query("select r.paper from PaperAuthor r join r.paper where r.id.authorId = :authorId order by r.paper.citationCount desc")
     List<Paper> getAuthorPapersMostCitations(@Param("authorId") long authorId, Pageable pageable);
 

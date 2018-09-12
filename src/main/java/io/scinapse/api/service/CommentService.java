@@ -4,7 +4,7 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.CommentDto;
 import io.scinapse.api.dto.CommentWrapper;
-import io.scinapse.api.dto.PaperDto;
+import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.model.Comment;
 import io.scinapse.api.model.Member;
 import io.scinapse.api.repository.CommentRepository;

@@ -2,8 +2,8 @@ package io.scinapse.api.controller;
 
 import io.scinapse.api.dto.LoginDto;
 import io.scinapse.api.dto.MemberDto;
-import io.scinapse.api.dto.OAuthAuthorizeUriDto;
-import io.scinapse.api.dto.OAuthRequest;
+import io.scinapse.api.dto.oauth.OAuthAuthorizeUriDto;
+import io.scinapse.api.dto.oauth.OAuthRequest;
 import io.scinapse.api.dto.oauth.OauthUserDto;
 import io.scinapse.api.enums.OauthVendor;
 import io.scinapse.api.facade.OauthFacade;

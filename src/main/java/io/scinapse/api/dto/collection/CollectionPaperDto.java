@@ -1,7 +1,7 @@
 package io.scinapse.api.dto.collection;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.scinapse.api.dto.PaperDto;
+import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.model.CollectionPaper;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AccessLevel;

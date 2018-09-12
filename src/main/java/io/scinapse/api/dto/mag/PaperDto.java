@@ -1,6 +1,7 @@
-package io.scinapse.api.dto;
+package io.scinapse.api.dto.mag;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.scinapse.api.dto.CommentDto;
 import io.scinapse.api.model.mag.Paper;
 import lombok.AccessLevel;
 import lombok.Getter;

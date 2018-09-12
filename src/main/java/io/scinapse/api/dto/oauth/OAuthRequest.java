@@ -1,4 +1,4 @@
-package io.scinapse.api.dto;
+package io.scinapse.api.dto.oauth;
 
 import io.scinapse.api.enums.OauthVendor;
 import io.swagger.annotations.ApiModelProperty;

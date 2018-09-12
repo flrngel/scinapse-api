@@ -38,4 +38,5 @@ public class AuthorTopPaper {
         private long paperId;
 
     }
+
 }

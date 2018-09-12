@@ -1,6 +1,6 @@
 package io.scinapse.api.controller;
 
-import io.scinapse.api.dto.PaperDto;
+import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.facade.PaperFacade;
 import io.scinapse.api.model.mag.Paper;
 import io.scinapse.api.util.Query;

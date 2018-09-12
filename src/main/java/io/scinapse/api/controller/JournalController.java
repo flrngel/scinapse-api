@@ -1,7 +1,7 @@
 package io.scinapse.api.controller;
 
-import io.scinapse.api.dto.JournalDto;
-import io.scinapse.api.dto.PaperDto;
+import io.scinapse.api.dto.mag.JournalDto;
+import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.facade.JournalFacade;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;

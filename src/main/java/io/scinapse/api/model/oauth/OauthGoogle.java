@@ -37,4 +37,5 @@ public class OauthGoogle extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID", unique = true)
     private Member member;
+
 }

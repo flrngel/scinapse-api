@@ -2,7 +2,7 @@ package io.scinapse.api.controller;
 
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CitationTextDto;
-import io.scinapse.api.dto.PaperDto;
+import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.facade.PaperFacade;

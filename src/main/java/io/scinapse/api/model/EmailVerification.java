@@ -22,4 +22,5 @@ public class EmailVerification extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private String token;
+
 }

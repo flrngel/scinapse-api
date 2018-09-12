@@ -112,7 +112,10 @@ public class PaperService {
     }
 
     public List<Paper> getAuthorRelatedPapers(long paperId, long authorId) {
-        return authorTopPaperRepository.findByAuthorIdAndPaperIdNot(authorId, paperId).stream().map(AuthorTopPaper::getPaper).collect(Collectors.toList());
+        return authorTopPaperRepository.findByAuthorIdAndPaperIdNot(authorId, paperId)
+                .stream()
+                .map(AuthorTopPaper::getPaper)
+                .collect(Collectors.toList());
     }
 
 }

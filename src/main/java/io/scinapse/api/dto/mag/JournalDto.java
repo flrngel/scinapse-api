@@ -1,4 +1,4 @@
-package io.scinapse.api.dto;
+package io.scinapse.api.dto.mag;
 
 import io.scinapse.api.model.mag.Journal;
 import lombok.Getter;

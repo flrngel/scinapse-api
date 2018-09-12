@@ -19,4 +19,5 @@ public class Authority extends BaseEntity {
     @Column(nullable = false, unique = true)
     @Enumerated(EnumType.STRING)
     private AuthorityName name;
+
 }
