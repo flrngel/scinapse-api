@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Transactional(readOnly = true)
@@ -52,7 +52,7 @@ public class PasswordResetService {
         if (one == null) {
             throw new BadRequestException("Invalid Password Reset Token");
         }
-        if (one.getCreatedAt().isBefore(LocalDateTime.now().minusDays(1))) {
+        if (one.getCreatedAt().isBefore(OffsetDateTime.now().minusDays(1))) {
             throw new BadRequestException("Password Reset Token is outdated");
         }
         if (one.isUsed()) {

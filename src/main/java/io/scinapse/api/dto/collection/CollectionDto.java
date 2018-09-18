@@ -11,7 +11,7 @@ import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -37,10 +37,10 @@ public class CollectionDto {
     private boolean isDefault;
 
     @JsonProperty("created_at")
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     @JsonProperty("updated_at")
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
     protected CollectionDto(Collection collection) {
         this.id = collection.getId();

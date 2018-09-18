@@ -3,15 +3,12 @@ package io.scinapse.api.model;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Getter
 @Setter
-@EntityListeners(AuditingEntityListener.class)
 @Entity
 public class PasswordResetToken {
 
@@ -26,8 +23,12 @@ public class PasswordResetToken {
     private boolean used = false;
 
     @Setter(AccessLevel.NONE)
-    @CreatedDate
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
+
+    @PrePersist
+    public void touchForCreate() {
+        this.createdAt = OffsetDateTime.now();
+    }
 
 }

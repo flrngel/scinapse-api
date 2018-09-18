@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @NoArgsConstructor
 @Getter
@@ -28,7 +28,7 @@ public class CommentDto {
     private MemberDto createdBy;
 
     @ApiModelProperty(readOnly = true)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     public CommentDto(Comment comment) {
         this.id = comment.getId();

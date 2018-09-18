@@ -2,28 +2,35 @@ package io.scinapse.api.model;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.Column;
-import javax.persistence.EntityListeners;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Getter
 @EqualsAndHashCode
-@EntityListeners(AuditingEntityListener.class)
 @MappedSuperclass
 public abstract class BaseEntity implements Serializable {
 
-    @CreatedDate
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
-    @LastModifiedDate
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
+
+    @PrePersist
+    public void touchForCreate() {
+        OffsetDateTime now = OffsetDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void touchForUpdate() {
+        this.updatedAt = OffsetDateTime.now();
+    }
 
 }
