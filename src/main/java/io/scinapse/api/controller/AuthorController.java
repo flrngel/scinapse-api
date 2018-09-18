@@ -31,7 +31,7 @@ public class AuthorController {
     public Map<String, Object> find(@PathVariable long authorId) {
         Author author = authorService.find(authorId);
         if (author == null) {
-            throw new ResourceNotFoundException("Author not found");
+            throw new ResourceNotFoundException("Author not found: " + authorId);
         }
 
         Map<String, Object> result = new HashMap<>();
@@ -53,7 +53,7 @@ public class AuthorController {
     public Map<String, Object> coAuthors(@PathVariable long authorId) {
         Author author = authorService.find(authorId);
         if (author == null) {
-            throw new ResourceNotFoundException("Author not found");
+            throw new ResourceNotFoundException("Author not found: " + authorId);
         }
 
         List<AuthorDto> coAuthors = authorService.findCoAuthors(authorId)

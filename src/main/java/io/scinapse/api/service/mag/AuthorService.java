@@ -45,7 +45,7 @@ public class AuthorService {
     public Page<Paper> getAuthorPaper(long authorId, PageRequest pageRequest) {
         Author author = find(authorId);
         if (author == null) {
-            throw new ResourceNotFoundException("Author not found");
+            throw new ResourceNotFoundException("Author not found: " + authorId);
         }
 
         List<Paper> papers = getAuthorPaperList(authorId, pageRequest);

@@ -49,7 +49,7 @@ public class MemberController {
                                   @RequestBody @Validated(Update.class) MemberDto memberDto) {
         Member old = memberService.findMember(user.getId());
         if (old == null) {
-            throw new ResourceNotFoundException("Member not found");
+            throw new ResourceNotFoundException("Member not found: " + user.getId());
         }
 
         Member updated = memberDto.toEntity();
@@ -63,7 +63,7 @@ public class MemberController {
                                  @RequestBody @Valid MemberDto.PasswordWrapper password) {
         Member old = memberService.findMember(user.getId());
         if (old == null) {
-            throw new ResourceNotFoundException("Member not found");
+            throw new ResourceNotFoundException("Member not found: " + user.getId());
         }
 
         memberService.updatePassword(old, password.getPassword());
@@ -91,7 +91,7 @@ public class MemberController {
     public Result generateToken(@RequestBody EmailWrapper email) {
         Member member = memberService.findByEmail(email.email);
         if (member == null) {
-            throw new ResourceNotFoundException("Member not found");
+            throw new ResourceNotFoundException("Member not found: " + email.email);
         }
 
         memberFacade.generateToken(member);

@@ -36,7 +36,7 @@ public class MemberFacade {
     public MemberDto getDetail(long memberId) {
         Member member = memberService.findMember(memberId);
         if (member == null) {
-            throw new ResourceNotFoundException("Member not found");
+            throw new ResourceNotFoundException("Member not found: " + memberId);
         }
 
         long commentCount = commentService.getCount(member);

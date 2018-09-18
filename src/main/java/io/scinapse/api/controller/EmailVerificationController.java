@@ -52,7 +52,7 @@ public class EmailVerificationController {
     public Result resend(@RequestBody EmailWrapper email) {
         Member member = memberService.findByEmail(email.email);
         if (member == null) {
-            throw new ResourceNotFoundException("Member not found");
+            throw new ResourceNotFoundException("Member not found: " + email.email);
         }
 
         if (member.isEmailVerified()) {

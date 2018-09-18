@@ -38,7 +38,7 @@ public class PaperFacade {
     public PaperDto find(long paperId) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
-            throw new ResourceNotFoundException("Paper not found");
+            throw new ResourceNotFoundException("Paper not found: " + paperId);
         }
 
         PaperDto dto = PaperDto.full().convert(paper);
@@ -84,7 +84,7 @@ public class PaperFacade {
     public Page<PaperDto> findReferences(long paperId, PageRequest pageRequest) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
-            throw new ResourceNotFoundException("Paper not found");
+            throw new ResourceNotFoundException("Paper not found: " + paperId);
         }
 
         List<Long> referenceIds = paperService.findReferences(paperId, pageRequest);
@@ -96,7 +96,7 @@ public class PaperFacade {
     public Page<PaperDto> findCited(long paperId, PageRequest pageRequest) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
-            throw new ResourceNotFoundException("Paper not found");
+            throw new ResourceNotFoundException("Paper not found: " + paperId);
         }
 
         List<Long> citedIds = paperService.findCited(paperId, pageRequest);
@@ -138,7 +138,7 @@ public class PaperFacade {
     public CitationTextDto citation(long paperId, CitationFormat format) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
-            throw new ResourceNotFoundException("Paper not found");
+            throw new ResourceNotFoundException("Paper not found: " + paperId);
         }
 
         return paperService.citation(paper.getDoi(), format);

@@ -30,7 +30,7 @@ public class CommentController {
                                     @RequestBody @Valid CommentDto commentDto) {
         Paper paper = paperService.find(commentDto.getPaperId());
         if (paper == null) {
-            throw new ResourceNotFoundException("Paper not found");
+            throw new ResourceNotFoundException("Paper not found: " + commentDto.getPaperId());
         }
 
         Member member = memberService.getMember(user.getId());
@@ -47,7 +47,7 @@ public class CommentController {
                                          PageRequest pageRequest) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
-            throw new ResourceNotFoundException("Paper not found");
+            throw new ResourceNotFoundException("Paper not found: " + paperId);
         }
 
         return commentService.findByPaperId(paperId, pageRequest).map(CommentDto::new);
@@ -59,7 +59,7 @@ public class CommentController {
                                     @RequestBody CommentDto commentDto) {
         Comment comment = commentService.find(commentId);
         if (comment == null) {
-            throw new ResourceNotFoundException("Comment not found");
+            throw new ResourceNotFoundException("Comment not found: " + commentId);
         }
 
         if (comment.getCreatedBy().getId() != user.getId()) {
@@ -75,7 +75,7 @@ public class CommentController {
                                 @PathVariable long commentId) {
         Comment comment = commentService.find(commentId);
         if (comment == null) {
-            throw new ResourceNotFoundException("Comment not found");
+            throw new ResourceNotFoundException("Comment not found: " + commentId);
         }
 
         if (comment.getCreatedBy().getId() != user.getId()) {
