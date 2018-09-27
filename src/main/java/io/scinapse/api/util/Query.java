@@ -135,6 +135,12 @@ public class Query {
                 .should(titleQuery)
                 .should(abstractQuery);
 
+        // title boosting for phrase matching
+        phraseQueries.forEach(q -> {
+            MatchPhraseQueryBuilder phrase = QueryBuilders.matchPhraseQuery("title", q).boost(20);
+            phraseMatchQuery.should(phrase);
+        });
+
         // re-scoring top 100 documents only for each shard
         return new QueryRescorerBuilder(phraseMatchQuery)
                 .windowSize(100);
