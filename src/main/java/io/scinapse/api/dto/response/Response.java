@@ -18,10 +18,17 @@ public class Response<T> {
     private Data<T> data;
 
     public static Response error(HttpServletRequest request) {
-        Error error = new Error(request);
+        Error error = Error.of(request);
         Response<Object> errorResponse = new Response<>();
         errorResponse.setError(error);
         return errorResponse;
+    }
+
+    public static <R> Response<R> success(R content) {
+        Data<R> data = Data.of(content);
+        Response<R> response = new Response<>();
+        response.setData(data);
+        return response;
     }
 
 }

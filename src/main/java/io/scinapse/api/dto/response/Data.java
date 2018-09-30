@@ -19,8 +19,12 @@ public class Data<T> {
 
     private Map<String, Object> additional = new HashMap<>();
 
-    public Data(T content) {
+    private Data(T content) {
         this.content = content;
+    }
+
+    public static <R> Data<R> of(R content) {
+        return new Data<>(content);
     }
 
     @JsonAnyGetter

@@ -3,11 +3,13 @@ package io.scinapse.api.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.scinapse.api.dto.oauth.OauthUserDto;
 import io.scinapse.api.model.Member;
+import io.scinapse.api.validator.NoSpecialChars;
 import io.scinapse.api.validator.Update;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.URL;
 
@@ -36,15 +38,27 @@ public class MemberDto {
     private String password;
 
     @ApiModelProperty(required = true)
+    @NoSpecialChars
     @Size(max = 250, groups = { Default.class, Update.class })
-    @NotNull(groups = { Default.class, Update.class })
+//    @NotNull(groups = { Default.class, Update.class })
     private String name;
+
+    @NoSpecialChars
+    @Size(min = 2, max = 50)
+//    @NotNull
+    private String firstName;
+
+    @NoSpecialChars
+    @Size(min = 2, max = 50)
+//    @NotNull
+    private String lastName;
 
     @Size(max = 250)
     @URL
     private String profileImage;
 
-    @Size(max = 250, groups = { Default.class, Update.class })
+    @NoSpecialChars
+    @Size(max = 200, groups = { Default.class, Update.class })
     @NotNull(groups = { Default.class, Update.class })
     private String affiliation;
 
@@ -61,20 +75,29 @@ public class MemberDto {
         this.id = member.getId();
         this.email = member.getEmail();
         this.emailVerified = member.isEmailVerified();
-        this.name = member.getName();
         this.profileImage = member.getProfileImage();
         this.affiliation = member.getAffiliation();
         this.major = member.getMajor();
+
+        this.name = member.getName();
+        this.firstName = member.getName();
+        this.lastName = member.getLastName();
     }
 
     public Member toEntity() {
         Member member = new Member();
         member.setEmail(this.email);
         member.setPassword(this.password);
-        member.setName(this.name);
         member.setProfileImage(this.profileImage);
         member.setAffiliation(this.affiliation);
         member.setMajor(this.major);
+
+        if (StringUtils.isNotBlank(this.firstName)) {
+            member.setName(this.firstName);
+        } else {
+            member.setName(this.name);
+        }
+        member.setLastName(this.lastName);
         return member;
     }
 
@@ -85,6 +108,18 @@ public class MemberDto {
         @Size(min = 8, message = "password must be greater than or equal to 8")
         @NotNull
         private String password;
+    }
+
+    public void setName(String name) {
+        this.name = StringUtils.normalizeSpace(name);
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = StringUtils.normalizeSpace(firstName);
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = StringUtils.normalizeSpace(lastName);
     }
 
 }

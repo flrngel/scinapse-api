@@ -6,13 +6,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.servlet.DispatcherServlet;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @Getter
@@ -22,18 +23,23 @@ public class Error {
     public static final Integer UNEXPECTED_ERROR_STATUS_CODE = 999;
     public static final String UNEXPECTED_ERROR = "Unexpected Error";
 
-    private LocalDateTime timestamp;
+    private OffsetDateTime timestamp;
     private Integer status;
     private String reason;
     private String exception;
     private String message;
+    private Object errors;
     private String path;
 
-    public Error(HttpServletRequest request) {
-        this.timestamp = LocalDateTime.now();
+    private Error(HttpServletRequest request) {
+        this.timestamp = OffsetDateTime.now();
         setStatus(request);
         setErrorDetail(request);
         setPath(request);
+    }
+
+    public static Error of(HttpServletRequest request) {
+        return new Error(request);
     }
 
     private void setStatus(HttpServletRequest request) {
@@ -68,14 +74,26 @@ public class Error {
 
     private String getErrorMessage(Throwable throwable) {
         if (isInternalServerError()) {
-
+            return HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase();
         }
 
-        if (throwable instanceof MethodArgumentNotValidException) {
-            return "Validation failed.";
+        BindingResult result = extractBindingResult(throwable);
+        if (result != null && result.getErrorCount() > 0) {
+            this.errors = result.getAllErrors();
+            return "Validation failed for object='" + result.getObjectName() + "'. Error count: " + result.getErrorCount();
         }
 
         return throwable.getMessage();
+    }
+
+    private BindingResult extractBindingResult(Throwable error) {
+        if (error instanceof BindingResult) {
+            return (BindingResult) error;
+        }
+        if (error instanceof MethodArgumentNotValidException) {
+            return ((MethodArgumentNotValidException) error).getBindingResult();
+        }
+        return null;
     }
 
     private boolean isInternalServerError() {
