@@ -71,8 +71,8 @@ public class CollectionController {
     }
 
     @RequestMapping(value = "/members/{memberId}/collections", method = RequestMethod.GET)
-    public Map<String, Object> findByCreators(@PathVariable long memberId,
-                                              PageRequest pageRequest) {
+    public Map<String, Object> findByCreators(@PathVariable long memberId) {
+        PageRequest pageRequest = new PageRequest(0, 50, null);
         Page<CollectionDto> dtos = collectionFacade.findByCreator(memberId, pageRequest);
 
         Map<String, Object> result = new HashMap<>();
@@ -83,8 +83,8 @@ public class CollectionController {
 
     @RequestMapping(value = "/members/me/collections", method = RequestMethod.GET)
     public Map<String, Object> myCollection(@ApiIgnore JwtUser user,
-                                            @RequestParam(value = "paper_id", required = false) Long paperId,
-                                            PageRequest pageRequest) {
+                                            @RequestParam(value = "paper_id", required = false) Long paperId) {
+        PageRequest pageRequest = new PageRequest(0, 50, null);
         Page<MyCollectionDto> dtos = collectionFacade.findMyCollection(user, paperId, pageRequest);
 
         Map<String, Object> result = new HashMap<>();
