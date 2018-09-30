@@ -39,7 +39,7 @@ public class MemberDto {
 
     @ApiModelProperty(required = true)
     @NoSpecialChars
-    @Size(max = 250, groups = { Default.class, Update.class })
+    @Size(min = 2, max = 50, groups = { Default.class, Update.class })
 //    @NotNull(groups = { Default.class, Update.class })
     private String name;
 
@@ -57,8 +57,7 @@ public class MemberDto {
     @URL
     private String profileImage;
 
-    @NoSpecialChars
-    @Size(max = 200, groups = { Default.class, Update.class })
+    @Size(min = 2, max = 200, groups = { Default.class, Update.class })
     @NotNull(groups = { Default.class, Update.class })
     private String affiliation;
 
@@ -120,6 +119,10 @@ public class MemberDto {
 
     public void setLastName(String lastName) {
         this.lastName = StringUtils.normalizeSpace(lastName);
+    }
+
+    public void setAffiliation(String affiliation) {
+        this.affiliation = StringUtils.normalizeSpace(affiliation);
     }
 
 }
