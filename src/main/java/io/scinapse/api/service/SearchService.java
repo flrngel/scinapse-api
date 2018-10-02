@@ -98,7 +98,8 @@ public class SearchService {
 
         if (query.shouldRescore()) {
             builder.addRescorer(query.getPhraseRescoreQuery());
-            builder.addRescorer(query.getFunctionRescoreQuery());
+            builder.addRescorer(query.getCitationRescoreQuery());
+            builder.addRescorer(query.getAbsenceRescoreQuery());
         }
 
         request.source(builder);

@@ -3,12 +3,11 @@ package io.scinapse.api.util;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.index.query.*;
-import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
-import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
+import org.elasticsearch.index.query.functionscore.ScriptScoreFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.WeightBuilder;
+import org.elasticsearch.script.Script;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 
@@ -146,31 +145,43 @@ public class Query {
                 .windowSize(100);
     }
 
-    public QueryRescorerBuilder getFunctionRescoreQuery() {
+    public QueryRescorerBuilder getCitationRescoreQuery() {
+        // citation count booster for re-scoring
+        Script script = new Script("Math.log10(doc['citation_count'].value + 10)");
+        ScriptScoreFunctionBuilder citationFunction = new ScriptScoreFunctionBuilder(script);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder citationBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(citationFunction);
+
+
+        FunctionScoreQueryBuilder functionQuery = QueryBuilders
+                .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { citationBooster })
+                .maxBoost(3); // limit boosting
+
+        // re-scoring top 100 documents only for each shard
+        return new QueryRescorerBuilder(functionQuery)
+                .windowSize(100)
+                .setScoreMode(QueryRescoreMode.Multiply);
+    }
+
+    public QueryRescorerBuilder getAbsenceRescoreQuery() {
         // abstract absent booster for re-scoring
         BoolQueryBuilder abstractAbsentFilter = QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery("abstract"));
         FunctionScoreQueryBuilder.FilterFunctionBuilder abstractAbsentBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(
                 abstractAbsentFilter,
-                new WeightBuilder().setWeight(0.5f));
+                new WeightBuilder().setWeight(0.7f));
 
         // journal title absent booster for re-scoring
         BoolQueryBuilder journalTitleAbsentFilter = QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery("journal.title"));
         FunctionScoreQueryBuilder.FilterFunctionBuilder journalTitleAbsentBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(
                 journalTitleAbsentFilter,
-                new WeightBuilder().setWeight(0.5f));
-
-        // citation count booster for re-scoring
-        FieldValueFactorFunctionBuilder citationFunction = ScoreFunctionBuilders.fieldValueFactorFunction("citation_count").modifier(FieldValueFactorFunction.Modifier.LOG2P);
-        FunctionScoreQueryBuilder.FilterFunctionBuilder citationBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(citationFunction);
-
+                new WeightBuilder().setWeight(0.7f));
 
         FunctionScoreQueryBuilder functionQuery = QueryBuilders
-                .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { abstractAbsentBooster, journalTitleAbsentBooster, citationBooster })
-                .maxBoost(10); // limit boosting
+                .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { abstractAbsentBooster, journalTitleAbsentBooster })
+                .maxBoost(1); // limit boosting
 
         // re-scoring top 100 documents only for each shard
         return new QueryRescorerBuilder(functionQuery)
-                .windowSize(100)
+                .windowSize(10) // to remove those papers only from very first page
                 .setScoreMode(QueryRescoreMode.Multiply);
     }
 
