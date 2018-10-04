@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.domain.Page;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonSerialize
@@ -27,6 +29,13 @@ public class Response<T> {
     public static <R> Response<R> success(R content) {
         Data<R> data = Data.of(content);
         Response<R> response = new Response<>();
+        response.setData(data);
+        return response;
+    }
+
+    public static <S, R extends Page<S>> Response<List<S>> success(R content) {
+        Data<List<S>> data = Data.of(content);
+        Response<List<S>> response = new Response<>();
         response.setData(data);
         return response;
     }

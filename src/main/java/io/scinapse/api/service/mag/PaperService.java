@@ -6,16 +6,11 @@ import io.scinapse.api.dto.CitationTextDto;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.error.ExternalApiCallException;
 import io.scinapse.api.error.ResourceNotFoundException;
-import io.scinapse.api.model.mag.AuthorTopPaper;
-import io.scinapse.api.model.mag.Paper;
-import io.scinapse.api.model.mag.PaperRecommendation;
-import io.scinapse.api.model.mag.PaperReference;
-import io.scinapse.api.repository.mag.AuthorTopPaperRepository;
-import io.scinapse.api.repository.mag.PaperRecommendationRepository;
-import io.scinapse.api.repository.mag.PaperReferenceRepository;
-import io.scinapse.api.repository.mag.PaperRepository;
+import io.scinapse.api.model.mag.*;
+import io.scinapse.api.repository.mag.*;
 import io.scinapse.api.util.TextUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +36,7 @@ public class PaperService {
     private final PaperReferenceRepository paperReferenceRepository;
     private final PaperRecommendationRepository paperRecommendationRepository;
     private final AuthorTopPaperRepository authorTopPaperRepository;
+    private final PaperAuthorRepository paperAuthorRepository;
     private final RestTemplate restTemplate;
 
     public Paper find(long paperId) {
@@ -116,6 +112,10 @@ public class PaperService {
                 .stream()
                 .map(AuthorTopPaper::getPaper)
                 .collect(Collectors.toList());
+    }
+
+    public Page<PaperAuthor> getPaperAuthors(long paperId, PageRequest pageRequest) {
+        return paperAuthorRepository.getByPaperIdOrderByAuthorSequenceNumber(paperId, pageRequest.toPageable());
     }
 
 }

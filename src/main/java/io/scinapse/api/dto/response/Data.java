@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
@@ -23,8 +24,18 @@ public class Data<T> {
         this.content = content;
     }
 
+    private Data(T content, Page page) {
+        this(content);
+        this.page = page;
+    }
+
     public static <R> Data<R> of(R content) {
         return new Data<>(content);
+    }
+
+    public static <S, R extends org.springframework.data.domain.Page<S>> Data<List<S>> of(R content) {
+        Page page = Page.of(content);
+        return new Data<>(content.getContent(), page);
     }
 
     @JsonAnyGetter

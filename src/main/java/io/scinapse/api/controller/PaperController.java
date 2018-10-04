@@ -2,7 +2,9 @@ package io.scinapse.api.controller;
 
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CitationTextDto;
+import io.scinapse.api.dto.mag.PaperAuthorDto;
 import io.scinapse.api.dto.mag.PaperDto;
+import io.scinapse.api.dto.response.Response;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.facade.PaperFacade;
@@ -101,6 +103,11 @@ public class PaperController {
         result.put("data", related);
 
         return result;
+    }
+
+    @RequestMapping(value = "/papers/{paperId}/authors", method = RequestMethod.GET)
+    public Response<List<PaperAuthorDto>> getPaperAuthor(@PathVariable long paperId, PageRequest pageRequest) {
+        return Response.success(paperFacade.getPaperAuthors(paperId, pageRequest));
     }
 
 }

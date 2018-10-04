@@ -4,11 +4,13 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CitationTextDto;
+import io.scinapse.api.dto.mag.PaperAuthorDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.model.mag.Paper;
+import io.scinapse.api.model.mag.PaperAuthor;
 import io.scinapse.api.service.CommentService;
 import io.scinapse.api.service.SearchService;
 import io.scinapse.api.service.mag.AuthorService;
@@ -26,6 +28,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @XRayEnabled
+@Transactional
 @Component
 @RequiredArgsConstructor
 public class PaperFacade {
@@ -78,6 +81,11 @@ public class PaperFacade {
                 .collect(Collectors.toList());
         authorService.setDefaultAuthors(dtos);
         return dtos;
+    }
+
+    public Page<PaperAuthorDto> getPaperAuthors(long paperId, PageRequest pageRequest) {
+        Page<PaperAuthor> paperAuthors = paperService.getPaperAuthors(paperId, pageRequest);
+        return paperAuthors.map(PaperAuthorDto::new);
     }
 
     @Transactional(readOnly = true)

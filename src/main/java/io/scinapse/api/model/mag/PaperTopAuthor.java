@@ -17,6 +17,9 @@ public class PaperTopAuthor {
     @EmbeddedId
     private PaperTopAuthorId id;
 
+    @Column(name = "paper_id", insertable = false, updatable = false)
+    private long paperId;
+
     @MapsId("paperId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "paper_id")

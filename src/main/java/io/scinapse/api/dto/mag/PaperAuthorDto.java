@@ -20,7 +20,7 @@ public class PaperAuthorDto {
     private int order;
 
     public PaperAuthorDto(PaperAuthor relation) {
-        this.paperId = relation.getPaper().getId();
+        this.paperId = relation.getPaperId();
         this.id = relation.getAuthor().getId();
         this.name = relation.getAuthor().getName();
         this.order = relation.getAuthorSequenceNumber();
@@ -36,10 +36,9 @@ public class PaperAuthorDto {
     }
 
     public PaperAuthorDto(PaperTopAuthor paperTopAuthor) {
-        this.paperId = paperTopAuthor.getId().getPaperId();
+        this.paperId = paperTopAuthor.getPaperId();
         this.id = paperTopAuthor.getId().getAuthorId();
         this.name = paperTopAuthor.getAuthor().getName();
-        this.order = paperTopAuthor.getAuthorSequenceNumber();
 
         if (paperTopAuthor.getAffiliation() != null) {
             this.affiliation = new AffiliationDto(paperTopAuthor.getAffiliation());
