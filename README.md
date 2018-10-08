@@ -1,7 +1,5 @@
 # scinapse-api
 
-# local db setting 
-
- docker-compose -f docker-compose-local-db.yml up -d
- 
+# local service up 
+docker-compose -f docker-compose up -d 
  

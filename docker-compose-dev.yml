@@ -1,0 +1,32 @@
+version: '3'
+services:
+  web1:
+    image: 966390130392.dkr.ecr.us-east-1.amazonaws.com/scinapse-api/dev:profile
+    ports:
+      - "81:8080"
+    environment:
+      WEB_PORTS: 81
+      VIRTUAL_HOST: profile.dev-api.scinapse.io
+    volumes:
+      - /srv/scinapse-api/app/application.properties:/application.properties
+      - /pluto/logs/:/pluto/logs/
+
+  web2:
+    image: 966390130392.dkr.ecr.us-east-1.amazonaws.com/scinapse-api/dev:docker
+    ports:
+      - "82:8080"
+    environment:
+      WEB_PORTS: 82
+      VIRTUAL_HOST: docker.dev-api.scinapse.io
+    volumes:
+      - /srv/scinapse-api/app/application.properties:/application.properties
+      - /pluto/logs/:/pluto/logs/
+
+  nginx:
+    image: jwilder/nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    environment:
+        DEFAULT_HOST: profile.dev-api.scinapse.io
