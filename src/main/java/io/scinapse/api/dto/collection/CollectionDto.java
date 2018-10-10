@@ -7,7 +7,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -23,11 +23,11 @@ public class CollectionDto {
     @JsonProperty("created_by")
     private MemberDto createdBy;
 
-    @Size(min = 2, max = 100)
+    @Size(min = 1, max = 100)
     @NotNull
     private String title;
 
-    @Size(min = 2, max = 500)
+    @Size(min = 1, max = 500)
     private String description;
 
     @JsonProperty("paper_count")
@@ -65,11 +65,11 @@ public class CollectionDto {
     }
 
     public void setTitle(String title) {
-        this.title = StringUtils.trimWhitespace(title);
+        this.title = StringUtils.normalizeSpace(title);
     }
 
     public void setDescription(String description) {
-        this.description = StringUtils.trimWhitespace(description);
+        this.description = StringUtils.stripToNull(description);
     }
 
 }
