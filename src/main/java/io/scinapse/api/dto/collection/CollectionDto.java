@@ -23,11 +23,11 @@ public class CollectionDto {
     @JsonProperty("created_by")
     private MemberDto createdBy;
 
-    @Size(min = 1, max = 60)
+    @Size(min = 2, max = 100)
     @NotNull
     private String title;
 
-    @Size(max = 500)
+    @Size(min = 2, max = 500)
     private String description;
 
     @JsonProperty("paper_count")
