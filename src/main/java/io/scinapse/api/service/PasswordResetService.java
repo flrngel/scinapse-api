@@ -66,7 +66,7 @@ public class PasswordResetService {
     private void sendEmail(PasswordResetToken token) {
         String templateData;
         try {
-            PasswordResetData data = new PasswordResetData(token.getMember().getName(), webResetPasswordUrl + "?token=" + token.getToken());
+            PasswordResetData data = new PasswordResetData(token.getMember().getFullName(), webResetPasswordUrl + "?token=" + token.getToken());
             templateData = objectMapper.writeValueAsString(data);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Json Processing Exception", e);

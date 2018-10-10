@@ -3,6 +3,7 @@ package io.scinapse.api.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.*;
@@ -36,7 +37,7 @@ public class Member extends BaseEntity {
     private List<Authority> authorities = new ArrayList<>();
 
     @Column(nullable = false)
-    private String name;
+    private String firstName;
 
     @Column(nullable = false)
     private String lastName;
@@ -52,5 +53,13 @@ public class Member extends BaseEntity {
 
     @Column(nullable = false)
     private boolean emailVerified = false;
+
+    public String getFullName() {
+        // existing user does not have a last name.
+        if (StringUtils.isBlank(this.lastName)) {
+            return this.firstName;
+        }
+        return this.firstName + " " + this.lastName;
+    }
 
 }

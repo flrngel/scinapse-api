@@ -37,20 +37,14 @@ public class MemberDto {
     @ApiModelProperty
     private String password;
 
-    @ApiModelProperty(required = true)
-    @NoSpecialChars
-    @Size(min = 2, max = 50, groups = { Default.class, Update.class })
-//    @NotNull(groups = { Default.class, Update.class })
-    private String name;
-
     @NoSpecialChars
     @Size(min = 2, max = 50)
-//    @NotNull
+    @NotNull
     private String firstName;
 
     @NoSpecialChars
     @Size(min = 2, max = 50)
-//    @NotNull
+    @NotNull
     private String lastName;
 
     @Size(max = 250)
@@ -78,8 +72,7 @@ public class MemberDto {
         this.affiliation = member.getAffiliation();
         this.major = member.getMajor();
 
-        this.name = member.getName();
-        this.firstName = member.getName();
+        this.firstName = member.getFirstName();
         this.lastName = member.getLastName();
     }
 
@@ -91,11 +84,7 @@ public class MemberDto {
         member.setAffiliation(this.affiliation);
         member.setMajor(this.major);
 
-        if (StringUtils.isNotBlank(this.firstName)) {
-            member.setName(this.firstName);
-        } else {
-            member.setName(this.name);
-        }
+        member.setFirstName(this.firstName);
         member.setLastName(this.lastName);
         return member;
     }
@@ -107,10 +96,6 @@ public class MemberDto {
         @Size(min = 8, message = "password must be greater than or equal to 8")
         @NotNull
         private String password;
-    }
-
-    public void setName(String name) {
-        this.name = StringUtils.normalizeSpace(name);
     }
 
     public void setFirstName(String firstName) {

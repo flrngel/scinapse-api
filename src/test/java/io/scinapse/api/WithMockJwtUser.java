@@ -12,7 +12,9 @@ public @interface WithMockJwtUser {
 
     long memberId() default 1;
 
-    String name() default "alice";
+    String firstName() default "alice";
+
+    String lastName() default "bob";
 
     String email() default "alice@pluto.network";
 

@@ -33,7 +33,7 @@ public class CollectionService {
     public Collection createDefault(Member member) {
         Collection collection = new Collection();
         collection.setCreatedBy(member);
-        collection.setTitle(member.getName() + "'s Collection");
+        collection.setTitle(member.getFullName() + "'s Collection");
         collection.setDefault(true);
         return collectionRepository.save(collection);
     }

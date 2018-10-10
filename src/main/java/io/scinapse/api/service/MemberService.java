@@ -39,7 +39,8 @@ public class MemberService {
 
     @Transactional
     public Member updateMember(@NonNull Member old, @NonNull Member updated) {
-        old.setName(updated.getName());
+        old.setFirstName(updated.getFirstName());
+        old.setLastName(updated.getLastName());
         old.setAffiliation(updated.getAffiliation());
         old.setMajor(updated.getMajor());
         return old;

@@ -51,19 +51,22 @@ public class MemberControllerTest {
     @Test
     public void create_member_unauthenticated_user_can_access() throws Exception {
         String email = "alice@pluto.network";
-        String name = "alice";
+        String firstName = "alice";
+        String lastName = "bob";
         String affiliation = "Pluto";
 
         MemberDto requestDto = new MemberDto();
         requestDto.setEmail(email);
-        requestDto.setName(name);
+        requestDto.setFirstName(firstName);
+        requestDto.setLastName(lastName);
         requestDto.setAffiliation(affiliation);
 
         long createdMemberId = 1;
         Member created = new Member();
         created.setId(createdMemberId);
         created.setEmail(email);
-        created.setName(name);
+        created.setFirstName(firstName);
+        created.setLastName(lastName);
         created.setAffiliation(affiliation);
 
         when(memberFacade.create(any(MockHttpServletResponse.class), any(MemberDto.class))).thenReturn(created);
@@ -76,7 +79,8 @@ public class MemberControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Long.class).value(createdMemberId))
                 .andExpect(jsonPath("$.email", String.class).value(email))
-                .andExpect(jsonPath("$.name", String.class).value(name))
+                .andExpect(jsonPath("$.firstName", String.class).value(firstName))
+                .andExpect(jsonPath("$.lastName", String.class).value(lastName))
                 .andExpect(jsonPath("$.affiliation", String.class).value(affiliation));
 
         verify(memberFacade, only()).create(any(MockHttpServletResponse.class), any(MemberDto.class));
@@ -85,12 +89,14 @@ public class MemberControllerTest {
     @Test
     public void create_oauth_member_unauthenticated_user_can_access() throws Exception {
         String email = "alice@pluto.network";
-        String name = "alice";
+        String firstName = "alice";
+        String lastName = "bob";
         String affiliation = "Pluto";
 
         MemberDto requestDto = new MemberDto();
         requestDto.setEmail(email);
-        requestDto.setName(name);
+        requestDto.setFirstName(firstName);
+        requestDto.setLastName(lastName);
         requestDto.setAffiliation(affiliation);
 
         long createdMemberId = 1;
@@ -146,19 +152,20 @@ public class MemberControllerTest {
 
         Member old = new Member();
         old.setId(memberId);
-        old.setName("alice");
+        old.setFirstName("alice");
+        old.setLastName("bob");
         old.setAffiliation(affiliation);
 
-        String updateName = "bob";
+        String updateName = "charles";
         MemberDto requestDto = new MemberDto();
-        requestDto.setName(updateName);
+        requestDto.setFirstName(updateName);
         requestDto.setAffiliation(affiliation);
 
         when(memberService.findMember(memberId)).thenReturn(old);
         when(memberService.updateMember(eq(old), any())).thenAnswer(invocation -> {
             Member updated = invocation.getArgumentAt(1, Member.class);
 
-            old.setName(updated.getName());
+            old.setFirstName(updated.getFirstName());
             return old;
         });
 
@@ -168,7 +175,8 @@ public class MemberControllerTest {
                         .content(mapper.writeValueAsString(requestDto)))
 
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name", String.class).value(updateName))
+                .andExpect(jsonPath("$.firstName", String.class).value("charles"))
+                .andExpect(jsonPath("$.lastName", String.class).value("bob"))
                 .andExpect(jsonPath("$.affiliation", String.class).value(affiliation));
 
         verify(memberService).findMember(memberId);
@@ -182,7 +190,8 @@ public class MemberControllerTest {
         long invalidMemberId = 0;
 
         MemberDto requestDto = new MemberDto();
-        requestDto.setName("bob");
+        requestDto.setFirstName("alice");
+        requestDto.setLastName("bob");
         requestDto.setAffiliation("Pluto");
 
         when(memberService.findMember(invalidMemberId)).thenReturn(null);

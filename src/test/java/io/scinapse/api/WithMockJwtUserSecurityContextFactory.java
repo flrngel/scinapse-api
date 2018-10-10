@@ -24,7 +24,7 @@ public class WithMockJwtUserSecurityContextFactory implements WithSecurityContex
         JwtUser jwtUser = new JwtUser(authorities);
         jwtUser.setId(customUser.memberId());
         jwtUser.setEmail(customUser.email());
-        jwtUser.setName(customUser.name());
+        jwtUser.setName(customUser.firstName() + " " + customUser.lastName());
         jwtUser.setOauthLogin(customUser.oauth());
         jwtUser.setToken("token");
 

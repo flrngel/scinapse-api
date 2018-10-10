@@ -38,7 +38,8 @@ public class TokenHelperTest {
         this.member = new Member();
         this.member.setId(1);
         this.member.setEmail("alice@pluto.network");
-        this.member.setName("alice");
+        this.member.setFirstName("alice");
+        this.member.setLastName("bob");
 
         Authority authority = new Authority();
         authority.setName(AuthorityName.ROLE_USER);
@@ -64,7 +65,7 @@ public class TokenHelperTest {
 
         assertThat(claims.getIssuer()).isEqualTo("pluto");
         assertThat(claims.getSubject()).isEqualTo(member.getEmail());
-        assertThat(claims.get("name")).isEqualTo(member.getName());
+        assertThat(claims.get("name")).isEqualTo(member.getFullName());
         assertThat(claims.get("oauth")).isEqualTo(true);
         assertThat(claims.get("roles")).asList().contains("ROLE_USER");
     }

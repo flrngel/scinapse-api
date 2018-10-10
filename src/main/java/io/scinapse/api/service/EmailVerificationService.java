@@ -52,7 +52,7 @@ public class EmailVerificationService {
     private void sendVerificationEmail(Member member, String token) {
         String templateData;
         try {
-            VerifyEmailData data = new VerifyEmailData(member.getName(), webEmailVerificationUrl + "?email=" + member.getEmail() + "&token=" + token);
+            VerifyEmailData data = new VerifyEmailData(member.getFullName(), webEmailVerificationUrl + "?email=" + member.getEmail() + "&token=" + token);
             templateData = objectMapper.writeValueAsString(data);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Json Processing Exception", e);
@@ -90,7 +90,7 @@ public class EmailVerificationService {
     public void sendSignUpWelcomeEmail(Member member) {
         String templateData;
         try {
-            SignUpWelcomeData data = new SignUpWelcomeData(member.getName());
+            SignUpWelcomeData data = new SignUpWelcomeData(member.getFullName());
             templateData = objectMapper.writeValueAsString(data);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Json Processing Exception", e);

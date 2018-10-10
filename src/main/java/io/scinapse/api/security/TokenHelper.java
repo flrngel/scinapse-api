@@ -48,7 +48,7 @@ public class TokenHelper {
     public String generateToken(Member member, boolean oauthLogin) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", member.getId());
-        claims.put("name", member.getName());
+        claims.put("name", member.getFullName());
         claims.put("oauth", oauthLogin);
         claims.put("roles", member.getAuthorities().stream().map(Authority::getName).collect(Collectors.toList()));
 
