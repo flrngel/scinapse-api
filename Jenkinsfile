@@ -59,13 +59,13 @@ pipeline {
                                     port=81
                                     rm -f ./deploy/script/start.sh
                                     echo "#!/bin/bash" >> ./deploy/script/start.sh
-                                    echo "docker run -d -p 80:80 -e DEFAULT_HOST=master.dev-api.scinapse.io -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy" >> ./deploy/script/start.sh
-                                    echo "docker run -d -v /srv/scinapse-api/app/application.properties:/application.properties -v /pluto/logs/:/pluto/logs/ -e WEB_PORTS=$port -e VIRTUAL_HOST=master.dev-api.scinapse.io -p $port:8080 966390130392.dkr.ecr.us-east-1.amazonaws.com/scinapse-api/dev:master" >> ./deploy/script/start.sh
+                                    echo "docker run -d -p 80:80 -e DEFAULT_HOST=~^dev-api.scinapse.io$ -v /var/run/docker.sock:/tmp/docker.sock:ro jwilder/nginx-proxy" >> ./deploy/script/start.sh
+                                    echo "docker run -d -v /srv/scinapse-api/application.properties:/application.properties -v /pluto/logs/:/pluto/logs/ -e WEB_PORTS=$port -e VIRTUAL_HOST=~^dev-api.scinapse.io$ -p $port:8080 966390130392.dkr.ecr.us-east-1.amazonaws.com/scinapse-api/dev:master" >> ./deploy/script/start.sh
                                     git fetch --no-tags --progress https://github.com/pluto-net/scinapse-api.git +refs/heads/*:refs/remotes/origin/*
                                     git remote update --prune
                                     for branch in $(git branch -r | cut -d '/' -f2 | grep -Ev '( |master)'); do
                                         ((port++))
-                                        echo "docker run -d -v /srv/scinapse-api/app/application.properties:/application.properties -v /pluto/logs/:/pluto/logs/ -e WEB_PORTS=$port -e VIRTUAL_HOST=$branch.dev-api.scinapse.io -p $port:8080 966390130392.dkr.ecr.us-east-1.amazonaws.com/scinapse-api/dev:$branch" >> ./deploy/script/start.sh
+                                        echo "docker run -d -v /srv/scinapse-api/application.properties:/application.properties -v /pluto/logs/:/pluto/logs/ -e WEB_PORTS=$port -e VIRTUAL_HOST=$branch.dev-api.scinapse.io -p $port:8080 966390130392.dkr.ecr.us-east-1.amazonaws.com/scinapse-api/dev:$branch" >> ./deploy/script/start.sh
                                     done
                                     aws s3 sync deploy/ s3://pluto-deploy/dev/scinapse-api/
                                     aws deploy push \

@@ -3,6 +3,7 @@ plugins {
     id 'idea'
     id 'org.springframework.boot' version '1.5.16.RELEASE'
     id 'com.ewerk.gradle.plugins.querydsl' version '1.0.9'
+    id "com.gorylenko.gradle-git-properties" version "1.5.2"
 }
 
 springBoot {
