@@ -40,4 +40,8 @@ public class Response<T> {
         return response;
     }
 
+    public static Response success() {
+        return success("success");
+    }
+
 }

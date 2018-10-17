@@ -1,10 +1,15 @@
 package io.scinapse.api.dto.mag;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.model.mag.Author;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 @Getter
@@ -23,7 +28,14 @@ public class AuthorDto {
     @JsonProperty("citation_count")
     private Long citationCount;
 
+    @JsonProperty("hindex")
     private Integer hIndex;
+
+    @JsonProperty("profile_id")
+    private String profileId;
+
+    @JsonProperty("top_papers")
+    private List<PaperDto> topPapers = new ArrayList<>();
 
     public AuthorDto(Author author) {
         this.id = author.getId();
@@ -38,6 +50,13 @@ public class AuthorDto {
         if (author.getAuthorHIndex() != null) {
             this.hIndex = author.getAuthorHIndex().getHIndex();
         }
+
+        this.profileId = author.getProfileId();
+    }
+
+    @JsonGetter("is_profile_connected")
+    public boolean profileConnected() {
+        return StringUtils.isNotBlank(this.profileId);
     }
 
 }

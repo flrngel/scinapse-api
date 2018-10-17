@@ -9,4 +9,5 @@ import java.util.List;
 @XRayEnabled
 public interface AuthorTopPaperRepository extends JpaRepository<AuthorTopPaper, AuthorTopPaper.AuthorTopPaperId> {
     List<AuthorTopPaper> findByAuthorIdAndPaperIdNot(long authorId, long paperId);
+    List<AuthorTopPaper> findByAuthorIdIn(List<Long> authorIds);
 }

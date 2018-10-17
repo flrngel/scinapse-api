@@ -1,6 +1,8 @@
 package io.scinapse.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.dto.oauth.OauthUserDto;
 import io.scinapse.api.model.Member;
 import io.scinapse.api.validator.NoSpecialChars;
@@ -51,6 +53,9 @@ public class MemberDto {
     @URL
     private String profileImage;
 
+    @JsonProperty("profile_id")
+    private String profileId;
+
     @Size(min = 2, max = 200, groups = { Default.class, Update.class })
     @NotNull(groups = { Default.class, Update.class })
     private String affiliation;
@@ -63,7 +68,6 @@ public class MemberDto {
 
     private OauthUserDto oauth;
 
-
     public MemberDto(Member member) {
         this.id = member.getId();
         this.email = member.getEmail();
@@ -74,6 +78,7 @@ public class MemberDto {
 
         this.firstName = member.getFirstName();
         this.lastName = member.getLastName();
+        this.profileId = member.getProfileId();
     }
 
     public Member toEntity() {
@@ -108,6 +113,11 @@ public class MemberDto {
 
     public void setAffiliation(String affiliation) {
         this.affiliation = StringUtils.normalizeSpace(affiliation);
+    }
+
+    @JsonGetter("is_profile_connected")
+    public boolean profileConnected() {
+        return StringUtils.isNotBlank(this.profileId);
     }
 
 }

@@ -6,14 +6,8 @@ import io.scinapse.api.dto.mag.PaperAuthorDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;
-import io.scinapse.api.model.mag.Author;
-import io.scinapse.api.model.mag.AuthorCoauthor;
-import io.scinapse.api.model.mag.Paper;
-import io.scinapse.api.model.mag.PaperTopAuthor;
-import io.scinapse.api.repository.mag.AuthorCoauthorRepository;
-import io.scinapse.api.repository.mag.AuthorRepository;
-import io.scinapse.api.repository.mag.PaperAuthorRepository;
-import io.scinapse.api.repository.mag.PaperTopAuthorRepository;
+import io.scinapse.api.model.mag.*;
+import io.scinapse.api.repository.mag.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -21,10 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @XRayEnabled
@@ -37,16 +28,19 @@ public class AuthorService {
     private final PaperAuthorRepository paperAuthorRepository;
     private final PaperTopAuthorRepository paperTopAuthorRepository;
     private final AuthorCoauthorRepository authorCoauthorRepository;
+    private final AuthorTopPaperRepository authorTopPaperRepository;
 
-    public Author find(long authorId) {
-        return authorRepository.findOne(authorId);
+    public boolean exists(long authorId) {
+        return authorRepository.exists(authorId);
+    }
+
+    public Optional<Author> find(long authorId) {
+        return Optional.ofNullable(authorRepository.findOne(authorId));
     }
 
     public Page<Paper> getAuthorPaper(long authorId, PageRequest pageRequest) {
-        Author author = find(authorId);
-        if (author == null) {
-            throw new ResourceNotFoundException("Author not found: " + authorId);
-        }
+        Author author = find(authorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found: " + authorId));
 
         List<Paper> papers = getAuthorPaperList(authorId, pageRequest);
         return new PageImpl<>(papers, pageRequest.toPageable(), author.getPaperCount());
@@ -66,6 +60,12 @@ public class AuthorService {
             default:
                 return paperAuthorRepository.getAuthorPapersMostCitations(authorId, pageRequest.toPageable());
         }
+    }
+
+    public Page<Paper> getAuthorPaper(List<Long> authorIds, PageRequest pageRequest) {
+        Page<PaperAuthor> authorPapers = paperAuthorRepository.getByAuthorIdInOrderByPaperCitationCountDesc(authorIds, pageRequest.toPageable());
+        List<Paper> papers = authorPapers.getContent().stream().map(PaperAuthor::getPaper).collect(Collectors.toList());
+        return pageRequest.toPage(papers, authorPapers.getTotalElements());
     }
 
     public void setDefaultAuthors(List<PaperDto> paperDtos) {
@@ -100,6 +100,14 @@ public class AuthorService {
         return authorCoauthorRepository.findByAuthorId(authorId).stream()
                 .map(AuthorCoauthor::getCoauthor)
                 .collect(Collectors.toList());
+    }
+
+    public List<AuthorTopPaper> findAuthorTopPaper(List<Long> authorIds) {
+        return authorTopPaperRepository.findByAuthorIdIn(authorIds);
+    }
+
+    public List<Author> findByProfileId(String profileId) {
+        return authorRepository.findByProfileId(profileId);
     }
 
 }

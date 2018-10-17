@@ -1,10 +1,13 @@
 package io.scinapse.api.dto.mag;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.model.mag.PaperAuthor;
 import io.scinapse.api.model.mag.PaperTopAuthor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 
 @NoArgsConstructor
 @Getter
@@ -18,6 +21,10 @@ public class PaperAuthorDto {
     private String organization;
     private AffiliationDto affiliation;
     private int order;
+
+    @JsonProperty("profile_id")
+    private String profileId;
+
 
     public PaperAuthorDto(PaperAuthor relation) {
         this.paperId = relation.getPaperId();
@@ -33,6 +40,8 @@ public class PaperAuthorDto {
         if (relation.getAuthor().getAuthorHIndex() != null) {
             this.hIndex = relation.getAuthor().getAuthorHIndex().getHIndex();
         }
+
+        this.profileId = relation.getAuthor().getProfileId();
     }
 
     public PaperAuthorDto(PaperTopAuthor paperTopAuthor) {
@@ -48,6 +57,11 @@ public class PaperAuthorDto {
         if (paperTopAuthor.getAuthor().getAuthorHIndex() != null) {
             this.hIndex = paperTopAuthor.getAuthor().getAuthorHIndex().getHIndex();
         }
+    }
+
+    @JsonGetter("is_profile_connected")
+    public boolean profileConnected() {
+        return StringUtils.isNotBlank(this.profileId);
     }
 
 }

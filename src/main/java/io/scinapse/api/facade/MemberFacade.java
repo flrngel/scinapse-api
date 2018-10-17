@@ -8,18 +8,22 @@ import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.model.Member;
 import io.scinapse.api.security.TokenHelper;
+import io.scinapse.api.security.jwt.JwtUser;
 import io.scinapse.api.service.CommentService;
 import io.scinapse.api.service.EmailVerificationService;
 import io.scinapse.api.service.MemberService;
 import io.scinapse.api.service.PasswordResetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletResponse;
 
+@Transactional(readOnly = true)
 @XRayEnabled
 @Component
 @RequiredArgsConstructor
@@ -108,6 +112,23 @@ public class MemberFacade {
     @Transactional
     public void resetPassword(String token, String password) {
         passwordResetService.resetPassword(token, password);
+    }
+
+    public Member loadMember(JwtUser user) {
+        if (user == null) {
+            throw new UsernameNotFoundException("User information does not exist.");
+        }
+
+        if (user.getId() <= 0) {
+            throw new BadCredentialsException("Invalid user ID: " + user.getId());
+        }
+
+        Member member = memberService.findMember(user.getId());
+        if (member == null) {
+            throw new UsernameNotFoundException("User not found: " + user.getId());
+        }
+
+        return member;
     }
 
 }

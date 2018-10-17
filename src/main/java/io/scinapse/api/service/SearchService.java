@@ -21,6 +21,8 @@ import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
+import org.elasticsearch.index.query.functionscore.ScriptScoreFunctionBuilder;
+import org.elasticsearch.script.Script;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -34,6 +36,8 @@ import org.elasticsearch.search.aggregations.bucket.sampler.SamplerAggregationBu
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.rescore.QueryRescoreMode;
+import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.suggest.SortBy;
 import org.elasticsearch.search.suggest.Suggest;
@@ -70,6 +74,9 @@ public class SearchService {
 
     @Value("${pluto.server.es.index.suggestion.title}")
     private String titleSuggestionIndex;
+
+    @Value("${pluto.server.es.index.author}")
+    private String authorIndex;
 
     private static final String SAMPLE_AGG_NAME = "sample";
     private static final String JOURNAL_AGG_NAME = "journal";
@@ -129,6 +136,46 @@ public class SearchService {
 
         try {
             SearchRequest request = new SearchRequest(indexName).source(builder);
+            SearchResponse response = restHighLevelClient.search(request);
+
+            List<Long> list = new ArrayList<>();
+            for (SearchHit hit : response.getHits()) {
+                list.add(Long.valueOf(hit.getId()));
+            }
+            return new PageImpl<>(list, pageRequest.toPageable(), response.getHits().getTotalHits());
+        } catch (IOException | NumberFormatException e) {
+            throw new RuntimeException("Elasticsearch exception", e);
+        }
+    }
+
+    public Page<Long> searchAuthor(String keyword, PageRequest pageRequest) {
+        BoolQueryBuilder authorQuery = QueryBuilders.boolQuery()
+                .should(QueryBuilders.matchQuery("name", keyword).operator(Operator.AND).boost(2))
+                .should(QueryBuilders.matchQuery("name", keyword).minimumShouldMatch("2").boost(2))
+                .should(QueryBuilders.matchQuery("name.metaphone", keyword))
+                .should(QueryBuilders.matchQuery("name.porter", keyword))
+                .should(QueryBuilders.matchQuery("affiliation.name", keyword).boost(2));
+
+
+        // author paper/citation count booster script
+        Script script = new Script("Math.log10(doc['paper_count'].value + doc['citation_count'].value + 10)");
+        ScriptScoreFunctionBuilder boostFunction = new ScriptScoreFunctionBuilder(script);
+
+        FunctionScoreQueryBuilder rescoreQuery = QueryBuilders
+                .functionScoreQuery(boostFunction)
+                .maxBoost(2); // limit boosting
+
+        QueryRescorerBuilder rescorer = new QueryRescorerBuilder(rescoreQuery)
+                .windowSize(10)
+                .setScoreMode(QueryRescoreMode.Multiply);
+
+        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
+                .query(authorQuery)
+                .addRescorer(rescorer)
+                .fetchSource(false);
+
+        try {
+            SearchRequest request = new SearchRequest(authorIndex).source(source);
             SearchResponse response = restHighLevelClient.search(request);
 
             List<Long> list = new ArrayList<>();

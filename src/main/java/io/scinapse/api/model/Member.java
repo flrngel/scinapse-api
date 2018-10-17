@@ -1,6 +1,7 @@
 package io.scinapse.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.scinapse.api.model.profile.Profile;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +54,13 @@ public class Member extends BaseEntity {
 
     @Column(nullable = false)
     private boolean emailVerified = false;
+
+    @Column(name = "profile_id", insertable = false, updatable = false)
+    private String profileId;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_id")
+    private Profile profile;
 
     public String getFullName() {
         // existing user does not have a last name.

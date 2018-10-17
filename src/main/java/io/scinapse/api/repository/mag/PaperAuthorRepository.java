@@ -23,6 +23,8 @@ public interface PaperAuthorRepository extends JpaRepository<PaperAuthor, PaperA
     @Query("select r.paper from PaperAuthor r join r.paper where r.id.authorId = :authorId order by r.paper.year asc")
     List<Paper> getAuthorPapersOldest(@Param("authorId") long authorId, Pageable pageable);
 
+    Page<PaperAuthor> getByAuthorIdInOrderByPaperCitationCountDesc(List<Long> authorId, Pageable pageable);
+
     Page<PaperAuthor> getByPaperIdOrderByAuthorSequenceNumber(long paperId, Pageable pageable);
 
 }

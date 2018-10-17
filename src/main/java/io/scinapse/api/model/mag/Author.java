@@ -1,12 +1,14 @@
 package io.scinapse.api.model.mag;
 
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.*;
 import java.util.List;
 
+@EqualsAndHashCode(of = "id")
 @BatchSize(size = 50)
 @Getter
 @Table(schema = "scinapse", name = "author")
@@ -41,4 +43,10 @@ public class Author {
         return authorHIndexHolder.get(0);
     }
 
+    @Column
+    private String profileId;
+
+    public void setProfileId(String profileId) {
+        this.profileId = profileId;
+    }
 }

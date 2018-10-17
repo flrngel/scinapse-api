@@ -33,6 +33,7 @@ pipeline {
                             sh '$(aws ecr get-login --no-include-email --region us-east-1)'
                             sh "docker tag scinapse-api/dev:latest 966390130392.dkr.ecr.us-east-1.amazonaws.com/scinapse-api/dev:${env.BRANCH_NAME}"
                             sh "docker push 966390130392.dkr.ecr.us-east-1.amazonaws.com/scinapse-api/dev:${env.BRANCH_NAME}"
+                            
                         }
                     } catch (err) {
                         slackSend color: "danger", failOnError: true, message: "[dev zone] scinapse-api PUSH Failed: ${env.BRANCH_NAME}"
