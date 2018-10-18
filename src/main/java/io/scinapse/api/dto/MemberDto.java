@@ -40,12 +40,12 @@ public class MemberDto {
     private String password;
 
     @NoSpecialChars
-    @Size(min = 2, max = 50)
+    @Size(min = 1, max = 50)
     @NotNull
     private String firstName;
 
     @NoSpecialChars
-    @Size(min = 2, max = 50)
+    @Size(min = 1, max = 50)
     @NotNull
     private String lastName;
 
@@ -56,7 +56,7 @@ public class MemberDto {
     @JsonProperty("profile_id")
     private String profileId;
 
-    @Size(min = 2, max = 200, groups = { Default.class, Update.class })
+    @Size(min = 1, max = 200, groups = { Default.class, Update.class })
     @NotNull(groups = { Default.class, Update.class })
     private String affiliation;
 

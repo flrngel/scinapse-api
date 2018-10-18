@@ -42,7 +42,6 @@ public class ProfileExperienceDto {
     @Size(min = 2, max = 100)
     private String position;
 
-
     public ProfileExperienceDto(ProfileExperience experience) {
         this.id = experience.getId();
         this.profileId = experience.getProfile().getId();

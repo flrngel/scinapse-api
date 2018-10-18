@@ -29,16 +29,16 @@ public class ProfileDto {
     private String id;
 
     @NoSpecialChars
-    @Size(min = 2, max = 50)
+    @Size(min = 1, max = 50)
     @NotNull
     private String firstName;
 
     @NoSpecialChars
-    @Size(min = 2, max = 50)
+    @Size(min = 1, max = 50)
     @NotNull
     private String lastName;
 
-    @Size(min = 2, max = 200)
+    @Size(min = 1, max = 200)
     @NotNull
     private String affiliation;
 
