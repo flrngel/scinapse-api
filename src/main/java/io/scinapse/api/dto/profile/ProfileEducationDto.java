@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import io.scinapse.api.model.profile.ProfileEducation;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,9 +25,11 @@ public class ProfileEducationDto {
     private String id;
     private String profileId;
 
+    @JsonSerialize(using = DateSerializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM")
     private Date startDate;
 
+    @JsonSerialize(using = DateSerializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM")
     private Date endDate;
 
