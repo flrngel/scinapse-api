@@ -26,6 +26,7 @@ public class ProfileAwardDto {
 
     @JsonSerialize(using = DateSerializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM")
+    @NotNull
     private Date receivedDate;
 
     @Size(min = 2, max = 200)

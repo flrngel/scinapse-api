@@ -40,13 +40,10 @@ public class PaperAuthor {
     @Setter
     @Embeddable
     public static class PaperAuthorId implements Serializable {
-
         @Column
         private long paperId;
-
         @Column
         private long authorId;
-
     }
 
 }

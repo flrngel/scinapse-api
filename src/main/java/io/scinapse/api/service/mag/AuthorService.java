@@ -106,8 +106,4 @@ public class AuthorService {
         return authorTopPaperRepository.findByAuthorIdIn(authorIds);
     }
 
-    public List<Author> findByProfileId(String profileId) {
-        return authorRepository.findByProfileId(profileId);
-    }
-
 }

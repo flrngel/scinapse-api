@@ -9,5 +9,4 @@ import java.util.List;
 @XRayEnabled
 public interface AuthorRepository extends JpaRepository<Author, Long>, AuthorRepositoryCustom {
     List<Author> findByIdIn(List<Long> authorIds);
-    List<Author> findByProfileId(String profileId);
 }

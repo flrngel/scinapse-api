@@ -3,6 +3,7 @@ package io.scinapse.api.dto.mag;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.model.mag.Author;
+import io.scinapse.api.model.profile.ProfileAuthor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @NoArgsConstructor
 @Getter
@@ -51,7 +53,10 @@ public class AuthorDto {
             this.hIndex = author.getAuthorHIndex().getHIndex();
         }
 
-        this.profileId = author.getProfileId();
+        this.profileId = Optional.ofNullable(author.getProfileAuthor())
+                .map(ProfileAuthor::getId)
+                .map(ProfileAuthor.ProfileAuthorId::getProfileId)
+                .orElse(null);
     }
 
     @JsonGetter("is_profile_connected")

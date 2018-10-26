@@ -2,9 +2,9 @@ package io.scinapse.api.repository.profile;
 
 import com.querydsl.core.types.Projections;
 import io.scinapse.api.controller.ProfileController;
-import io.scinapse.api.model.mag.QAuthor;
-import io.scinapse.api.model.mag.QAuthorTopPaper;
+import io.scinapse.api.model.mag.QPaperAuthor;
 import io.scinapse.api.model.profile.Profile;
+import io.scinapse.api.model.profile.QProfileAuthor;
 import org.springframework.data.jpa.repository.support.QueryDslRepositorySupport;
 
 import java.util.List;
@@ -17,18 +17,18 @@ public class ProfileRepositoryImpl extends QueryDslRepositorySupport implements 
 
     @Override
     public List<ProfileController.PaperTitleDto> getAllProfilePapers(String profileId) {
-        QAuthor author = QAuthor.author;
-        QAuthorTopPaper authorTopPaper = QAuthorTopPaper.authorTopPaper;
+        QProfileAuthor profileAuthor = QProfileAuthor.profileAuthor;
+        QPaperAuthor paperAuthor = QPaperAuthor.paperAuthor;
 
-        List<Long> authorId = from(author)
-                .where(author.profileId.eq(profileId))
-                .select(author.id)
+        List<Long> authorId = from(profileAuthor)
+                .where(profileAuthor.id.profileId.eq(profileId))
+                .select(profileAuthor.id.authorId)
                 .fetch();
 
-        return from(authorTopPaper)
-                .join(authorTopPaper.paper)
-                .where(authorTopPaper.author.id.in(authorId))
-                .select(Projections.constructor(ProfileController.PaperTitleDto.class, authorTopPaper.paper.id, authorTopPaper.paper.title))
+        return from(paperAuthor)
+                .join(paperAuthor.paper)
+                .where(paperAuthor.author.id.in(authorId))
+                .select(Projections.constructor(ProfileController.PaperTitleDto.class, paperAuthor.paper.id, paperAuthor.paper.title))
                 .fetch();
     }
 

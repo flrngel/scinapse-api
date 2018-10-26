@@ -32,9 +32,6 @@ public class Profile extends BaseEntity {
     @OneToOne(mappedBy = "profile", fetch = FetchType.LAZY)
     private Member member;
 
-//    @OneToMany(mappedBy = "profile")
-//    private List<ProfileAuthor> authors = new ArrayList<>();
-
     @OneToMany(mappedBy = "profile")
     private List<ProfileEducation> educations = new ArrayList<>();
 

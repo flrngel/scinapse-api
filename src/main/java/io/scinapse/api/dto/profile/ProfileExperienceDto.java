@@ -27,6 +27,7 @@ public class ProfileExperienceDto {
 
     @JsonSerialize(using = DateSerializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM")
+    @NotNull
     private Date startDate;
 
     @JsonSerialize(using = DateSerializer.class)
@@ -41,9 +42,11 @@ public class ProfileExperienceDto {
     private String institution;
 
     @Size(min = 2, max = 100)
+    @NotNull
     private String department;
 
     @Size(min = 2, max = 100)
+    @NotNull
     private String position;
 
     public ProfileExperienceDto(ProfileExperience experience) {

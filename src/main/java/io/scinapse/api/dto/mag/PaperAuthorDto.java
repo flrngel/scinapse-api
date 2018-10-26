@@ -2,12 +2,16 @@ package io.scinapse.api.dto.mag;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.scinapse.api.model.mag.Author;
 import io.scinapse.api.model.mag.PaperAuthor;
 import io.scinapse.api.model.mag.PaperTopAuthor;
+import io.scinapse.api.model.profile.ProfileAuthor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Optional;
 
 @NoArgsConstructor
 @Getter
@@ -25,7 +29,6 @@ public class PaperAuthorDto {
     @JsonProperty("profile_id")
     private String profileId;
 
-
     public PaperAuthorDto(PaperAuthor relation) {
         this.paperId = relation.getPaperId();
         this.id = relation.getAuthor().getId();
@@ -41,7 +44,11 @@ public class PaperAuthorDto {
             this.hIndex = relation.getAuthor().getAuthorHIndex().getHIndex();
         }
 
-        this.profileId = relation.getAuthor().getProfileId();
+        this.profileId = Optional.ofNullable(relation.getAuthor())
+                .map(Author::getProfileAuthor)
+                .map(ProfileAuthor::getId)
+                .map(ProfileAuthor.ProfileAuthorId::getProfileId)
+                .orElse(null);
     }
 
     public PaperAuthorDto(PaperTopAuthor paperTopAuthor) {
@@ -57,6 +64,12 @@ public class PaperAuthorDto {
         if (paperTopAuthor.getAuthor().getAuthorHIndex() != null) {
             this.hIndex = paperTopAuthor.getAuthor().getAuthorHIndex().getHIndex();
         }
+
+        this.profileId = Optional.ofNullable(paperTopAuthor.getAuthor())
+                .map(Author::getProfileAuthor)
+                .map(ProfileAuthor::getId)
+                .map(ProfileAuthor.ProfileAuthorId::getProfileId)
+                .orElse(null);
     }
 
     @JsonGetter("is_profile_connected")

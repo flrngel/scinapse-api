@@ -33,6 +33,7 @@ public class ProfileService {
     private final ProfileAwardRepository profileAwardRepository;
     private final ProfileSelectedPublicationRepository profileSelectedPublicationRepository;
     private final AuthorRepository authorRepository;
+    private final ProfileAuthorRepository profileAuthorRepository;
 
     @Transactional
     public Profile create(Member member, Profile profile, List<Long> authorIds) {
@@ -69,35 +70,44 @@ public class ProfileService {
             throw new BadRequestException("Profile must include at least one author");
         }
 
-        List<Long> alreadyConnectedAuthorIds = candidateAuthors.stream().filter(a -> a.getProfileId() != null).map(Author::getId).collect(Collectors.toList());
-        if (!CollectionUtils.isEmpty(alreadyConnectedAuthorIds)) {
-            log.error("Some authors are already selected by other profiles - {}", alreadyConnectedAuthorIds);
-            throw new BadRequestException("Some authors are already selected by other profiles - " + alreadyConnectedAuthorIds);
+        List<Long> candidateAuthorIds = candidateAuthors.stream().map(Author::getId).collect(Collectors.toList());
+        List<ProfileAuthor> alreadyConnectedAuthors = profileAuthorRepository.findByIdAuthorIdIn(candidateAuthorIds);
+        if (!CollectionUtils.isEmpty(alreadyConnectedAuthors)) {
+            log.error("Some authors are already selected by other profiles - {}", alreadyConnectedAuthors);
+            throw new BadRequestException("Some authors are already selected by other profiles - " + alreadyConnectedAuthors);
         }
 
-        candidateAuthors.forEach(a -> a.setProfileId(profile.getId()));
+        List<ProfileAuthor> profileAuthors = candidateAuthors.stream()
+                .map(author -> new ProfileAuthor(profile, author))
+                .collect(Collectors.toList());
+        profileAuthorRepository.save(profileAuthors);
     }
 
     public Optional<Profile> find(String profileId) {
         return Optional.ofNullable(profileRepository.findOne(profileId));
     }
 
-    public List<Author> getProfileAuthors(String profileId) {
-        return authorRepository.findByProfileId(profileId);
+    public List<ProfileAuthor> getProfileAuthors(String profileId) {
+        return profileAuthorRepository.findByIdProfileId(profileId);
     }
 
     public List<ProfileController.PaperTitleDto> getAllProfilePapers(String profileId) {
         return profileRepository.getAllProfilePapers(profileId);
     }
 
-    @Transactional
-    public void connectAuthor(Profile profile, Author author) {
-        author.setProfileId(profile.getId());
+    public boolean existsProfileAuthor(Profile profile, Author author) {
+        return profileAuthorRepository.exists(ProfileAuthor.ProfileAuthorId.of(profile.getId(), author.getId()));
     }
 
     @Transactional
-    public void disconnectAuthor(Author author) {
-        author.setProfileId(null);
+    public void connectAuthor(Profile profile, Author author) {
+        ProfileAuthor profileAuthor = new ProfileAuthor(profile, author);
+        profileAuthorRepository.save(profileAuthor);
+    }
+
+    @Transactional
+    public void disconnectAuthor(Profile profile, Author author) {
+        profileAuthorRepository.delete(ProfileAuthor.ProfileAuthorId.of(profile.getId(), author.getId()));
     }
 
     @Transactional

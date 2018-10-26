@@ -18,7 +18,6 @@ import io.scinapse.api.service.mag.AuthorService;
 import io.scinapse.api.service.mag.PaperService;
 import io.scinapse.api.service.profile.ProfileService;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
@@ -85,12 +84,13 @@ public class ProfileFacade {
 
     private Profile find(Member member) {
         return Optional.ofNullable(member.getProfile())
-                .orElseThrow(() -> new ResourceNotFoundException("Member does not have a profile: " + member.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Member does not have a profile. Member ID: " + member.getId()));
     }
 
     public List<AuthorDto> getConnectedAuthors(String profileId) {
-        return authorService.findByProfileId(profileId)
+        return profileService.getProfileAuthors(profileId)
                 .stream()
+                .map(ProfileAuthor::getAuthor)
                 .map(AuthorDto::new)
                 .collect(Collectors.toList());
     }
@@ -103,7 +103,7 @@ public class ProfileFacade {
         Author author = authorService.find(authorId)
                 .orElseThrow(() -> new BadRequestException("The author[" + authorId + "] is not exist. Cannot connect with profile."));
 
-        if (StringUtils.isNotBlank(author.getProfileId())) {
+        if (profileService.existsProfileAuthor(profile, author)) {
             throw new BadRequestException("The author[" + authorId + "] is already connected to other profile[" + profileId + "]");
         }
 
@@ -119,18 +119,15 @@ public class ProfileFacade {
         Author connectedAuthor = authorService.find(authorId)
                 .orElseThrow(() -> new BadRequestException("The author not found: " + authorId));
 
-        if (StringUtils.isBlank(connectedAuthor.getProfileId())) {
-            throw new BadRequestException("The author[" + authorId + "] is not connected to any profiles");
-        }
-        if (!profile.getId().equals(connectedAuthor.getProfileId())) {
+        if (!profileService.existsProfileAuthor(profile, connectedAuthor)) {
             throw new BadRequestException("The author[" + authorId + "] is not connected to the profile[" + profileId + "]");
         }
 
-        profileService.disconnectAuthor(connectedAuthor);
+        profileService.disconnectAuthor(profile, connectedAuthor);
     }
 
     public Page<PaperDto> getProfilePapers(String profileId, PageRequest pageRequest) {
-        List<Author> authors = profileService.getProfileAuthors(profileId);
+        List<Author> authors = profileService.getProfileAuthors(profileId).stream().map(ProfileAuthor::getAuthor).collect(Collectors.toList());
         List<Long> authorIds = authors.stream().map(Author::getId).collect(Collectors.toList());
 
         Page<Paper> papers = authorService.getAuthorPaper(authorIds, pageRequest);
