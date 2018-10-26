@@ -27,7 +27,7 @@ public class CollectionDto {
     @NotNull
     private String title;
 
-    @Size(min = 1, max = 500)
+    @Size(min = 1)
     private String description;
 
     @JsonProperty("paper_count")

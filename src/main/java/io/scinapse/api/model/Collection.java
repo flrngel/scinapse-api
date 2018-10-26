@@ -2,6 +2,7 @@ package io.scinapse.api.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -22,7 +23,9 @@ public class Collection extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
-    @Column
+    @Type(type = "text")
+    @Lob
+    @Column(nullable = false)
     private String description;
 
     @Column
