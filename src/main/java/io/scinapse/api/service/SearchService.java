@@ -5,10 +5,12 @@ import com.google.common.base.Preconditions;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CompletionDto;
+import io.scinapse.api.dto.CompletionResponseDto;
 import io.scinapse.api.dto.SuggestionDto;
 import io.scinapse.api.enums.CompletionType;
 import io.scinapse.api.repository.mag.FieldsOfStudyRepository;
 import io.scinapse.api.repository.mag.JournalRepository;
+import io.scinapse.api.util.JsonUtils;
 import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,9 +51,16 @@ import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.Year;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -65,6 +74,7 @@ public class SearchService {
     private final RestHighLevelClient restHighLevelClient;
     private final JournalRepository journalRepository;
     private final FieldsOfStudyRepository fieldsOfStudyRepository;
+    private final RestTemplate restTemplate;
 
     @Value("${pluto.server.es.index}")
     private String indexName;
@@ -77,6 +87,13 @@ public class SearchService {
 
     @Value("${pluto.server.es.index.author}")
     private String authorIndex;
+
+    @Value("${pluto.server.scholar.url}")
+    private String scholarUrl;
+
+    @Value("${pluto.server.es.index.suggestion.affiliation}")
+    private String affiliationSuggestionIndex;
+
 
     private static final String SAMPLE_AGG_NAME = "sample";
     private static final String JOURNAL_AGG_NAME = "journal";
@@ -188,6 +205,35 @@ public class SearchService {
         }
     }
 
+    public List<CompletionDto> completeByScholar(String keyword) {
+        URI uri = UriComponentsBuilder
+                .fromHttpUrl(scholarUrl)
+                .queryParam("q", keyword)
+                .build()
+                .toUri();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("User-Agent", "PostmanRuntime/7.3.0");
+        HttpEntity<Object> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
+            String completionJson = responseEntity.getBody();
+
+            CompletionResponseDto dto = JsonUtils.fromJson(completionJson, CompletionResponseDto.class);
+            return dto.getCompletions()
+                    .stream()
+                    .map(c -> {
+                        String replaced = StringUtils.replace(c, "|", "");
+                        return new CompletionDto(replaced, CompletionType.KEYWORD);
+                    })
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            log.error("Fail to retrieve completion keywords: {}", e.getMessage(), e);
+        }
+        return new ArrayList<>();
+    }
+
     public List<CompletionDto> complete(String keyword) {
         MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("name", keyword).operator(Operator.AND);
         ConstantScoreQueryBuilder constantQuery = QueryBuilders.constantScoreQuery(matchQuery);
@@ -218,6 +264,44 @@ public class SearchService {
         } catch (IOException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }
+    }
+
+    public List<CompletionDto> completeAffiliation(String keyword) {
+        MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("name", keyword).operator(Operator.AND);
+        ConstantScoreQueryBuilder constantQuery = QueryBuilders.constantScoreQuery(matchQuery);
+
+        FieldValueFactorFunctionBuilder paperBoost = new FieldValueFactorFunctionBuilder("paper_count").modifier(FieldValueFactorFunction.Modifier.LOG2P);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder paperFunction = new FunctionScoreQueryBuilder.FilterFunctionBuilder(paperBoost);
+        FieldValueFactorFunctionBuilder citationBoost = new FieldValueFactorFunctionBuilder("citation_count").modifier(FieldValueFactorFunction.Modifier.LOG2P);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder citationFunction = new FunctionScoreQueryBuilder.FilterFunctionBuilder(citationBoost);
+
+        FunctionScoreQueryBuilder functionQuery = QueryBuilders.functionScoreQuery(
+                constantQuery,
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { paperFunction, citationFunction })
+                .boostMode(CombineFunction.REPLACE);
+
+        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
+                .query(functionQuery)
+                .fetchSource("name", null);
+
+        try {
+            SearchRequest request = new SearchRequest(affiliationSuggestionIndex).source(source);
+            SearchResponse response = restHighLevelClient.search(request);
+
+            List<CompletionDto> dtos = new ArrayList<>();
+            for (SearchHit hit : response.getHits()) {
+                Object name = hit.getSourceAsMap().get("name");
+                if (name == null) {
+                    continue;
+                }
+                dtos.add(new CompletionDto((String) name, CompletionType.AFFILIATION));
+            }
+
+            return dtos.stream().distinct().collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException("Elasticsearch exception", e);
+        }
+
     }
 
     public SuggestionDto suggest(String keyword) {
