@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,15 +68,31 @@ public class ProfileDto {
         this.email = profile.getEmail();
 
         if (!CollectionUtils.isEmpty(profile.getEducations())) {
-            this.educations = profile.getEducations().stream().map(ProfileEducationDto::new).collect(Collectors.toList());
+            this.educations = profile.getEducations().stream()
+                    .map(ProfileEducationDto::new)
+                    .sorted(Comparator.comparing(
+                            ProfileEducationDto::isCurrent).reversed()
+                            .thenComparing(Comparator.comparing(
+                                    ProfileEducationDto::getStartDate).reversed()))
+                    .collect(Collectors.toList());
         }
 
         if (!CollectionUtils.isEmpty(profile.getExperiences())) {
-            this.experiences = profile.getExperiences().stream().map(ProfileExperienceDto::new).collect(Collectors.toList());
+            this.experiences = profile.getExperiences().stream()
+                    .map(ProfileExperienceDto::new)
+                    .sorted(Comparator.comparing(
+                            ProfileExperienceDto::isCurrent).reversed()
+                            .thenComparing(Comparator.comparing(
+                                    ProfileExperienceDto::getStartDate).reversed()))
+                    .collect(Collectors.toList());
         }
 
         if (!CollectionUtils.isEmpty(profile.getAwards())) {
-            this.awards = profile.getAwards().stream().map(ProfileAwardDto::new).collect(Collectors.toList());
+            this.awards = profile.getAwards().stream()
+                    .map(ProfileAwardDto::new)
+                    .sorted(Comparator.comparing(
+                            ProfileAwardDto::getReceivedDate).reversed())
+                    .collect(Collectors.toList());
         }
 
         if (profile.getMember() != null) {
