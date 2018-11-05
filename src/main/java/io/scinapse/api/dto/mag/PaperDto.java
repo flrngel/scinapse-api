@@ -54,7 +54,7 @@ public class PaperDto {
 
     private List<PaperAuthorDto> authors = new ArrayList<>();
 
-    private List<FosDto> fosList = new ArrayList<>();
+    private List<PaperFosDto> fosList = new ArrayList<>();
 
     private List<PaperUrlDto> urls = new ArrayList<>();
 
@@ -143,7 +143,7 @@ public class PaperDto {
             if (detailLoaders.get("fos") != null) return this;
             detailLoaders.put("fos", () -> {
                 if (!paper.getPaperFosList().isEmpty()) {
-                    dto.fosList = paper.getPaperFosList().stream().map(FosDto::new).collect(Collectors.toList());
+                    dto.fosList = paper.getPaperFosList().stream().map(PaperFosDto::new).collect(Collectors.toList());
                     dto.fosCount = dto.fosList.size();
                 }
             });

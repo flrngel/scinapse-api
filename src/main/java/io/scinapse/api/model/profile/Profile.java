@@ -32,6 +32,9 @@ public class Profile extends BaseEntity {
     @OneToOne(mappedBy = "profile", fetch = FetchType.LAZY)
     private Member member;
 
+    @OneToMany(mappedBy = "profile", fetch = FetchType.LAZY)
+    private List<ProfileFos> profileFosList = new ArrayList<>();
+
     @OneToMany(mappedBy = "profile")
     private List<ProfileEducation> educations = new ArrayList<>();
 

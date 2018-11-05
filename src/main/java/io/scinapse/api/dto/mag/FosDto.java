@@ -1,25 +1,26 @@
 package io.scinapse.api.dto.mag;
 
-import io.scinapse.api.model.mag.PaperFieldsOfStudy;
+import io.scinapse.api.model.mag.FieldsOfStudy;
+import io.scinapse.api.model.profile.ProfileFos;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
 @Getter
 @Setter
+@NoArgsConstructor
 public class FosDto {
 
-    private long paperId;
     private long id;
-    private String fos;
     private String name;
 
-    public FosDto(PaperFieldsOfStudy fos) {
-        this.paperId = fos.getPaper().getId();
-        this.id = fos.getFieldsOfStudy().getId();
-        this.fos = fos.getFieldsOfStudy().getName();
-        this.name = fos.getFieldsOfStudy().getName();
+    public FosDto(FieldsOfStudy fos) {
+        this.id = fos.getId();
+        this.name = fos.getName();
+    }
+
+    public FosDto(ProfileFos fos) {
+        this(fos.getFos());
     }
 
 }

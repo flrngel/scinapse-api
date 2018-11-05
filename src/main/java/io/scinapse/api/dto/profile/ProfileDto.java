@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.scinapse.api.dto.MemberDto;
+import io.scinapse.api.dto.mag.FosDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.model.profile.Profile;
 import io.scinapse.api.validator.NoSpecialChars;
@@ -59,6 +60,7 @@ public class ProfileDto {
     private List<ProfileExperienceDto> experiences = new ArrayList<>();
     private List<ProfileAwardDto> awards = new ArrayList<>();
     private List<PaperDto> selectedPublications = new ArrayList<>();
+    private List<FosDto> fosList = new ArrayList<>();
 
     public ProfileDto(Profile profile) {
         this.id = profile.getId();
@@ -97,6 +99,12 @@ public class ProfileDto {
 
         if (profile.getMember() != null) {
             this.member = new MemberDto(profile.getMember());
+        }
+
+        if (!CollectionUtils.isEmpty(profile.getProfileFosList())) {
+            this.fosList = profile.getProfileFosList().stream()
+                    .map(FosDto::new)
+                    .collect(Collectors.toList());
         }
     }
 

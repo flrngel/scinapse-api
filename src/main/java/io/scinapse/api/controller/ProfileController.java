@@ -161,13 +161,14 @@ public class ProfileController {
                                                                @PathVariable String profileId,
                                                                @RequestBody SelectedPublicationWrapper wrapper) {
         Member member = memberFacade.loadMember(user);
-        return Response.success(profileFacade.updateSelectedPublications(member, profileId, wrapper.getPublications()));
+        return Response.success(profileFacade.updateSelectedPublications(member, profileId, wrapper.getPaperIds()));
     }
 
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
     @Getter
     @Setter
     private static class SelectedPublicationWrapper {
-        private List<Long> publications;
+        private List<Long> paperIds;
     }
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)

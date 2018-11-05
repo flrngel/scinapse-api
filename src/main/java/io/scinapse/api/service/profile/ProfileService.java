@@ -5,8 +5,10 @@ import io.scinapse.api.controller.ProfileController;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.model.Member;
 import io.scinapse.api.model.mag.Author;
+import io.scinapse.api.model.mag.FieldsOfStudy;
 import io.scinapse.api.model.profile.*;
 import io.scinapse.api.repository.mag.AuthorRepository;
+import io.scinapse.api.repository.mag.FieldsOfStudyRepository;
 import io.scinapse.api.repository.profile.*;
 import io.scinapse.api.util.IdUtils;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,8 @@ public class ProfileService {
     private final ProfileSelectedPublicationRepository profileSelectedPublicationRepository;
     private final AuthorRepository authorRepository;
     private final ProfileAuthorRepository profileAuthorRepository;
+    private final ProfileFosRepository profileFosRepository;
+    private final FieldsOfStudyRepository fieldsOfStudyRepository;
 
     @Transactional
     public Profile create(Member member, Profile profile, List<Long> authorIds) {
@@ -48,6 +52,7 @@ public class ProfileService {
         saved.setMember(member);
 
         initAuthors(saved, authorIds);
+        initFos(saved, authorIds);
 
         return saved;
     }
@@ -81,6 +86,17 @@ public class ProfileService {
                 .map(author -> new ProfileAuthor(profile, author))
                 .collect(Collectors.toList());
         profileAuthorRepository.save(profileAuthors);
+    }
+
+    private void initFos(Profile profile, List<Long> authorIds) {
+        List<Long> relatedFosIds = profileFosRepository.getRelatedFos(authorIds);
+        List<FieldsOfStudy> relatedFos = fieldsOfStudyRepository.findByIdIn(relatedFosIds);
+        List<ProfileFos> fosList = relatedFos.stream()
+                .map(fos -> new ProfileFos(profile, fos))
+                .collect(Collectors.toList());
+
+        List<ProfileFos> saved = profileFosRepository.save(fosList);
+        profile.setProfileFosList(saved);
     }
 
     public Optional<Profile> find(String profileId) {

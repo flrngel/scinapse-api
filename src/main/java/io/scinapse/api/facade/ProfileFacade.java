@@ -40,7 +40,9 @@ public class ProfileFacade {
     @Transactional
     public ProfileDto createProfile(Member member, ProfileDto dto) {
         Optional.ofNullable(member.getProfile())
-                .ifPresent((profile) -> new BadRequestException("User already has a profile: " + profile.getId()));
+                .ifPresent((profile) -> {
+                    throw new BadRequestException("User already has a profile: " + profile.getId());
+                });
 
         Profile created = profileService.create(member, dto.toEntity(), dto.getAuthorIds());
         return convert(created, member.getId());
@@ -49,7 +51,9 @@ public class ProfileFacade {
     @Transactional
     public ProfileDto createMyProfile(Member member, List<Long> authorIds) {
         Optional.ofNullable(member.getProfile())
-                .ifPresent((profile) -> new BadRequestException("User already has a profile: " + profile.getId()));
+                .ifPresent((profile) -> {
+                    throw new BadRequestException("User already has a profile: " + profile.getId());
+                });
 
         Profile created = profileService.createMyProfile(member, authorIds);
         return convert(created, member.getId());

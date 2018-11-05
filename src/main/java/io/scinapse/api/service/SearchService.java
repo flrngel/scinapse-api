@@ -189,7 +189,9 @@ public class SearchService {
         SearchSourceBuilder source = SearchSourceBuilder.searchSource()
                 .query(authorQuery)
                 .addRescorer(rescorer)
-                .fetchSource(false);
+                .fetchSource(false)
+                .from(pageRequest.getOffset())
+                .size(pageRequest.getSize());
 
         try {
             SearchRequest request = new SearchRequest(authorIndex).source(source);
