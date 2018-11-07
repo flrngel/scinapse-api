@@ -97,9 +97,9 @@ public class ProfileDto {
                     .collect(Collectors.toList());
         }
 
-        if (profile.getMember() != null) {
-            this.member = new MemberDto(profile.getMember());
-        }
+//        if (profile.getMember() != null) {
+//            this.member = new MemberDto(profile.getMember());
+//        }
 
         if (!CollectionUtils.isEmpty(profile.getProfileFosList())) {
             this.fosList = profile.getProfileFosList().stream()

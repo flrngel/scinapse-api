@@ -3,10 +3,18 @@ package io.scinapse.api.facade;
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.mag.AuthorDto;
+import io.scinapse.api.dto.mag.AuthorLayerUpdateDto;
+import io.scinapse.api.dto.mag.AuthorPaperDto;
 import io.scinapse.api.dto.mag.PaperDto;
+import io.scinapse.api.error.BadRequestException;
+import io.scinapse.api.model.Member;
+import io.scinapse.api.model.author.AuthorLayer;
+import io.scinapse.api.model.author.AuthorLayerPaper;
+import io.scinapse.api.model.mag.Author;
 import io.scinapse.api.model.mag.AuthorTopPaper;
 import io.scinapse.api.model.mag.Paper;
 import io.scinapse.api.service.SearchService;
+import io.scinapse.api.service.author.AuthorLayerService;
 import io.scinapse.api.service.mag.AuthorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,7 +29,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @XRayEnabled
-@Transactional
+@Transactional(readOnly = true)
 @Component
 @RequiredArgsConstructor
 public class AuthorFacade {
@@ -29,6 +37,7 @@ public class AuthorFacade {
     private final SearchService searchService;
     private final AuthorService authorService;
     private final PaperFacade paperFacade;
+    private final AuthorLayerService layerService;
 
     public Page<AuthorDto> searchAuthor(String keyword, PageRequest pageRequest) {
         // author search from ES
@@ -61,6 +70,106 @@ public class AuthorFacade {
                 .collect(Collectors.toList());
 
         return new PageImpl<>(authorDtos, pageRequest.toPageable(), authorIdPage.getTotalElements());
+    }
+
+    public Page<AuthorPaperDto> getPapers(long authorId, PageRequest pageRequest) {
+        if (layerService.exists(authorId)) {
+            return layerService.getPapers(authorId, pageRequest)
+                    .map(lp -> {
+                        PaperDto paperDto = PaperDto.detail().convert(lp.getPaper());
+                        return new AuthorPaperDto(paperDto, lp.getStatus(), lp.isSelected());
+                    });
+        } else {
+            return authorService.getAuthorPaper(authorId, pageRequest)
+                    .map(ap -> {
+                        PaperDto paperDto = PaperDto.detail().convert(ap);
+                        return new AuthorPaperDto(paperDto, AuthorLayerPaper.PaperStatus.SYNCED, false);
+                    });
+        }
+    }
+
+    @Transactional
+    public void connect(Member member, long authorId) {
+        Author author = authorService.find(authorId)
+                .orElseThrow(() -> new BadRequestException("The author[" + authorId + "] does not exist."));
+
+        layerService.connect(member, author);
+    }
+
+    @Transactional
+    public void removePapers(Member member, long authorId, List<Long> paperIds) {
+        AuthorLayer layer = findLayer(authorId);
+        checkOwner(member, layer.getAuthorId());
+
+        layerService.removePapers(layer, paperIds);
+    }
+
+    @Transactional
+    public void addPapers(Member member, long authorId, List<Long> paperIds) {
+        AuthorLayer layer = findLayer(authorId);
+        checkOwner(member, layer.getAuthorId());
+
+        layerService.addPapers(layer, paperIds);
+    }
+
+    @Transactional
+    public List<PaperDto> updateSelected(Member member, long authorId, List<Long> selectedPaperIds) {
+        Author author = find(authorId);
+        checkOwner(member, author.getId());
+
+        return layerService.updateSelected(author, selectedPaperIds)
+                .stream()
+                .map(AuthorLayerPaper::getPaper)
+                .map(PaperDto.detail()::convert)
+                .collect(Collectors.toList());
+    }
+
+    public AuthorDto findDetailed(long authorId) {
+        Author author = find(authorId);
+        AuthorDto dto = new AuthorDto(author);
+
+        // just return original author if it does not have a layer.
+        if (author.getLayer() == null) {
+            return dto;
+        }
+
+        // put detailed information.
+        dto.putDetail(author.getLayer());
+
+        // add selected publication information.
+        List<PaperDto> selected = layerService.findSelectedPapers(authorId)
+                .stream()
+                .map(AuthorLayerPaper::getPaper)
+                .map(PaperDto.detail()::convert)
+                .collect(Collectors.toList());
+        dto.setSelectedPapers(selected);
+
+        return dto;
+    }
+
+    @Transactional
+    public AuthorDto update(Member member, long authorId, AuthorLayerUpdateDto updateDto) {
+        AuthorLayer layer = findLayer(authorId);
+        checkOwner(member, layer.getAuthorId());
+
+        layerService.update(layer, updateDto);
+        return findDetailed(authorId);
+    }
+
+    private Author find(long authorId) {
+        return authorService.find(authorId)
+                .orElseThrow(() -> new BadRequestException("Author[" + authorId + "] does not exist."));
+    }
+
+    private AuthorLayer findLayer(long authorId) {
+        return layerService.find(authorId)
+                .orElseThrow(() -> new BadRequestException("The author[" + authorId + "] does not have a layer."));
+    }
+
+    private void checkOwner(Member member, long authorId) {
+        if (member.getAuthorId() == null || member.getAuthorId() != authorId) {
+            throw new BadRequestException("Member[" + member.getId() + "] is not connected with Author[" + authorId + "].");
+        }
     }
 
 }

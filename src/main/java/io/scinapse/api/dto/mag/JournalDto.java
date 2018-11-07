@@ -4,6 +4,7 @@ import io.scinapse.api.model.mag.Journal;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,7 +42,7 @@ public class JournalDto {
         // deprecated
         this.fullTitle = journal.getTitle();
 
-        if (loadFos && !journal.getFosList().isEmpty()) {
+        if (loadFos && !CollectionUtils.isEmpty(journal.getFosList())) {
             this.fosList = journal.getFosList().stream().map(JournalFosDto::new).collect(Collectors.toList());
         }
     }

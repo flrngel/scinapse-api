@@ -19,12 +19,10 @@ import io.scinapse.api.service.mag.PaperService;
 import io.scinapse.api.service.profile.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Transactional(readOnly = true)
@@ -39,24 +37,26 @@ public class ProfileFacade {
 
     @Transactional
     public ProfileDto createProfile(Member member, ProfileDto dto) {
-        Optional.ofNullable(member.getProfile())
-                .ifPresent((profile) -> {
-                    throw new BadRequestException("User already has a profile: " + profile.getId());
-                });
-
-        Profile created = profileService.create(member, dto.toEntity(), dto.getAuthorIds());
-        return convert(created, member.getId());
+//        Optional.ofNullable(member.getProfile())
+//                .ifPresent((profile) -> {
+//                    throw new BadRequestException("User already has a profile: " + profile.getId());
+//                });
+//
+//        Profile created = profileService.create(member, dto.toEntity(), dto.getAuthorIds());
+//        return convert(created, member.getId());
+        return null;
     }
 
     @Transactional
     public ProfileDto createMyProfile(Member member, List<Long> authorIds) {
-        Optional.ofNullable(member.getProfile())
-                .ifPresent((profile) -> {
-                    throw new BadRequestException("User already has a profile: " + profile.getId());
-                });
-
-        Profile created = profileService.createMyProfile(member, authorIds);
-        return convert(created, member.getId());
+//        Optional.ofNullable(member.getProfile())
+//                .ifPresent((profile) -> {
+//                    throw new BadRequestException("User already has a profile: " + profile.getId());
+//                });
+//
+//        Profile created = profileService.createMyProfile(member, authorIds);
+//        return convert(created, member.getId());
+        return null;
     }
 
     public ProfileDto findProfile(Member member) {
@@ -87,8 +87,9 @@ public class ProfileFacade {
     }
 
     private Profile find(Member member) {
-        return Optional.ofNullable(member.getProfile())
-                .orElseThrow(() -> new ResourceNotFoundException("Member does not have a profile. Member ID: " + member.getId()));
+//        return Optional.ofNullable(member.getProfile())
+//                .orElseThrow(() -> new ResourceNotFoundException("Member does not have a profile. Member ID: " + member.getId()));
+        return null;
     }
 
     public List<AuthorDto> getConnectedAuthors(String profileId) {
@@ -246,11 +247,11 @@ public class ProfileFacade {
     }
 
     private void checkProfileOwner(Member member, Profile profile) {
-        Member profileMember = Optional.ofNullable(profile.getMember())
-                .orElseThrow(() -> new AccessDeniedException("Profile does not have its owner: " + profile.getId()));
-
-        if (profileMember.getId() != member.getId()) {
-            throw new AccessDeniedException("Only profile's owner can edit the profile. " + "Owner: " + profileMember.getId() + ", Request User: " + member.getId());
-        }
+//        Member profileMember = Optional.ofNullable(profile.getMember())
+//                .orElseThrow(() -> new AccessDeniedException("Profile does not have its owner: " + profile.getId()));
+//
+//        if (profileMember.getId() != member.getId()) {
+//            throw new AccessDeniedException("Only profile's owner can edit the profile. " + "Owner: " + profileMember.getId() + ", Request User: " + member.getId());
+//        }
     }
 }

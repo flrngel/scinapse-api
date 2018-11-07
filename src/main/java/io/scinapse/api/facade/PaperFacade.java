@@ -13,7 +13,6 @@ import io.scinapse.api.model.mag.Paper;
 import io.scinapse.api.model.mag.PaperAuthor;
 import io.scinapse.api.service.CommentService;
 import io.scinapse.api.service.SearchService;
-import io.scinapse.api.service.mag.AuthorService;
 import io.scinapse.api.service.mag.PaperService;
 import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +35,6 @@ public class PaperFacade {
     private final SearchService searchService;
     private final CommentService commentService;
     private final PaperService paperService;
-    private final AuthorService authorService;
 
     public PaperDto find(long paperId) {
         Paper paper = paperService.find(paperId);
@@ -45,7 +43,6 @@ public class PaperFacade {
         }
 
         PaperDto dto = PaperDto.full().convert(paper);
-        authorService.setDefaultAuthors(dto);
         commentService.setDefaultComments(dto);
         return dto;
     }
@@ -63,24 +60,19 @@ public class PaperFacade {
                         Function.identity()
                 ));
 
-        List<PaperDto> dtos = paperIds
+        return paperIds
                 .stream()
                 .map(map::get)
                 .filter(Objects::nonNull)
                 .map(converter::convert)
                 .collect(Collectors.toList());
-
-        authorService.setDefaultAuthors(dtos);
-        return dtos;
     }
 
     public List<PaperDto> convert(List<Paper> papers, PaperDto.Converter converter) {
-        List<PaperDto> dtos = papers
+        return papers
                 .stream()
                 .map(converter::convert)
                 .collect(Collectors.toList());
-        authorService.setDefaultAuthors(dtos);
-        return dtos;
     }
 
     public Page<PaperAuthorDto> getPaperAuthors(long paperId, PageRequest pageRequest) {

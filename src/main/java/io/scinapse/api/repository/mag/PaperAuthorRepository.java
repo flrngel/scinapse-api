@@ -27,4 +27,6 @@ public interface PaperAuthorRepository extends JpaRepository<PaperAuthor, PaperA
 
     Page<PaperAuthor> getByPaperIdOrderByAuthorSequenceNumber(long paperId, Pageable pageable);
 
+    List<PaperAuthor> findByIdAuthorId(long authorId);
+
 }

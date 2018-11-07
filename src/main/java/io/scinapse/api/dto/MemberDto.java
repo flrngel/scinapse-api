@@ -53,8 +53,8 @@ public class MemberDto {
     @URL
     private String profileImage;
 
-    @JsonProperty("profile_id")
-    private String profileId;
+    @JsonProperty("author_id")
+    private Long authorId;
 
     @Size(min = 1, max = 200, groups = { Default.class, Update.class })
     @NotNull(groups = { Default.class, Update.class })
@@ -78,7 +78,7 @@ public class MemberDto {
 
         this.firstName = member.getFirstName();
         this.lastName = member.getLastName();
-        this.profileId = member.getProfileId();
+        this.authorId = member.getAuthorId();
     }
 
     public Member toEntity() {
@@ -115,9 +115,19 @@ public class MemberDto {
         this.affiliation = StringUtils.normalizeSpace(affiliation);
     }
 
+    @JsonGetter("is_author_connected")
+    public boolean authorConnected() {
+        return this.authorId != null && this.authorId > 0;
+    }
+
+    @JsonGetter("profile_id")
+    public String getProfileId() {
+        return null;
+    }
+
     @JsonGetter("is_profile_connected")
     public boolean profileConnected() {
-        return StringUtils.isNotBlank(this.profileId);
+        return false;
     }
 
 }

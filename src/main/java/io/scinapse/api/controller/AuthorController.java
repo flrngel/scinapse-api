@@ -1,21 +1,29 @@
 package io.scinapse.api.controller;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.scinapse.api.dto.mag.AuthorDto;
+import io.scinapse.api.dto.mag.AuthorLayerUpdateDto;
+import io.scinapse.api.dto.mag.AuthorPaperDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.dto.response.Response;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.facade.AuthorFacade;
-import io.scinapse.api.facade.PaperFacade;
-import io.scinapse.api.model.mag.Author;
-import io.scinapse.api.model.mag.Paper;
+import io.scinapse.api.facade.MemberFacade;
+import io.scinapse.api.model.Member;
+import io.scinapse.api.security.jwt.JwtUser;
 import io.scinapse.api.service.mag.AuthorService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,27 +34,24 @@ import java.util.stream.Collectors;
 public class AuthorController {
 
     private final AuthorService authorService;
-    private final PaperFacade paperFacade;
     private final AuthorFacade authorFacade;
+    private final MemberFacade memberFacade;
 
     @RequestMapping(value = "/authors/{authorId}", method = RequestMethod.GET)
     public Map<String, Object> find(@PathVariable long authorId) {
-        Author author = authorService.find(authorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Author not found: " + authorId));
+        AuthorDto dto = authorFacade.findDetailed(authorId);
 
         Map<String, Object> result = new HashMap<>();
         Meta meta = Meta.available();
         result.put("meta", meta);
-        result.put("data", new AuthorDto(author));
+        result.put("data", dto);
 
         return result;
     }
 
     @RequestMapping(value = "/authors/{authorId}/papers", method = RequestMethod.GET)
-    public Page<PaperDto> getAuthorPapers(@PathVariable long authorId, PageRequest pageRequest) {
-        Page<Paper> papers = authorService.getAuthorPaper(authorId, pageRequest);
-        List<PaperDto> paperDtos = paperFacade.convert(papers.getContent(), PaperDto.detail());
-        return new PageImpl<>(paperDtos, pageRequest.toPageable(), papers.getTotalElements());
+    public Page<AuthorPaperDto> getAuthorPapers(@PathVariable long authorId, PageRequest pageRequest) {
+        return authorFacade.getPapers(authorId, pageRequest);
     }
 
     @RequestMapping(value = "/authors/{authorId}/co-authors", method = RequestMethod.GET)
@@ -75,6 +80,56 @@ public class AuthorController {
             throw new BadRequestException("Invalid query: too short or long query text");
         }
         return Response.success(authorFacade.searchAuthor(keyword, pageRequest));
+    }
+
+    @RequestMapping(value = "/authors/{authorId}/connect", method = RequestMethod.POST)
+    public Response connect(JwtUser user, @PathVariable long authorId) {
+        Member member = memberFacade.loadMember(user);
+        authorFacade.connect(member, authorId);
+        return Response.success();
+    }
+
+    @RequestMapping(value = "/authors/{authorId}/papers/remove", method = RequestMethod.POST)
+    public Response removePapers(JwtUser user,
+                                 @PathVariable long authorId,
+                                 @RequestBody @Valid PaperIdWrapper wrapper) {
+        Member member = memberFacade.loadMember(user);
+        authorFacade.removePapers(member, authorId, wrapper.getPaperIds());
+        return Response.success();
+    }
+
+    @RequestMapping(value = "/authors/{authorId}/papers/add", method = RequestMethod.POST)
+    public Response addPapers(JwtUser user,
+                              @PathVariable long authorId,
+                              @RequestBody @Valid PaperIdWrapper wrapper) {
+        Member member = memberFacade.loadMember(user);
+        authorFacade.addPapers(member, authorId, wrapper.getPaperIds());
+        return Response.success();
+    }
+
+    @RequestMapping(value = "/authors/{authorId}/papers/selected", method = RequestMethod.PUT)
+    public Response<List<PaperDto>> updateSelected(JwtUser user,
+                                                   @PathVariable long authorId,
+                                                   @RequestBody PaperIdWrapper wrapper) {
+        Member member = memberFacade.loadMember(user);
+        return Response.success(authorFacade.updateSelected(member, authorId, wrapper.getPaperIds()));
+    }
+
+    @RequestMapping(value = "/authors/{authorId}", method = RequestMethod.PUT)
+    public Response<AuthorDto> updateAuthorInformation(JwtUser user,
+                                                       @PathVariable long authorId,
+                                                       @RequestBody @Valid AuthorLayerUpdateDto updateDto) {
+        Member member = memberFacade.loadMember(user);
+        return Response.success(authorFacade.update(member, authorId, updateDto));
+    }
+
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+    @Getter
+    @Setter
+    private static class PaperIdWrapper {
+        @Size(min = 1)
+        @NotNull
+        private List<Long> paperIds;
     }
 
 }

@@ -2,16 +2,14 @@ package io.scinapse.api.dto.mag;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.scinapse.api.model.author.AuthorLayer;
 import io.scinapse.api.model.mag.Author;
-import io.scinapse.api.model.profile.ProfileAuthor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @NoArgsConstructor
 @Getter
@@ -33,8 +31,10 @@ public class AuthorDto {
     @JsonProperty("hindex")
     private Integer hIndex;
 
-    @JsonProperty("profile_id")
-    private String profileId;
+    private String bio;
+
+    @JsonProperty("selected_papers")
+    private List<PaperDto> selectedPapers = new ArrayList<>();
 
     @JsonProperty("top_papers")
     private List<PaperDto> topPapers = new ArrayList<>();
@@ -52,16 +52,21 @@ public class AuthorDto {
         if (author.getAuthorHIndex() != null) {
             this.hIndex = author.getAuthorHIndex().getHIndex();
         }
+    }
 
-        this.profileId = Optional.ofNullable(author.getProfileAuthor())
-                .map(ProfileAuthor::getId)
-                .map(ProfileAuthor.ProfileAuthorId::getProfileId)
-                .orElse(null);
+    public void putDetail(AuthorLayer layer) {
+        this.bio = layer.getBio();
+        this.paperCount = layer.getPaperCount();
+    }
+
+    @JsonGetter("profile_id")
+    public String getProfileId() {
+        return null;
     }
 
     @JsonGetter("is_profile_connected")
     public boolean profileConnected() {
-        return StringUtils.isNotBlank(this.profileId);
+        return false;
     }
 
 }

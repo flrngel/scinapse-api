@@ -2,20 +2,21 @@ package io.scinapse.api.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
-import io.scinapse.api.dto.mag.PaperAuthorDto;
-import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.model.mag.*;
-import io.scinapse.api.repository.mag.*;
+import io.scinapse.api.repository.mag.AuthorCoauthorRepository;
+import io.scinapse.api.repository.mag.AuthorRepository;
+import io.scinapse.api.repository.mag.AuthorTopPaperRepository;
+import io.scinapse.api.repository.mag.PaperAuthorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @XRayEnabled
@@ -26,7 +27,6 @@ public class AuthorService {
 
     private final AuthorRepository authorRepository;
     private final PaperAuthorRepository paperAuthorRepository;
-    private final PaperTopAuthorRepository paperTopAuthorRepository;
     private final AuthorCoauthorRepository authorCoauthorRepository;
     private final AuthorTopPaperRepository authorTopPaperRepository;
 
@@ -66,34 +66,6 @@ public class AuthorService {
         Page<PaperAuthor> authorPapers = paperAuthorRepository.getByAuthorIdInOrderByPaperCitationCountDesc(authorIds, pageRequest.toPageable());
         List<Paper> papers = authorPapers.getContent().stream().map(PaperAuthor::getPaper).collect(Collectors.toList());
         return pageRequest.toPage(papers, authorPapers.getTotalElements());
-    }
-
-    public void setDefaultAuthors(List<PaperDto> paperDtos) {
-        if (CollectionUtils.isEmpty(paperDtos)) {
-            return;
-        }
-
-        List<PaperTopAuthor> results = paperTopAuthorRepository.findByPaperIdIn(paperDtos.stream().map(PaperDto::getId).collect(Collectors.toList()));
-
-        Map<Long, List<PaperAuthorDto>> authors = results.stream()
-                .filter(pa -> pa.getAuthor() != null) // prevent exception, due to ghost authors
-                .map(PaperAuthorDto::new)
-                .collect(Collectors.collectingAndThen(
-                        Collectors.groupingBy(PaperAuthorDto::getPaperId),
-                        map -> {
-                            map.values().forEach(list -> list.sort(Comparator.comparing(PaperAuthorDto::getOrder)));
-                            return map;
-                        }));
-        paperDtos.forEach(p -> {
-            List<PaperAuthorDto> authorDtos = authors.get(p.getId());
-            if (authorDtos != null) {
-                p.setAuthors(authorDtos);
-            }
-        });
-    }
-
-    public void setDefaultAuthors(PaperDto paperDto) {
-        setDefaultAuthors(Collections.singletonList(paperDto));
     }
 
     public List<Author> findCoAuthors(long authorId) {

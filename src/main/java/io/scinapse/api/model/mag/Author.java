@@ -1,10 +1,12 @@
 package io.scinapse.api.model.mag;
 
+import io.scinapse.api.model.author.AuthorLayer;
 import io.scinapse.api.model.profile.ProfileAuthor;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hibernate.annotations.BatchSize;
+import org.springframework.util.CollectionUtils;
 
 import javax.persistence.*;
 import java.util.List;
@@ -35,10 +37,23 @@ public class Author {
     @Getter(AccessLevel.PRIVATE)
     @BatchSize(size = 50)
     @OneToMany(mappedBy = "author")
+    private List<AuthorLayer> layerHolder;
+
+    public AuthorLayer getLayer() {
+        if (CollectionUtils.isEmpty(layerHolder)) {
+            return null;
+        }
+        return layerHolder.get(0);
+    }
+
+    // for lazy loading of one-to-one relation
+    @Getter(AccessLevel.PRIVATE)
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "author")
     private List<AuthorHIndex> authorHIndexHolder;
 
     public AuthorHIndex getAuthorHIndex() {
-        if (authorHIndexHolder == null || authorHIndexHolder.size() == 0) {
+        if (CollectionUtils.isEmpty(authorHIndexHolder)) {
             return null;
         }
         return authorHIndexHolder.get(0);
@@ -50,7 +65,7 @@ public class Author {
     private List<ProfileAuthor> profileAuthorHolder;
 
     public ProfileAuthor getProfileAuthor() {
-        if (profileAuthorHolder == null || profileAuthorHolder.size() == 0) {
+        if (CollectionUtils.isEmpty(profileAuthorHolder)) {
             return null;
         }
         return profileAuthorHolder.get(0);

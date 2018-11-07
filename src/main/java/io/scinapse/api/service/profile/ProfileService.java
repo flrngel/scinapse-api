@@ -48,8 +48,8 @@ public class ProfileService {
         profile.setId(IdUtils.generateStringId(profileRepository));
         Profile saved = profileRepository.save(profile);
 
-        member.setProfile(saved);
-        saved.setMember(member);
+//        member.setProfile(saved);
+//        saved.setMember(member);
 
         initAuthors(saved, authorIds);
         initFos(saved, authorIds);

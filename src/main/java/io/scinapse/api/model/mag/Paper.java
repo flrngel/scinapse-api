@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
+import org.springframework.util.CollectionUtils;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -55,6 +56,10 @@ public class Paper {
 
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "paper")
+    private List<PaperTopAuthor> authors = new ArrayList<>();
+
+    @BatchSize(size = 10)
+    @OneToMany(mappedBy = "paper")
     private List<PaperFieldsOfStudy> paperFosList = new ArrayList<>();
 
     @BatchSize(size = 10)
@@ -71,7 +76,7 @@ public class Paper {
     private List<PaperAbstract> paperAbstractHolder;
 
     public PaperAbstract getPaperAbstract() {
-        if (paperAbstractHolder == null || paperAbstractHolder.size() == 0) {
+        if (CollectionUtils.isEmpty(paperAbstractHolder)) {
             return null;
         }
         return paperAbstractHolder.get(0);

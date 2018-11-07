@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,6 +70,10 @@ public class PaperDto {
         this.issue = paper.getIssue();
         this.referenceCount = paper.getPaperCount() != null ? paper.getPaperCount() : 0;
         this.citedCount = paper.getCitationCount() != null ? paper.getCitationCount() : 0;
+
+        if (!CollectionUtils.isEmpty(paper.getAuthors())) {
+            this.authors = paper.getAuthors().stream().map(PaperAuthorDto::new).collect(Collectors.toList());
+        }
     }
 
     public static PaperDto of(Paper paper) {
@@ -121,7 +126,7 @@ public class PaperDto {
         public Converter withUrl() {
             if (detailLoaders.get("url") != null) return this;
             detailLoaders.put("url", () -> {
-                if (!paper.getPaperUrls().isEmpty()) {
+                if (!CollectionUtils.isEmpty(paper.getPaperUrls())) {
                     dto.urls = paper.getPaperUrls().stream().map(PaperUrlDto::new).collect(Collectors.toList());
                     dto.urlCount = dto.urls.size();
                 }
@@ -142,7 +147,7 @@ public class PaperDto {
         public Converter withFos() {
             if (detailLoaders.get("fos") != null) return this;
             detailLoaders.put("fos", () -> {
-                if (!paper.getPaperFosList().isEmpty()) {
+                if (!CollectionUtils.isEmpty(paper.getPaperFosList())) {
                     dto.fosList = paper.getPaperFosList().stream().map(PaperFosDto::new).collect(Collectors.toList());
                     dto.fosCount = dto.fosList.size();
                 }

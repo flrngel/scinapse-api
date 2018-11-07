@@ -1,7 +1,6 @@
 package io.scinapse.api.model.profile;
 
 import io.scinapse.api.model.BaseEntity;
-import io.scinapse.api.model.Member;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,8 +28,8 @@ public class Profile extends BaseEntity {
     @Column
     private String email;
 
-    @OneToOne(mappedBy = "profile", fetch = FetchType.LAZY)
-    private Member member;
+//    @OneToOne(mappedBy = "profile", fetch = FetchType.LAZY)
+//    private Member member;
 
     @OneToMany(mappedBy = "profile", fetch = FetchType.LAZY)
     private List<ProfileFos> profileFosList = new ArrayList<>();
