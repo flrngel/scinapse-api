@@ -75,7 +75,7 @@ public class CollectionService {
     }
 
     public List<CollectionPaper> findByCollectionId(long collectionId) {
-        return collectionPaperRepository.findByIdCollectionId(collectionId);
+        return collectionPaperRepository.findByIdCollectionIdOrderByUpdatedAtDesc(collectionId);
     }
 
     public List<CollectionPaper> findByIds(List<Long> collectionIds, long paperId) {
