@@ -1,7 +1,6 @@
 package io.scinapse.api.model.mag;
 
 import io.scinapse.api.model.author.AuthorLayer;
-import io.scinapse.api.model.profile.ProfileAuthor;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -57,18 +56,6 @@ public class Author {
             return null;
         }
         return authorHIndexHolder.get(0);
-    }
-
-    @Getter(AccessLevel.PRIVATE)
-    @BatchSize(size = 50)
-    @OneToMany(mappedBy = "author")
-    private List<ProfileAuthor> profileAuthorHolder;
-
-    public ProfileAuthor getProfileAuthor() {
-        if (CollectionUtils.isEmpty(profileAuthorHolder)) {
-            return null;
-        }
-        return profileAuthorHolder.get(0);
     }
 
 }
