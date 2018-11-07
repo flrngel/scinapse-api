@@ -15,6 +15,8 @@ import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.action.search.MultiSearchRequest;
+import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -336,15 +338,33 @@ public class SearchService {
         SuggestBuilder suggest = new SuggestBuilder()
                 .addSuggestion("suggest", phraseSuggest);
 
-        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
+        SearchSourceBuilder suggestSource = SearchSourceBuilder.searchSource()
                 .size(0)
                 .fetchSource(false)
                 .suggest(suggest);
 
-        try {
-            SearchRequest request = new SearchRequest(titleSuggestionIndex).source(source);
-            SearchResponse response = restHighLevelClient.search(request);
 
+        try {
+            SearchRequest suggestRequest = new SearchRequest(titleSuggestionIndex).source(suggestSource);
+            SearchRequest authorNameRequest = getAuthorNameRequest(keyword);
+
+            MultiSearchRequest multiSearchRequest = new MultiSearchRequest()
+                    .add(authorNameRequest)
+                    .add(suggestRequest);
+            MultiSearchResponse.Item[] responses = restHighLevelClient.multiSearch(multiSearchRequest).getResponses();
+
+            if (responses.length != 2) {
+                log.error("Size of suggest multi search is not two: " + responses.length);
+                return null;
+            }
+
+            // do not suggest if the keyword matches specific author name.
+            long totalHits = responses[0].getResponse().getHits().totalHits;
+            if (totalHits > 0) {
+                return null;
+            }
+
+            SearchResponse response = responses[1].getResponse();
             List<? extends Suggest.Suggestion.Entry.Option> options = response
                     .getSuggest()
                     .getSuggestion("suggest")
@@ -359,6 +379,15 @@ public class SearchService {
         } catch (IOException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }
+    }
+
+    private SearchRequest getAuthorNameRequest(String keyword) {
+        MatchQueryBuilder nameQuery = QueryBuilders.matchQuery("name", keyword).operator(Operator.AND);
+        SearchSourceBuilder nameQuerySource = SearchSourceBuilder.searchSource()
+                .size(0)
+                .fetchSource(false)
+                .query(nameQuery);
+        return new SearchRequest(authorIndex).source(nameQuerySource);
     }
 
     public AggregationDto aggregateFromSample(Query query) {
