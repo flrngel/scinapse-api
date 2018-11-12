@@ -94,6 +94,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(
                         HttpMethod.GET,
                         "/members/me/collections"
+
                 )
                 .hasAnyAuthority(AuthorityName.ROLE_ADMIN.name(), AuthorityName.ROLE_USER.name(), AuthorityName.ROLE_UNVERIFIED.name())
 
@@ -119,10 +120,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/authors/*/co-authors",
                         "/journals/*",
                         "/journals/*/papers",
-                        "/collections/*",
                         "/collections/*/papers",
                         "/comments",
                         "/complete",
+                        "/collections/*",
                         "/suggest"
                 ).permitAll()
 
@@ -134,7 +135,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/members",
                         "/members/oauth",
                         "/members/password-token",
-                        "/members/reset-password"
+                        "/members/reset-password",
+                        "/collections"
                 ).permitAll()
 
                 .anyRequest()
