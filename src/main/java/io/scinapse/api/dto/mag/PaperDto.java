@@ -2,6 +2,7 @@ package io.scinapse.api.dto.mag;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.dto.CommentDto;
+import io.scinapse.api.dto.PaperImageDto;
 import io.scinapse.api.model.mag.Paper;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -59,7 +60,10 @@ public class PaperDto {
 
     private List<PaperUrlDto> urls = new ArrayList<>();
 
+    private List<PaperImageDto> images = new ArrayList<>();
+
     private List<CommentDto> comments = new ArrayList<>();
+
 
     private PaperDto(Paper paper) {
         this.id = paper.getId();

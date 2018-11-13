@@ -8,11 +8,13 @@ import io.scinapse.api.dto.response.Response;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.facade.PaperFacade;
+import io.scinapse.api.util.HttpUtils;
 import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +26,8 @@ public class PaperController {
     private final PaperFacade paperFacade;
 
     @RequestMapping(value = "/papers/{paperId}", method = RequestMethod.GET)
-    public PaperDto find(@PathVariable long paperId) {
-        return paperFacade.find(paperId);
+    public PaperDto find(@PathVariable long paperId, HttpServletRequest request) {
+        return paperFacade.find(paperId, HttpUtils.isBot(request));
     }
 
     @RequestMapping(value = "/papers", method = RequestMethod.GET)
