@@ -1,6 +1,7 @@
 package io.scinapse.api.dto.mag;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.model.mag.PaperAuthor;
 import io.scinapse.api.model.mag.PaperTopAuthor;
 import lombok.Getter;
@@ -19,6 +20,8 @@ public class PaperAuthorDto {
     private String organization;
     private AffiliationDto affiliation;
     private int order;
+    @JsonProperty("is_layered")
+    private boolean layered;
 
     public PaperAuthorDto(PaperAuthor relation) {
         this.paperId = relation.getPaperId();
@@ -34,6 +37,11 @@ public class PaperAuthorDto {
         if (relation.getAuthor().getAuthorHIndex() != null) {
             this.hIndex = relation.getAuthor().getAuthorHIndex().getHIndex();
         }
+
+        if (relation.getAuthor().getLayer() != null) {
+            this.layered = true;
+            this.name = relation.getAuthor().getLayer().getName();
+        }
     }
 
     public PaperAuthorDto(PaperTopAuthor paperTopAuthor) {
@@ -48,6 +56,11 @@ public class PaperAuthorDto {
 
         if (paperTopAuthor.getAuthor().getAuthorHIndex() != null) {
             this.hIndex = paperTopAuthor.getAuthor().getAuthorHIndex().getHIndex();
+        }
+
+        if (paperTopAuthor.getAuthor().getLayer() != null) {
+            this.layered = true;
+            this.name = paperTopAuthor.getAuthor().getLayer().getName();
         }
     }
 

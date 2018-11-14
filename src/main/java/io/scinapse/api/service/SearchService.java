@@ -298,7 +298,9 @@ public class SearchService {
                 if (name == null) {
                     continue;
                 }
-                dtos.add(new CompletionDto((String) name, CompletionType.AFFILIATION));
+                CompletionDto dto = new CompletionDto((String) name, CompletionType.AFFILIATION);
+                dto.additionalInfo.put("affiliation_id", Long.parseLong(hit.getId()));
+                dtos.add(dto);
             }
 
             return dtos.stream().distinct().collect(Collectors.toList());

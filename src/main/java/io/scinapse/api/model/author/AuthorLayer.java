@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,7 +25,13 @@ public class AuthorLayer extends BaseEntity {
     private Affiliation lastKnownAffiliation;
 
     @Column
+    private String email;
+
+    @Column
     private String bio;
+
+    @Column
+    private String webPage;
 
     @Column(nullable = false)
     private long paperCount;
@@ -42,6 +50,9 @@ public class AuthorLayer extends BaseEntity {
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     @MapsId
     private Author author;
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private List<AuthorLayerFos> fosList = new ArrayList<>();
 
     public enum LayerStatus {
         SYNCED,

@@ -7,9 +7,11 @@ import io.scinapse.api.model.mag.Author;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor
 @Getter
@@ -31,10 +33,18 @@ public class AuthorDto {
     @JsonProperty("hindex")
     private Integer hIndex;
 
+    private String email;
     private String bio;
+    private String webPage;
+
+    @JsonProperty("is_layered")
+    private boolean layered = false;
 
     @JsonProperty("selected_papers")
     private List<PaperDto> selectedPapers = new ArrayList<>();
+
+    @JsonProperty("fos_list")
+    private List<FosDto> fosList = new ArrayList<>();
 
     @JsonProperty("top_papers")
     private List<PaperDto> topPapers = new ArrayList<>();
@@ -45,18 +55,32 @@ public class AuthorDto {
         this.paperCount = author.getPaperCount();
         this.citationCount = author.getCitationCount();
 
-        if (author.getLastKnownAffiliation() != null) {
-            this.lastKnownAffiliation = new AffiliationDto(author.getLastKnownAffiliation());
-        }
-
         if (author.getAuthorHIndex() != null) {
             this.hIndex = author.getAuthorHIndex().getHIndex();
+        }
+
+        if (author.getLayer() != null) {
+            this.layered = true;
+            this.name = author.getLayer().getName();
+            this.paperCount = author.getLayer().getPaperCount();
+            if (author.getLayer().getLastKnownAffiliation() != null) {
+                this.lastKnownAffiliation = new AffiliationDto(author.getLayer().getLastKnownAffiliation());
+            }
+        } else {
+            if (author.getLastKnownAffiliation() != null) {
+                this.lastKnownAffiliation = new AffiliationDto(author.getLastKnownAffiliation());
+            }
         }
     }
 
     public void putDetail(AuthorLayer layer) {
+        this.email = layer.getEmail();
         this.bio = layer.getBio();
-        this.paperCount = layer.getPaperCount();
+        this.webPage = layer.getWebPage();
+
+        if (!CollectionUtils.isEmpty(layer.getFosList())) {
+            this.fosList = layer.getFosList().stream().map(FosDto::new).collect(Collectors.toList());
+        }
     }
 
     @JsonGetter("profile_id")

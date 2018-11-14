@@ -2,6 +2,7 @@ package io.scinapse.api.controller;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import io.scinapse.api.dto.PaperTitleDto;
 import io.scinapse.api.dto.mag.AuthorDto;
 import io.scinapse.api.dto.mag.AuthorLayerUpdateDto;
 import io.scinapse.api.dto.mag.AuthorPaperDto;
@@ -50,8 +51,13 @@ public class AuthorController {
     }
 
     @RequestMapping(value = "/authors/{authorId}/papers", method = RequestMethod.GET)
-    public Page<AuthorPaperDto> getAuthorPapers(@PathVariable long authorId, PageRequest pageRequest) {
-        return authorFacade.getPapers(authorId, pageRequest);
+    public Page<AuthorPaperDto> findPapers(@PathVariable long authorId,
+                                           @RequestParam(value = "query", required = false) String queryStr,
+                                           PageRequest pageRequest) {
+        String query = StringUtils.normalizeSpace(queryStr);
+        String[] keywords = StringUtils.split(query);
+
+        return authorFacade.findPapers(authorId, keywords, pageRequest);
     }
 
     @RequestMapping(value = "/authors/{authorId}/co-authors", method = RequestMethod.GET)
@@ -121,6 +127,11 @@ public class AuthorController {
                                                        @RequestBody @Valid AuthorLayerUpdateDto updateDto) {
         Member member = memberFacade.loadMember(user);
         return Response.success(authorFacade.update(member, authorId, updateDto));
+    }
+
+    @RequestMapping(value = "/authors/{authorId}/papers/all", method = RequestMethod.GET)
+    public Response<List<PaperTitleDto>> getAllPaperTitles(@PathVariable long authorId) {
+        return Response.success(authorFacade.getAllPaperTitles(authorId));
     }
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)

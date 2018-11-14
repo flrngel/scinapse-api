@@ -45,7 +45,7 @@ public class SuggestController {
         return result;
     }
 
-    @RequestMapping(value = "/complete", method = RequestMethod.GET, params = "type=AFFILIATION")
+    @RequestMapping(value = "/complete/affiliation", method = RequestMethod.GET)
     public Response<List<CompletionDto>> completeAffiliation(@RequestParam("q") String keyword) {
         keyword = StringUtils.normalizeSpace(keyword);
         if (StringUtils.isBlank(keyword) || keyword.length() < 2) {

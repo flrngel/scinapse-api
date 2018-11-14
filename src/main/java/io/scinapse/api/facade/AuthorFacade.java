@@ -2,6 +2,7 @@ package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.dto.PaperTitleDto;
 import io.scinapse.api.dto.mag.AuthorDto;
 import io.scinapse.api.dto.mag.AuthorLayerUpdateDto;
 import io.scinapse.api.dto.mag.AuthorPaperDto;
@@ -72,9 +73,9 @@ public class AuthorFacade {
         return new PageImpl<>(authorDtos, pageRequest.toPageable(), authorIdPage.getTotalElements());
     }
 
-    public Page<AuthorPaperDto> getPapers(long authorId, PageRequest pageRequest) {
+    public Page<AuthorPaperDto> findPapers(long authorId, String[] keywords, PageRequest pageRequest) {
         if (layerService.exists(authorId)) {
-            return layerService.getPapers(authorId, pageRequest)
+            return layerService.findPapers(authorId, keywords, pageRequest)
                     .map(lp -> {
                         PaperDto paperDto = PaperDto.detail().convert(lp.getPaper());
                         return new AuthorPaperDto(paperDto, lp.getStatus(), lp.isSelected());
@@ -154,6 +155,11 @@ public class AuthorFacade {
 
         layerService.update(layer, updateDto);
         return findDetailed(authorId);
+    }
+
+    public List<PaperTitleDto> getAllPaperTitles(long authorId) {
+        AuthorLayer layer = findLayer(authorId);
+        return layerService.getAllPaperTitles(layer);
     }
 
     private Author find(long authorId) {

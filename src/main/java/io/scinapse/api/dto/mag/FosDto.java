@@ -1,5 +1,6 @@
 package io.scinapse.api.dto.mag;
 
+import io.scinapse.api.model.author.AuthorLayerFos;
 import io.scinapse.api.model.mag.FieldsOfStudy;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,10 @@ public class FosDto {
     public FosDto(FieldsOfStudy fos) {
         this.id = fos.getId();
         this.name = fos.getName();
+    }
+
+    public FosDto(AuthorLayerFos fos) {
+        this(fos.getFos());
     }
 
 }

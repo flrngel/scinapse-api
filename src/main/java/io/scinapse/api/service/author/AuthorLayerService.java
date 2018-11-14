@@ -2,24 +2,32 @@ package io.scinapse.api.service.author;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.dto.PaperTitleDto;
 import io.scinapse.api.dto.mag.AuthorLayerUpdateDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.model.Member;
 import io.scinapse.api.model.author.AuthorLayer;
+import io.scinapse.api.model.author.AuthorLayerFos;
 import io.scinapse.api.model.author.AuthorLayerPaper;
 import io.scinapse.api.model.author.AuthorLayerPaperHistory;
+import io.scinapse.api.model.mag.Affiliation;
 import io.scinapse.api.model.mag.Author;
+import io.scinapse.api.model.mag.FieldsOfStudy;
 import io.scinapse.api.model.mag.Paper;
 import io.scinapse.api.repository.MemberRepository;
+import io.scinapse.api.repository.author.AuthorLayerFosRepository;
 import io.scinapse.api.repository.author.AuthorLayerPaperHistoryRepository;
 import io.scinapse.api.repository.author.AuthorLayerPaperRepository;
 import io.scinapse.api.repository.author.AuthorLayerRepository;
+import io.scinapse.api.repository.mag.AffiliationRepository;
+import io.scinapse.api.repository.mag.FieldsOfStudyRepository;
 import io.scinapse.api.repository.mag.PaperAuthorRepository;
 import io.scinapse.api.repository.mag.PaperRepository;
 import io.scinapse.api.util.IdUtils;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
@@ -39,9 +47,12 @@ public class AuthorLayerService {
     private final AuthorLayerRepository authorLayerRepository;
     private final AuthorLayerPaperRepository authorLayerPaperRepository;
     private final AuthorLayerPaperHistoryRepository authorLayerPaperHistoryRepository;
+    private final AuthorLayerFosRepository authorLayerFosRepository;
     private final MemberRepository memberRepository;
     private final PaperAuthorRepository paperAuthorRepository;
     private final PaperRepository paperRepository;
+    private final FieldsOfStudyRepository fieldsOfStudyRepository;
+    private final AffiliationRepository affiliationRepository;
 
     @Transactional
     public void connect(Member member, Author author) {
@@ -58,27 +69,37 @@ public class AuthorLayerService {
         // connect member with author.
         member.setAuthorId(author.getId());
 
-        if (authorLayerRepository.exists(author.getId())) {
+        Optional<AuthorLayer> layerOptional = Optional.ofNullable(authorLayerRepository.findOne(author.getId()));
+        if (layerOptional.isPresent()) {
             // the author already has a layer which is probably created by admin users.
             // do not create duplicates.
+            // only update author's email.
+            layerOptional.get().setEmail(member.getEmail());
             return;
         }
 
         // the author does not have a layer. Let's create new one.
-        createLayer(author);
+        createLayer(author, member);
     }
 
-    private void createLayer(Author author) {
+    private void createLayer(Author author, Member member) {
         AuthorLayer authorLayer = new AuthorLayer();
+
+        // from author
         authorLayer.setAuthor(author);
         authorLayer.setAuthorId(author.getId());
         authorLayer.setName(author.getName());
         authorLayer.setLastKnownAffiliation(author.getLastKnownAffiliation());
         authorLayer.setPaperCount(author.getPaperCount());
         authorLayer.setCitationCount(author.getCitationCount());
+
+        // from member
+        authorLayer.setEmail(member.getEmail());
+
         authorLayerRepository.save(authorLayer);
 
         copyPapers(author, authorLayer);
+        initFos(authorLayer);
     }
 
     private void copyPapers(Author author, AuthorLayer authorLayer) {
@@ -94,6 +115,17 @@ public class AuthorLayerService {
         authorLayerPaperRepository.save(layerPapers);
     }
 
+    private void initFos(AuthorLayer layer) {
+        List<Long> relatedFosIds = authorLayerFosRepository.getRelatedFos(layer.getAuthorId());
+        List<FieldsOfStudy> relatedFos = fieldsOfStudyRepository.findByIdIn(relatedFosIds);
+        List<AuthorLayerFos> fosList = relatedFos.stream()
+                .map(fos -> new AuthorLayerFos(layer, fos))
+                .collect(Collectors.toList());
+
+        List<AuthorLayerFos> saved = authorLayerFosRepository.save(fosList);
+        layer.setFosList(saved);
+    }
+
     public boolean exists(long authorId) {
         return authorLayerRepository.exists(authorId);
     }
@@ -102,28 +134,13 @@ public class AuthorLayerService {
         return Optional.ofNullable(authorLayerRepository.findOne(authorId));
     }
 
-    public Page<AuthorLayerPaper> getPapers(long authorId, PageRequest pageRequest) {
+    public Page<AuthorLayerPaper> findPapers(long authorId, String[] keywords, PageRequest pageRequest) {
         AuthorLayer author = find(authorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found: " + authorId));
 
-        List<AuthorLayerPaper> papers = getPaperList(authorId, pageRequest);
-        return new PageImpl<>(papers, pageRequest.toPageable(), author.getPaperCount());
-    }
-
-    private List<AuthorLayerPaper> getPaperList(long authorId, PageRequest pageRequest) {
         PaperSort sort = PaperSort.find(pageRequest.getSort());
-        if (sort == null) {
-            return authorLayerPaperRepository.getMostCitations(authorId, pageRequest.toPageable());
-        }
-
-        switch (sort) {
-            case NEWEST_FIRST:
-                return authorLayerPaperRepository.getNewest(authorId, pageRequest.toPageable());
-            case OLDEST_FIRST:
-                return authorLayerPaperRepository.getOldest(authorId, pageRequest.toPageable());
-            default:
-                return authorLayerPaperRepository.getMostCitations(authorId, pageRequest.toPageable());
-        }
+        List<AuthorLayerPaper> papers = authorLayerPaperRepository.findPapers(authorId, false, keywords, sort, pageRequest.toPageable());
+        return new PageImpl<>(papers, pageRequest.toPageable(), author.getPaperCount());
     }
 
     @Transactional
@@ -245,8 +262,65 @@ public class AuthorLayerService {
 
     @Transactional
     public AuthorLayer update(AuthorLayer layer, AuthorLayerUpdateDto updateDto) {
-        layer.setBio(updateDto.getBio());
+        boolean isUpdated = false;
+
+        if (!StringUtils.equals(layer.getBio(), updateDto.getBio())) {
+            isUpdated = true;
+            layer.setBio(updateDto.getBio());
+        }
+
+        if (StringUtils.isNotBlank(updateDto.getName())) {
+            isUpdated = true;
+            layer.setName(updateDto.getName());
+        }
+
+        if (StringUtils.isNotBlank(updateDto.getEmail())) {
+            isUpdated = true;
+            layer.setEmail(updateDto.getEmail());
+        }
+
+        if (!StringUtils.equals(layer.getWebPage(), updateDto.getWebPage())) {
+            isUpdated = true;
+            layer.setWebPage(updateDto.getWebPage());
+        }
+
+        Long updatedAffiliationId = updateDto.getAffiliationId();
+        Affiliation lastKnownAffiliation = layer.getLastKnownAffiliation();
+        if (updatedAffiliationId == null) {
+            if (lastKnownAffiliation != null) { // case : user removes last known affiliation
+                isUpdated = true;
+                layer.setLastKnownAffiliation(null);
+            }
+        } else {
+            if (updatedAffiliationId <= 0) {
+                throw new BadRequestException("Cannot update affiliation with invalid affiliation ID: " + updatedAffiliationId);
+            }
+            if (lastKnownAffiliation == null || lastKnownAffiliation.getId() != updatedAffiliationId) { // case : user updates last known affiliation
+                Affiliation affiliation = Optional.ofNullable(affiliationRepository.findOne(updatedAffiliationId))
+                        .orElseThrow(() -> new BadRequestException("Cannot update affiliation with invalid affiliation ID: " + updatedAffiliationId));
+                isUpdated = true;
+                layer.setLastKnownAffiliation(affiliation);
+            }
+        }
+
+        if (isUpdated) {
+            layer.setStatus(AuthorLayer.LayerStatus.PENDING);
+        }
+
         return layer;
+    }
+
+    public List<PaperTitleDto> getAllPaperTitles(AuthorLayer layer) {
+        return authorLayerPaperRepository.getAllTitles(layer.getAuthorId())
+                .stream()
+                .map(obj -> {
+                    PaperTitleDto dto = new PaperTitleDto();
+                    dto.setPaperId((long) obj[0]);
+                    dto.setTitle((String) obj[1]);
+                    dto.setSelected((boolean) obj[2]);
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
 }
