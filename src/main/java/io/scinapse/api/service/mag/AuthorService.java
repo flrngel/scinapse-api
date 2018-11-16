@@ -4,7 +4,10 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;
-import io.scinapse.api.model.mag.*;
+import io.scinapse.api.model.mag.Author;
+import io.scinapse.api.model.mag.AuthorCoauthor;
+import io.scinapse.api.model.mag.AuthorTopPaper;
+import io.scinapse.api.model.mag.Paper;
 import io.scinapse.api.repository.mag.AuthorCoauthorRepository;
 import io.scinapse.api.repository.mag.AuthorRepository;
 import io.scinapse.api.repository.mag.AuthorTopPaperRepository;
@@ -15,6 +18,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -62,14 +66,10 @@ public class AuthorService {
         }
     }
 
-    public Page<Paper> getAuthorPaper(List<Long> authorIds, PageRequest pageRequest) {
-        Page<PaperAuthor> authorPapers = paperAuthorRepository.getByAuthorIdInOrderByPaperCitationCountDesc(authorIds, pageRequest.toPageable());
-        List<Paper> papers = authorPapers.getContent().stream().map(PaperAuthor::getPaper).collect(Collectors.toList());
-        return pageRequest.toPage(papers, authorPapers.getTotalElements());
-    }
-
     public List<Author> findCoAuthors(long authorId) {
-        return authorCoauthorRepository.findByAuthorId(authorId).stream()
+        return authorCoauthorRepository.findByAuthorId(authorId)
+                .stream()
+                .sorted(Comparator.comparing(AuthorCoauthor::getRank, Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(AuthorCoauthor::getCoauthor)
                 .collect(Collectors.toList());
     }

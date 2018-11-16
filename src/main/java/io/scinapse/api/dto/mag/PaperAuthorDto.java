@@ -48,6 +48,7 @@ public class PaperAuthorDto {
         this.paperId = paperTopAuthor.getPaperId();
         this.id = paperTopAuthor.getId().getAuthorId();
         this.name = paperTopAuthor.getAuthor().getName();
+        this.order = paperTopAuthor.getAuthorSequenceNumber();
 
         if (paperTopAuthor.getAffiliation() != null) {
             this.affiliation = new AffiliationDto(paperTopAuthor.getAffiliation());

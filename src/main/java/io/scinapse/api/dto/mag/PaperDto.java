@@ -10,10 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -76,7 +73,11 @@ public class PaperDto {
         this.citedCount = paper.getCitationCount() != null ? paper.getCitationCount() : 0;
 
         if (!CollectionUtils.isEmpty(paper.getAuthors())) {
-            this.authors = paper.getAuthors().stream().map(PaperAuthorDto::new).collect(Collectors.toList());
+            this.authors = paper.getAuthors()
+                    .stream()
+                    .map(PaperAuthorDto::new)
+                    .sorted(Comparator.comparing(PaperAuthorDto::getOrder, Comparator.nullsLast(Comparator.naturalOrder())))
+                    .collect(Collectors.toList());
         }
     }
 
