@@ -136,7 +136,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/members/oauth",
                         "/members/password-token",
                         "/members/reset-password",
-                        "/collections"
+                        "/collections",
+                        "/collections/*/papers"
                 ).permitAll()
 
                 .anyRequest()
