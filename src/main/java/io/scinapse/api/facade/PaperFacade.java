@@ -4,7 +4,6 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CitationTextDto;
-import io.scinapse.api.dto.PaperImageDto;
 import io.scinapse.api.dto.mag.PaperAuthorDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.CitationFormat;
@@ -23,7 +22,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.function.Function;
@@ -49,14 +47,14 @@ public class PaperFacade {
         PaperDto dto = PaperDto.full().convert(paper);
         commentService.setDefaultComments(dto);
 
-        if (!CollectionUtils.isEmpty(dto.getUrls()) && !isBot) {
-            Optional<List<PaperImageDto>> pdfImages = paperPdfImageService.getPdfImages(paperId);
-            if (pdfImages.isPresent()) {
-                dto.setImages(pdfImages.get());
-            } else {
-                paperPdfImageService.extractPdfImagesAsync(paper);
-            }
-        }
+//        if (!CollectionUtils.isEmpty(dto.getUrls()) && !isBot) {
+//            Optional<List<PaperImageDto>> pdfImages = paperPdfImageService.getPdfImages(paperId);
+//            if (pdfImages.isPresent()) {
+//                dto.setImages(pdfImages.get());
+//            } else {
+//                paperPdfImageService.extractPdfImagesAsync(paper);
+//            }
+//        }
 
         return dto;
     }
