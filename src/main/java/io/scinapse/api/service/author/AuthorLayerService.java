@@ -4,6 +4,8 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.PaperTitleDto;
 import io.scinapse.api.dto.mag.AuthorLayerUpdateDto;
+import io.scinapse.api.dto.mag.AuthorSearchPaperDto;
+import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
@@ -34,8 +36,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @XRayEnabled
@@ -55,7 +57,7 @@ public class AuthorLayerService {
     private final AffiliationRepository affiliationRepository;
 
     @Transactional
-    public void connect(Member member, Author author) {
+    public void connect(Member member, Author author, AuthorLayerUpdateDto dto) {
         Optional.ofNullable(member.getAuthorId())
                 .ifPresent((connectedAuthorId) -> {
                     throw new BadRequestException("The member[" + member.getId() + "] is already connected to the other author[" + connectedAuthorId + "]");
@@ -66,23 +68,28 @@ public class AuthorLayerService {
                     throw new BadRequestException("The author[" + author.getId() + "] is already connected to the other member[" + connectedMember.getId() + "]");
                 });
 
+        Optional.ofNullable(authorLayerRepository.findOne(author.getId()))
+                .ifPresent(layer -> {
+                    throw new BadRequestException("The author[" + author.getId() + "] has layered information. It is not allowed to connect.");
+                });
+
         // connect member with author.
         member.setAuthorId(author.getId());
 
-        Optional<AuthorLayer> layerOptional = Optional.ofNullable(authorLayerRepository.findOne(author.getId()));
-        if (layerOptional.isPresent()) {
-            // the author already has a layer which is probably created by admin users.
-            // do not create duplicates.
-            // only update author's email.
-            layerOptional.get().setEmail(member.getEmail());
-            return;
-        }
-
         // the author does not have a layer. Let's create new one.
-        createLayer(author, member);
+        createLayer(author, dto);
     }
 
-    private void createLayer(Author author, Member member) {
+    @Transactional
+    public void disconnect(long authorId) {
+        Optional.ofNullable(memberRepository.findByAuthorId(authorId)).ifPresent(member -> member.setAuthorId(null));
+        authorLayerFosRepository.deleteByIdAuthorId(authorId);
+        authorLayerPaperHistoryRepository.deleteByAuthorId(authorId);
+        authorLayerPaperRepository.deleteByIdAuthorId(authorId);
+        authorLayerRepository.delete(authorId);
+    }
+
+    private void createLayer(Author author, AuthorLayerUpdateDto dto) {
         AuthorLayer authorLayer = new AuthorLayer();
 
         // from author
@@ -93,13 +100,12 @@ public class AuthorLayerService {
         authorLayer.setPaperCount(author.getPaperCount());
         authorLayer.setCitationCount(author.getCitationCount());
 
-        // from member
-        authorLayer.setEmail(member.getEmail());
+        AuthorLayer saved = authorLayerRepository.saveAndFlush(authorLayer);
 
-        authorLayerRepository.save(authorLayer);
+        copyPapers(author, saved);
+        initFos(saved);
 
-        copyPapers(author, authorLayer);
-        initFos(authorLayer);
+        update(saved, dto);
     }
 
     private void copyPapers(Author author, AuthorLayer authorLayer) {
@@ -144,18 +150,10 @@ public class AuthorLayerService {
     }
 
     @Transactional
-    public void removePapers(AuthorLayer layer, List<Long> paperIds) {
+    public void removePapers(AuthorLayer layer, Set<Long> paperIds) {
         List<AuthorLayerPaper> layerPapers = authorLayerPaperRepository.findByIdAuthorIdAndIdPaperIdIn(layer.getAuthorId(), paperIds);
         if (CollectionUtils.isEmpty(layerPapers)) {
             return;
-        }
-
-        List<Long> selectedPaperIds = layerPapers.stream()
-                .filter(AuthorLayerPaper::isSelected)
-                .map(lp -> lp.getId().getPaperId())
-                .collect(Collectors.toList());
-        if (!CollectionUtils.isEmpty(selectedPaperIds)) {
-            throw new BadRequestException("Cannot remove selected publications: " + selectedPaperIds);
         }
 
         // set layer paper's status
@@ -184,16 +182,17 @@ public class AuthorLayerService {
     }
 
     @Transactional
-    public void addPapers(AuthorLayer layer, List<Long> paperIds) {
+    public void addPapers(AuthorLayer layer, Set<Long> paperIds) {
         List<Long> existingLayerPaperIds = authorLayerPaperRepository.findByIdAuthorIdAndIdPaperIdIn(layer.getAuthorId(), paperIds)
                 .stream()
+                .filter(lp -> lp.getStatus() != AuthorLayerPaper.PaperStatus.PENDING_REMOVE)
                 .map(lp -> lp.getId().getPaperId()).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(existingLayerPaperIds)) {
             throw new BadRequestException("Duplicate registration is not allowed. Duplicated: " + existingLayerPaperIds);
         }
 
         // add author layer papers
-        List<Paper> papers = paperRepository.findByIdIn(paperIds);
+        List<Paper> papers = paperRepository.findByIdIn(new ArrayList<>(paperIds));
         List<AuthorLayerPaper> layerPapers = papers.stream()
                 .map(p -> {
                     AuthorLayerPaper layerPaper = new AuthorLayerPaper(layer, p);
@@ -226,17 +225,18 @@ public class AuthorLayerService {
     }
 
     @Transactional
-    public List<AuthorLayerPaper> updateSelected(Author author, List<Long> selectedPaperIds) {
+    public List<AuthorLayerPaper> updateSelected(Author author, Set<Long> selectedPaperIds) {
         if (author.getLayer() == null) {
             throw new BadRequestException("Author[" + author.getId() + "] does not have a layer.");
         }
 
-        List<AuthorLayerPaper> layerPapers = authorLayerPaperRepository.findByIdAuthorIdAndIdPaperIdIn(author.getId(), selectedPaperIds);
-        if (CollectionUtils.isEmpty(layerPapers)) {
-            throw new BadRequestException("No papers to add selected publications. Please choose papers from your own papers");
+        if (selectedPaperIds.size() > 10) {
+            throw new BadRequestException("Author can select up to 10 papers as selected. Actual size: " + selectedPaperIds.size());
         }
 
-        List<Long> removedPaperIds = layerPapers.stream()
+        List<AuthorLayerPaper> layerPapersToSelect = authorLayerPaperRepository.findByIdAuthorIdAndIdPaperIdIn(author.getId(), selectedPaperIds);
+
+        List<Long> removedPaperIds = layerPapersToSelect.stream()
                 .filter(lp -> lp.getStatus() == AuthorLayerPaper.PaperStatus.PENDING_REMOVE)
                 .map(lp -> lp.getId().getPaperId())
                 .collect(Collectors.toList());
@@ -250,10 +250,10 @@ public class AuthorLayerService {
                 .forEach(lp -> lp.setSelected(false));
 
         // mark newly selected publications
-        layerPapers
+        layerPapersToSelect
                 .forEach(lp -> lp.setSelected(true));
 
-        return layerPapers;
+        return layerPapersToSelect;
     }
 
     public List<AuthorLayerPaper> findSelectedPapers(long authorId) {
@@ -269,12 +269,12 @@ public class AuthorLayerService {
             layer.setBio(updateDto.getBio());
         }
 
-        if (StringUtils.isNotBlank(updateDto.getName())) {
+        if (!StringUtils.equals(layer.getName(), updateDto.getName())) {
             isUpdated = true;
             layer.setName(updateDto.getName());
         }
 
-        if (StringUtils.isNotBlank(updateDto.getEmail())) {
+        if (!StringUtils.equals(layer.getEmail(), updateDto.getEmail())) {
             isUpdated = true;
             layer.setEmail(updateDto.getEmail());
         }
@@ -319,6 +319,25 @@ public class AuthorLayerService {
                     dto.setTitle((String) obj[1]);
                     dto.setSelected((boolean) obj[2]);
                     return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<AuthorSearchPaperDto> decorateSearchResult(long authorId, List<PaperDto> paperDtos) {
+        Set<Long> paperIds = paperDtos.stream().map(PaperDto::getId).collect(Collectors.toSet());
+        Map<Long, AuthorLayerPaper> layerPaperMap = authorLayerPaperRepository.findByIdAuthorIdAndIdPaperIdIn(authorId, paperIds)
+                .stream()
+                .filter(lp -> lp.getStatus() != AuthorLayerPaper.PaperStatus.PENDING_REMOVE)
+                .collect(Collectors.toMap(
+                        lp -> lp.getId().getPaperId(),
+                        Function.identity()
+                ));
+
+        return paperDtos
+                .stream()
+                .map(paperDto -> {
+                    boolean included = Optional.ofNullable(layerPaperMap.get(paperDto.getId())).isPresent();
+                    return new AuthorSearchPaperDto(paperDto, included);
                 })
                 .collect(Collectors.toList());
     }

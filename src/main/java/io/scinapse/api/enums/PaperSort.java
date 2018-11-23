@@ -10,7 +10,8 @@ public enum PaperSort {
     RELEVANCE,
     MOST_CITATIONS,
     OLDEST_FIRST,
-    NEWEST_FIRST;
+    NEWEST_FIRST,
+    RECENTLY_UPDATED;
 
     public static PaperSort find(String name) {
         if (StringUtils.isBlank(name)) {

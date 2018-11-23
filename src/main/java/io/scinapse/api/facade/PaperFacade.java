@@ -4,6 +4,7 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CitationTextDto;
+import io.scinapse.api.dto.mag.AuthorSearchPaperDto;
 import io.scinapse.api.dto.mag.PaperAuthorDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.CitationFormat;
@@ -12,8 +13,8 @@ import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.model.mag.Paper;
 import io.scinapse.api.model.mag.PaperAuthor;
 import io.scinapse.api.service.CommentService;
-import io.scinapse.api.service.PaperPdfImageService;
 import io.scinapse.api.service.SearchService;
+import io.scinapse.api.service.author.AuthorLayerService;
 import io.scinapse.api.service.mag.PaperService;
 import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @XRayEnabled
-@Transactional
+@Transactional(readOnly = true)
 @Component
 @RequiredArgsConstructor
 public class PaperFacade {
@@ -36,7 +37,7 @@ public class PaperFacade {
     private final SearchService searchService;
     private final CommentService commentService;
     private final PaperService paperService;
-    private final PaperPdfImageService paperPdfImageService;
+    private final AuthorLayerService authorLayerService;
 
     public PaperDto find(long paperId, boolean isBot) {
         Paper paper = paperService.find(paperId);
@@ -92,7 +93,6 @@ public class PaperFacade {
         return paperAuthors.map(PaperAuthorDto::new);
     }
 
-    @Transactional(readOnly = true)
     public Page<PaperDto> findReferences(long paperId, PageRequest pageRequest) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
@@ -104,7 +104,6 @@ public class PaperFacade {
         return new PageImpl<>(dtos, pageRequest.toPageable(), paper.getPaperCount());
     }
 
-    @Transactional(readOnly = true)
     public Page<PaperDto> findCited(long paperId, PageRequest pageRequest) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
@@ -116,9 +115,15 @@ public class PaperFacade {
         return new PageImpl<>(dtos, pageRequest.toPageable(), paper.getCitationCount());
     }
 
-    @Transactional(readOnly = true)
     public Page<PaperDto> search(Query query, PageRequest pageRequest) {
         return searchFromES(query, pageRequest);
+    }
+
+    public Page<AuthorSearchPaperDto> search(Query query, long authorId, PageRequest pageRequest) {
+        Page<Long> paperIdPage = searchService.search(query, pageRequest);
+        List<PaperDto> paperDtos = findIn(paperIdPage.getContent(), PaperDto.simple());
+        List<AuthorSearchPaperDto> dtos = authorLayerService.decorateSearchResult(authorId, paperDtos);
+        return new PageImpl<>(dtos, pageRequest.toPageable(), paperIdPage.getTotalElements());
     }
 
     public Page<PaperDto> searchFromES(Query query, PageRequest pageRequest) {

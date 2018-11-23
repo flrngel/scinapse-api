@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.URL;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
@@ -20,9 +21,11 @@ public class AuthorLayerUpdateDto {
 
     @NoSpecialChars
     @Size(min = 1)
+    @NotNull
     private String name;
 
     @Email
+    @NotNull
     private String email;
 
     @Size(min = 1)

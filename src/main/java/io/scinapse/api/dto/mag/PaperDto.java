@@ -61,7 +61,6 @@ public class PaperDto {
 
     private List<CommentDto> comments = new ArrayList<>();
 
-
     private PaperDto(Paper paper) {
         this.id = paper.getId();
         this.title = paper.getTitle();

@@ -122,11 +122,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/authors/*/co-authors",
                         "/journals/*",
                         "/journals/*/papers",
+                        "/collections/*",
                         "/collections/*/papers",
                         "/comments",
                         "/complete",
-                        "/collections/*",
-                        "/suggest"
+                        "/complete/affiliation",
+                        "/suggest",
+                        "/authors/*/disconnect"
                 ).permitAll()
 
                 // permit post

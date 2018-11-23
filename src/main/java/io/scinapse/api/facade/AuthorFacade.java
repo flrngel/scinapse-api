@@ -27,6 +27,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @XRayEnabled
@@ -90,15 +91,21 @@ public class AuthorFacade {
     }
 
     @Transactional
-    public void connect(Member member, long authorId) {
+    public AuthorDto connect(Member member, long authorId, AuthorLayerUpdateDto dto) {
         Author author = authorService.find(authorId)
                 .orElseThrow(() -> new BadRequestException("The author[" + authorId + "] does not exist."));
 
-        layerService.connect(member, author);
+        layerService.connect(member, author, dto);
+        return findDetailed(authorId);
     }
 
     @Transactional
-    public void removePapers(Member member, long authorId, List<Long> paperIds) {
+    public void disconnect(long authorId) {
+        layerService.disconnect(authorId);
+    }
+
+    @Transactional
+    public void removePapers(Member member, long authorId, Set<Long> paperIds) {
         AuthorLayer layer = findLayer(authorId);
         checkOwner(member, layer.getAuthorId());
 
@@ -106,7 +113,7 @@ public class AuthorFacade {
     }
 
     @Transactional
-    public void addPapers(Member member, long authorId, List<Long> paperIds) {
+    public void addPapers(Member member, long authorId, Set<Long> paperIds) {
         AuthorLayer layer = findLayer(authorId);
         checkOwner(member, layer.getAuthorId());
 
@@ -114,7 +121,7 @@ public class AuthorFacade {
     }
 
     @Transactional
-    public List<PaperDto> updateSelected(Member member, long authorId, List<Long> selectedPaperIds) {
+    public List<PaperDto> updateSelected(Member member, long authorId, Set<Long> selectedPaperIds) {
         Author author = find(authorId);
         checkOwner(member, author.getId());
 

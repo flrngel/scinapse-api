@@ -40,6 +40,9 @@ public class AuthorLayerPaperRepositoryImpl extends QueryDslRepositorySupport im
             case OLDEST_FIRST:
                 sql += "\norder by p.year asc";
                 break;
+            case RECENTLY_UPDATED:
+                sql += "\norder by lp.updated_at desc";
+                break;
             default:
                 sql += "\norder by p.citation_count desc";
                 break;

@@ -28,6 +28,7 @@ import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -89,9 +90,14 @@ public class AuthorController {
     }
 
     @RequestMapping(value = "/authors/{authorId}/connect", method = RequestMethod.POST)
-    public Response connect(JwtUser user, @PathVariable long authorId) {
+    public Response<AuthorDto> connect(JwtUser user, @PathVariable long authorId, @RequestBody @Valid AuthorLayerUpdateDto dto) {
         Member member = memberFacade.loadMember(user);
-        authorFacade.connect(member, authorId);
+        return Response.success(authorFacade.connect(member, authorId, dto));
+    }
+
+    @RequestMapping(value = "/authors/{authorId}/disconnect", method = RequestMethod.GET)
+    public Response disconnect(@PathVariable long authorId) {
+        authorFacade.disconnect(authorId);
         return Response.success();
     }
 
@@ -140,7 +146,7 @@ public class AuthorController {
     private static class PaperIdWrapper {
         @Size(min = 1)
         @NotNull
-        private List<Long> paperIds;
+        private Set<Long> paperIds;
     }
 
 }
