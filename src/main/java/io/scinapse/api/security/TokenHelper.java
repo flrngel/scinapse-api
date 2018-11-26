@@ -112,6 +112,7 @@ public class TokenHelper {
         authCookie.setPath("/");
         authCookie.setHttpOnly(true);
         authCookie.setMaxAge(expiresIn);
+        authCookie.setDomain("scinapse.io");
         response.addCookie(authCookie);
     }
 
