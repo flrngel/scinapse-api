@@ -1,6 +1,6 @@
 package io.scinapse.api.dto;
 
-import io.scinapse.api.model.Comment;
+import io.scinapse.api.data.scinapse.model.Comment;
 import lombok.Getter;
 import lombok.Setter;
 

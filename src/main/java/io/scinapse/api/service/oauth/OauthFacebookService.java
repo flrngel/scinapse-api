@@ -1,8 +1,8 @@
 package io.scinapse.api.service.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.scinapse.api.model.oauth.OauthFacebook;
-import io.scinapse.api.repository.oauth.OauthFacebookRepository;
+import io.scinapse.api.data.scinapse.model.oauth.OauthFacebook;
+import io.scinapse.api.data.scinapse.repository.oauth.OauthFacebookRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -93,12 +93,6 @@ public class OauthFacebookService {
                 .toUri();
 
         return restTemplate.getForObject(uri, UserDataResponse.class);
-    }
-
-    @Transactional
-    public OauthFacebook update(OauthFacebook old, OauthFacebook updated) {
-        old.setAccessToken(updated.getAccessToken());
-        return old;
     }
 
     private static class AccessTokenResponse {

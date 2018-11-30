@@ -1,11 +1,11 @@
 package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.data.scinapse.model.Authority;
+import io.scinapse.api.data.scinapse.model.Member;
+import io.scinapse.api.data.scinapse.repository.AuthorityRepository;
+import io.scinapse.api.data.scinapse.repository.MemberRepository;
 import io.scinapse.api.enums.AuthorityName;
-import io.scinapse.api.model.Authority;
-import io.scinapse.api.model.Member;
-import io.scinapse.api.repository.AuthorityRepository;
-import io.scinapse.api.repository.MemberRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

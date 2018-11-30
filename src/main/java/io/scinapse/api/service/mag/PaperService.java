@@ -1,13 +1,15 @@
 package io.scinapse.api.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.configuration.AcademicJpaConfig;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.data.academic.*;
+import io.scinapse.api.data.academic.repository.*;
 import io.scinapse.api.dto.CitationTextDto;
+import io.scinapse.api.dto.PaperTitleDto;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.error.ExternalApiCallException;
 import io.scinapse.api.error.ResourceNotFoundException;
-import io.scinapse.api.model.mag.*;
-import io.scinapse.api.repository.mag.*;
 import io.scinapse.api.util.TextUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,10 +24,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @XRayEnabled
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, transactionManager = AcademicJpaConfig.ACADEMIC_TX_MANAGER)
 @Service
 @RequiredArgsConstructor
 public class PaperService {
@@ -116,6 +119,19 @@ public class PaperService {
 
     public Page<PaperAuthor> getPaperAuthors(long paperId, PageRequest pageRequest) {
         return paperAuthorRepository.getByPaperIdOrderByAuthorSequenceNumber(paperId, pageRequest.toPageable());
+    }
+
+    public List<PaperTitleDto> getAllPaperTitle(Set<Long> paperIds) {
+        return paperRepository.findAllPaperTitle(paperIds)
+                .stream()
+                .map(obj -> {
+                    PaperTitleDto dto = new PaperTitleDto();
+                    dto.setPaperId((long) obj[0]);
+                    dto.setTitle((String) obj[1]);
+                    dto.setCitationCount((Long) obj[2]);
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
 }

@@ -1,9 +1,9 @@
 package io.scinapse.api.controller;
 
 import io.scinapse.api.WithMockJwtUser;
+import io.scinapse.api.data.scinapse.model.Authority;
+import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.enums.AuthorityName;
-import io.scinapse.api.model.Authority;
-import io.scinapse.api.model.Member;
 import io.scinapse.api.service.MemberService;
 import org.junit.Test;
 import org.junit.runner.RunWith;

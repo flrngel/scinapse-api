@@ -2,12 +2,12 @@ package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.data.scinapse.model.Comment;
+import io.scinapse.api.data.scinapse.model.Member;
+import io.scinapse.api.data.scinapse.repository.CommentRepository;
 import io.scinapse.api.dto.CommentDto;
 import io.scinapse.api.dto.CommentWrapper;
 import io.scinapse.api.dto.mag.PaperDto;
-import io.scinapse.api.model.Comment;
-import io.scinapse.api.model.Member;
-import io.scinapse.api.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;

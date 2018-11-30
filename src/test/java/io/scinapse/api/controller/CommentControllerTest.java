@@ -2,11 +2,11 @@ package io.scinapse.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.scinapse.api.WithMockJwtUser;
+import io.scinapse.api.data.academic.Paper;
+import io.scinapse.api.data.scinapse.model.Comment;
+import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.dto.CommentDto;
 import io.scinapse.api.enums.AuthorityName;
-import io.scinapse.api.model.Comment;
-import io.scinapse.api.model.Member;
-import io.scinapse.api.model.mag.Paper;
 import io.scinapse.api.service.CommentService;
 import io.scinapse.api.service.MemberService;
 import io.scinapse.api.service.mag.PaperService;

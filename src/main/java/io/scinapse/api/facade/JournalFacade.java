@@ -1,13 +1,14 @@
 package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.configuration.AcademicJpaConfig;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.data.academic.Journal;
 import io.scinapse.api.dto.mag.JournalDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
-import io.scinapse.api.model.mag.Journal;
 import io.scinapse.api.service.mag.JournalService;
 import io.scinapse.api.util.Query;
 import io.scinapse.api.util.QueryFilter;
@@ -24,7 +25,7 @@ import java.util.List;
 
 
 @XRayEnabled
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, transactionManager = AcademicJpaConfig.ACADEMIC_TX_MANAGER)
 @Component
 @RequiredArgsConstructor
 public class JournalFacade {

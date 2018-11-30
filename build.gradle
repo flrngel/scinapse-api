@@ -28,6 +28,7 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-web')
     compile('org.springframework.boot:spring-boot-starter-actuator')
 
+    compile('com.microsoft.sqlserver:mssql-jdbc')
     runtime('org.postgresql:postgresql')
     compile('org.springframework.boot:spring-boot-starter-data-jpa')
     compile('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')

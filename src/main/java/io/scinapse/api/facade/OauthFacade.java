@@ -1,13 +1,13 @@
 package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.data.scinapse.model.Member;
+import io.scinapse.api.data.scinapse.model.oauth.OauthFacebook;
+import io.scinapse.api.data.scinapse.model.oauth.OauthGoogle;
+import io.scinapse.api.data.scinapse.model.oauth.OauthOrcid;
 import io.scinapse.api.dto.oauth.OauthUserDto;
 import io.scinapse.api.enums.OauthVendor;
 import io.scinapse.api.error.BadRequestException;
-import io.scinapse.api.model.Member;
-import io.scinapse.api.model.oauth.OauthFacebook;
-import io.scinapse.api.model.oauth.OauthGoogle;
-import io.scinapse.api.model.oauth.OauthOrcid;
 import io.scinapse.api.service.oauth.OauthFacebookService;
 import io.scinapse.api.service.oauth.OauthGoogleService;
 import io.scinapse.api.service.oauth.OauthOrcidService;

@@ -2,7 +2,7 @@ package io.scinapse.api.dto.mag;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import io.scinapse.api.model.author.AuthorLayerPaper;
+import io.scinapse.api.data.scinapse.model.author.AuthorLayerPaper;
 import lombok.Getter;
 import lombok.Setter;
 

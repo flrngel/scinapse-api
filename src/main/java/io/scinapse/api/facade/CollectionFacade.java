@@ -2,18 +2,19 @@ package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.data.scinapse.model.Collection;
+import io.scinapse.api.data.scinapse.model.CollectionPaper;
+import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.dto.collection.CollectionDto;
 import io.scinapse.api.dto.collection.CollectionPaperDto;
 import io.scinapse.api.dto.collection.MyCollectionDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
-import io.scinapse.api.model.Collection;
-import io.scinapse.api.model.CollectionPaper;
-import io.scinapse.api.model.Member;
 import io.scinapse.api.security.jwt.JwtUser;
 import io.scinapse.api.service.CollectionService;
 import io.scinapse.api.service.MemberService;
+import io.scinapse.api.service.mag.PaperConverter;
 import io.scinapse.api.service.mag.PaperService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -43,7 +44,7 @@ public class CollectionFacade {
     public CollectionDto create(JwtUser user, CollectionDto dto) {
         Member member = memberService.getMember(user.getId());
         if (member == null) {
-            throw new ResourceNotFoundException("Member not found : " + member.getId());
+            throw new ResourceNotFoundException("Member not found : " + user.getId());
         }
 
         long count = collectionService.collectionCount(member);
@@ -156,7 +157,7 @@ public class CollectionFacade {
         List<CollectionPaperDto> paperDtos = papers.stream().map(CollectionPaperDto::of).collect(Collectors.toList());
 
         List<Long> paperIds = paperDtos.stream().map(CollectionPaperDto::getPaperId).collect(Collectors.toList());
-        Map<Long, PaperDto> map = paperFacade.findIn(paperIds, PaperDto.compact())
+        Map<Long, PaperDto> map = paperFacade.findIn(paperIds, PaperConverter.compact())
                 .stream()
                 .collect(Collectors.toMap(
                         PaperDto::getId,

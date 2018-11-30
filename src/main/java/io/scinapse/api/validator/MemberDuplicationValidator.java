@@ -1,7 +1,7 @@
 package io.scinapse.api.validator;
 
+import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.dto.MemberDto;
-import io.scinapse.api.model.Member;
 import io.scinapse.api.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

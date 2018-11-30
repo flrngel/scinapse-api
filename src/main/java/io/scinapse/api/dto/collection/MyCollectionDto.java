@@ -1,7 +1,7 @@
 package io.scinapse.api.dto.collection;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.scinapse.api.model.Collection;
+import io.scinapse.api.data.scinapse.model.Collection;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,8 +1,8 @@
 package io.scinapse.api.service.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.scinapse.api.model.oauth.OauthOrcid;
-import io.scinapse.api.repository.oauth.OauthOrcidRepository;
+import io.scinapse.api.data.scinapse.model.oauth.OauthOrcid;
+import io.scinapse.api.data.scinapse.repository.oauth.OauthOrcidRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;

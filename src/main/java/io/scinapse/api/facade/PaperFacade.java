@@ -1,7 +1,9 @@
 package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.configuration.AcademicJpaConfig;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.data.academic.Paper;
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CitationTextDto;
 import io.scinapse.api.dto.mag.AuthorSearchPaperDto;
@@ -10,11 +12,9 @@ import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;
-import io.scinapse.api.model.mag.Paper;
-import io.scinapse.api.model.mag.PaperAuthor;
-import io.scinapse.api.service.CommentService;
 import io.scinapse.api.service.SearchService;
 import io.scinapse.api.service.author.AuthorLayerService;
+import io.scinapse.api.service.mag.PaperConverter;
 import io.scinapse.api.service.mag.PaperService;
 import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
@@ -29,15 +29,15 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @XRayEnabled
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, transactionManager = AcademicJpaConfig.ACADEMIC_TX_MANAGER)
 @Component
 @RequiredArgsConstructor
 public class PaperFacade {
 
     private final SearchService searchService;
-    private final CommentService commentService;
     private final PaperService paperService;
     private final AuthorLayerService authorLayerService;
+    private final PaperConverter paperConverter;
 
     public PaperDto find(long paperId, boolean isBot) {
         Paper paper = paperService.find(paperId);
@@ -45,8 +45,7 @@ public class PaperFacade {
             throw new ResourceNotFoundException("Paper not found: " + paperId);
         }
 
-        PaperDto dto = PaperDto.full().convert(paper);
-        commentService.setDefaultComments(dto);
+        PaperDto dto = paperConverter.convertSingle(paper, PaperConverter.full());
 
 //        if (!CollectionUtils.isEmpty(dto.getUrls()) && !isBot) {
 //            Optional<List<PaperImageDto>> pdfImages = paperPdfImageService.getPdfImages(paperId);
@@ -61,11 +60,11 @@ public class PaperFacade {
     }
 
     public List<PaperDto> findIn(List<Long> paperIds) {
-        return findIn(paperIds, PaperDto.detail());
+        return findIn(paperIds, PaperConverter.detail());
     }
 
-    public List<PaperDto> findIn(List<Long> paperIds, PaperDto.Converter converter) {
-        // DO THIS because results from IN query ordered randomly
+    public List<PaperDto> findIn(List<Long> paperIds, PaperConverter.Converter converter) {
+        // DO THIS because results from IN query ordered differently
         Map<Long, Paper> map = paperService.findByIdIn(paperIds)
                 .stream()
                 .collect(Collectors.toMap(
@@ -73,24 +72,33 @@ public class PaperFacade {
                         Function.identity()
                 ));
 
-        return paperIds
+        List<Paper> papers = paperIds
                 .stream()
                 .map(map::get)
                 .filter(Objects::nonNull)
-                .map(converter::convert)
                 .collect(Collectors.toList());
+
+        return paperConverter.convert(papers, converter);
     }
 
-    public List<PaperDto> convert(List<Paper> papers, PaperDto.Converter converter) {
-        return papers
+    public Map<Long, PaperDto> findMap(List<Long> paperIds, PaperConverter.Converter converter) {
+        List<Paper> papers = paperService.findByIdIn(paperIds);
+        return paperConverter.convert(papers, converter)
                 .stream()
-                .map(converter::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toMap(
+                        PaperDto::getId,
+                        Function.identity()
+                ));
+    }
+
+    public List<PaperDto> convert(List<Paper> papers, PaperConverter.Converter converter) {
+        return paperConverter.convert(papers, converter);
     }
 
     public Page<PaperAuthorDto> getPaperAuthors(long paperId, PageRequest pageRequest) {
-        Page<PaperAuthor> paperAuthors = paperService.getPaperAuthors(paperId, pageRequest);
-        return paperAuthors.map(PaperAuthorDto::new);
+        Page<PaperAuthorDto> authorPage = paperService.getPaperAuthors(paperId, pageRequest).map(PaperAuthorDto::new);
+        authorLayerService.decoratePaperAuthors(authorPage.getContent());
+        return authorPage;
     }
 
     public Page<PaperDto> findReferences(long paperId, PageRequest pageRequest) {
@@ -121,7 +129,7 @@ public class PaperFacade {
 
     public Page<AuthorSearchPaperDto> search(Query query, long authorId, PageRequest pageRequest) {
         Page<Long> paperIdPage = searchService.search(query, pageRequest);
-        List<PaperDto> paperDtos = findIn(paperIdPage.getContent(), PaperDto.simple());
+        List<PaperDto> paperDtos = findIn(paperIdPage.getContent(), PaperConverter.simple());
         List<AuthorSearchPaperDto> dtos = authorLayerService.decorateSearchResult(authorId, paperDtos);
         return new PageImpl<>(dtos, pageRequest.toPageable(), paperIdPage.getTotalElements());
     }
@@ -176,12 +184,12 @@ public class PaperFacade {
 
     public List<PaperDto> getRelatedPapers(long paperId) {
         List<Long> relatedPaperIds = paperService.getRelatedPapers(paperId);
-        return findIn(relatedPaperIds, PaperDto.simple());
+        return findIn(relatedPaperIds, PaperConverter.simple());
     }
 
     public List<PaperDto> getAuthorRelatedPapers(long paperId, long authorId) {
         List<Paper> relatedPapers = paperService.getAuthorRelatedPapers(paperId, authorId);
-        return convert(relatedPapers, PaperDto.simple());
+        return convert(relatedPapers, PaperConverter.simple());
     }
 
 }

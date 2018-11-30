@@ -1,11 +1,11 @@
 package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
-import io.scinapse.api.model.Collection;
-import io.scinapse.api.model.CollectionPaper;
-import io.scinapse.api.model.Member;
-import io.scinapse.api.repository.CollectionPaperRepository;
-import io.scinapse.api.repository.CollectionRepository;
+import io.scinapse.api.data.scinapse.model.Collection;
+import io.scinapse.api.data.scinapse.model.CollectionPaper;
+import io.scinapse.api.data.scinapse.model.Member;
+import io.scinapse.api.data.scinapse.repository.CollectionPaperRepository;
+import io.scinapse.api.data.scinapse.repository.CollectionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

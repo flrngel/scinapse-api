@@ -2,9 +2,9 @@ package io.scinapse.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.scinapse.api.WithMockJwtUser;
+import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.dto.MemberDto;
 import io.scinapse.api.facade.MemberFacade;
-import io.scinapse.api.model.Member;
 import io.scinapse.api.service.MemberService;
 import org.junit.Before;
 import org.junit.Test;

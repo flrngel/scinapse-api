@@ -2,6 +2,7 @@ package io.scinapse.api.controller;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.dto.PaperTitleDto;
 import io.scinapse.api.dto.mag.AuthorDto;
 import io.scinapse.api.dto.mag.AuthorLayerUpdateDto;
@@ -9,39 +10,33 @@ import io.scinapse.api.dto.mag.AuthorPaperDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.dto.response.Response;
 import io.scinapse.api.error.BadRequestException;
-import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.facade.AuthorFacade;
+import io.scinapse.api.facade.AuthorLayerFacade;
 import io.scinapse.api.facade.MemberFacade;
-import io.scinapse.api.model.Member;
 import io.scinapse.api.security.jwt.JwtUser;
-import io.scinapse.api.service.mag.AuthorService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
 public class AuthorController {
 
-    private final AuthorService authorService;
     private final AuthorFacade authorFacade;
+    private final AuthorLayerFacade authorLayerFacade;
     private final MemberFacade memberFacade;
 
     @RequestMapping(value = "/authors/{authorId}", method = RequestMethod.GET)
     public Map<String, Object> find(@PathVariable long authorId) {
-        AuthorDto dto = authorFacade.findDetailed(authorId);
+        AuthorDto dto = authorLayerFacade.findDetailed(authorId);
 
         Map<String, Object> result = new HashMap<>();
         Meta meta = Meta.available();
@@ -58,19 +53,12 @@ public class AuthorController {
         String query = StringUtils.normalizeSpace(queryStr);
         String[] keywords = StringUtils.split(query);
 
-        return authorFacade.findPapers(authorId, keywords, pageRequest);
+        return authorLayerFacade.findPapers(authorId, keywords, pageRequest);
     }
 
     @RequestMapping(value = "/authors/{authorId}/co-authors", method = RequestMethod.GET)
     public Map<String, Object> coAuthors(@PathVariable long authorId) {
-        if (!authorService.exists(authorId)) {
-            throw new ResourceNotFoundException("Author not found: " + authorId);
-        }
-
-        List<AuthorDto> coAuthors = authorService.findCoAuthors(authorId)
-                .stream()
-                .map(AuthorDto::new)
-                .collect(Collectors.toList());
+        List<AuthorDto> coAuthors = authorLayerFacade.findCoAuthors(authorId);
 
         Map<String, Object> result = new HashMap<>();
         Meta meta = coAuthors.isEmpty() ? Meta.unavailable() : Meta.available();
@@ -92,30 +80,38 @@ public class AuthorController {
     @RequestMapping(value = "/authors/{authorId}/connect", method = RequestMethod.POST)
     public Response<AuthorDto> connect(JwtUser user, @PathVariable long authorId, @RequestBody @Valid AuthorLayerUpdateDto dto) {
         Member member = memberFacade.loadMember(user);
-        return Response.success(authorFacade.connect(member, authorId, dto));
+        return Response.success(authorLayerFacade.connect(member, authorId, dto));
     }
 
     @RequestMapping(value = "/authors/{authorId}/disconnect", method = RequestMethod.GET)
     public Response disconnect(@PathVariable long authorId) {
-        authorFacade.disconnect(authorId);
+        authorLayerFacade.disconnect(authorId);
         return Response.success();
     }
 
     @RequestMapping(value = "/authors/{authorId}/papers/remove", method = RequestMethod.POST)
     public Response removePapers(JwtUser user,
                                  @PathVariable long authorId,
-                                 @RequestBody @Valid PaperIdWrapper wrapper) {
+                                 @RequestBody PaperIdWrapper wrapper) {
+        if (wrapper.paperIds.size() < 1) {
+            throw new BadRequestException("No papers selected.");
+        }
+
         Member member = memberFacade.loadMember(user);
-        authorFacade.removePapers(member, authorId, wrapper.getPaperIds());
+        authorLayerFacade.removePapers(member, authorId, wrapper.getPaperIds());
         return Response.success();
     }
 
     @RequestMapping(value = "/authors/{authorId}/papers/add", method = RequestMethod.POST)
     public Response addPapers(JwtUser user,
                               @PathVariable long authorId,
-                              @RequestBody @Valid PaperIdWrapper wrapper) {
+                              @RequestBody PaperIdWrapper wrapper) {
+        if (wrapper.paperIds.size() < 1) {
+            throw new BadRequestException("No papers selected.");
+        }
+
         Member member = memberFacade.loadMember(user);
-        authorFacade.addPapers(member, authorId, wrapper.getPaperIds());
+        authorLayerFacade.addPapers(member, authorId, wrapper.getPaperIds());
         return Response.success();
     }
 
@@ -124,7 +120,7 @@ public class AuthorController {
                                                    @PathVariable long authorId,
                                                    @RequestBody PaperIdWrapper wrapper) {
         Member member = memberFacade.loadMember(user);
-        return Response.success(authorFacade.updateSelected(member, authorId, wrapper.getPaperIds()));
+        return Response.success(authorLayerFacade.updateSelected(member, authorId, wrapper.getPaperIds()));
     }
 
     @RequestMapping(value = "/authors/{authorId}", method = RequestMethod.PUT)
@@ -132,21 +128,29 @@ public class AuthorController {
                                                        @PathVariable long authorId,
                                                        @RequestBody @Valid AuthorLayerUpdateDto updateDto) {
         Member member = memberFacade.loadMember(user);
-        return Response.success(authorFacade.update(member, authorId, updateDto));
+        return Response.success(authorLayerFacade.update(member, authorId, updateDto));
     }
 
     @RequestMapping(value = "/authors/{authorId}/papers/all", method = RequestMethod.GET)
     public Response<List<PaperTitleDto>> getAllPaperTitles(@PathVariable long authorId) {
-        return Response.success(authorFacade.getAllPaperTitles(authorId));
+        return Response.success(authorLayerFacade.getAllPaperTitles(authorId));
     }
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
     @Getter
     @Setter
     private static class PaperIdWrapper {
-        @Size(min = 1)
-        @NotNull
-        private Set<Long> paperIds;
+        private Set<Long> paperIds = new HashSet<>();
+
+        public void setPaperIds(Set<Long> paperIds) {
+            if (CollectionUtils.isEmpty(paperIds)) {
+                return;
+            }
+            this.paperIds = paperIds
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+        }
     }
 
 }

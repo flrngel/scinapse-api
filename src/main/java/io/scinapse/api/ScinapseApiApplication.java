@@ -2,20 +2,19 @@ package io.scinapse.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import javax.annotation.PostConstruct;
 import java.time.ZoneOffset;
 import java.util.TimeZone;
 
+@EnableConfigurationProperties(JpaProperties.class)
 @EnableCaching
-@EnableJpaRepositories
-@EntityScan
 @SpringBootApplication
 public class ScinapseApiApplication {
 

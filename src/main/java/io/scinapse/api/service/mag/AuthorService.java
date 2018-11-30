@@ -1,17 +1,19 @@
 package io.scinapse.api.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.configuration.AcademicJpaConfig;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.data.academic.Author;
+import io.scinapse.api.data.academic.AuthorCoauthor;
+import io.scinapse.api.data.academic.AuthorTopPaper;
+import io.scinapse.api.data.academic.Paper;
+import io.scinapse.api.data.academic.repository.AuthorCoauthorRepository;
+import io.scinapse.api.data.academic.repository.AuthorRepository;
+import io.scinapse.api.data.academic.repository.AuthorTopPaperRepository;
+import io.scinapse.api.data.academic.repository.PaperAuthorRepository;
+import io.scinapse.api.dto.mag.AuthorDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;
-import io.scinapse.api.model.mag.Author;
-import io.scinapse.api.model.mag.AuthorCoauthor;
-import io.scinapse.api.model.mag.AuthorTopPaper;
-import io.scinapse.api.model.mag.Paper;
-import io.scinapse.api.repository.mag.AuthorCoauthorRepository;
-import io.scinapse.api.repository.mag.AuthorRepository;
-import io.scinapse.api.repository.mag.AuthorTopPaperRepository;
-import io.scinapse.api.repository.mag.PaperAuthorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,7 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @XRayEnabled
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, transactionManager = AcademicJpaConfig.ACADEMIC_TX_MANAGER)
 @Service
 @RequiredArgsConstructor
 public class AuthorService {
@@ -66,11 +68,12 @@ public class AuthorService {
         }
     }
 
-    public List<Author> findCoAuthors(long authorId) {
+    public List<AuthorDto> findCoAuthors(long authorId) {
         return authorCoauthorRepository.findByAuthorId(authorId)
                 .stream()
                 .sorted(Comparator.comparing(AuthorCoauthor::getRank, Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(AuthorCoauthor::getCoauthor)
+                .map(AuthorDto::new)
                 .collect(Collectors.toList());
     }
 

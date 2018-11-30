@@ -1,6 +1,6 @@
 package io.scinapse.api.dto.mag;
 
-import io.scinapse.api.model.mag.PaperFieldsOfStudy;
+import io.scinapse.api.data.academic.PaperFieldsOfStudy;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

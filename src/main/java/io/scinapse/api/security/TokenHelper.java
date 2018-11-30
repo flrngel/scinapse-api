@@ -1,8 +1,8 @@
 package io.scinapse.api.security;
 
 import io.jsonwebtoken.*;
-import io.scinapse.api.model.Authority;
-import io.scinapse.api.model.Member;
+import io.scinapse.api.data.scinapse.model.Authority;
+import io.scinapse.api.data.scinapse.model.Member;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

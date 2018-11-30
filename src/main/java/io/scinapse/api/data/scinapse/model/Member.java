@@ -1,0 +1,68 @@
+package io.scinapse.api.data.scinapse.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.BatchSize;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@BatchSize(size = 50)
+@Getter
+@Setter
+@Entity
+public class Member extends BaseEntity {
+
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "memberSequence")
+    @SequenceGenerator(name = "memberSequence", sequenceName = "member_sequence", allocationSize = 1)
+    @Id
+    private long id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @JsonIgnore
+    @Column
+    private String password;
+
+    @JsonIgnore
+    @BatchSize(size = 10)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "REL_MEMBER_AUTHORITY",
+            joinColumns = @JoinColumn(name = "MEMBER_ID"),
+            inverseJoinColumns = @JoinColumn(name = "AUTHORITY_ID"))
+    private List<Authority> authorities = new ArrayList<>();
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    @Column
+    private String profileImage;
+
+    @Column(nullable = false)
+    private String affiliation;
+
+    @Column
+    private String major;
+
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    @Column(name = "author_id")
+    private Long authorId;
+
+    public String getFullName() {
+        // existing user does not have a last name.
+        if (StringUtils.isBlank(this.lastName)) {
+            return this.firstName;
+        }
+        return this.firstName + " " + this.lastName;
+    }
+
+}

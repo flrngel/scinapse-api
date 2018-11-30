@@ -2,16 +2,13 @@ package io.scinapse.api.dto.mag;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.scinapse.api.model.author.AuthorLayer;
-import io.scinapse.api.model.mag.Author;
+import io.scinapse.api.data.academic.Author;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @NoArgsConstructor
 @Getter
@@ -59,27 +56,8 @@ public class AuthorDto {
             this.hIndex = author.getAuthorHIndex().getHIndex();
         }
 
-        if (author.getLayer() != null) {
-            this.layered = true;
-            this.name = author.getLayer().getName();
-            this.paperCount = author.getLayer().getPaperCount();
-            if (author.getLayer().getLastKnownAffiliation() != null) {
-                this.lastKnownAffiliation = new AffiliationDto(author.getLayer().getLastKnownAffiliation());
-            }
-        } else {
-            if (author.getLastKnownAffiliation() != null) {
-                this.lastKnownAffiliation = new AffiliationDto(author.getLastKnownAffiliation());
-            }
-        }
-    }
-
-    public void putDetail(AuthorLayer layer) {
-        this.email = layer.getEmail();
-        this.bio = layer.getBio();
-        this.webPage = layer.getWebPage();
-
-        if (!CollectionUtils.isEmpty(layer.getFosList())) {
-            this.fosList = layer.getFosList().stream().map(FosDto::new).collect(Collectors.toList());
+        if (author.getLastKnownAffiliation() != null) {
+            this.lastKnownAffiliation = new AffiliationDto(author.getLastKnownAffiliation());
         }
     }
 

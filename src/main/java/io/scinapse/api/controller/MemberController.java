@@ -1,11 +1,11 @@
 package io.scinapse.api.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.dto.MemberDto;
 import io.scinapse.api.dto.MemberDuplicationCheckDto;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.facade.MemberFacade;
-import io.scinapse.api.model.Member;
 import io.scinapse.api.security.jwt.JwtUser;
 import io.scinapse.api.service.MemberService;
 import io.scinapse.api.validator.Update;

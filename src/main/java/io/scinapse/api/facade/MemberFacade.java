@@ -2,11 +2,11 @@ package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.configuration.CacheName;
+import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.dto.MemberDto;
 import io.scinapse.api.enums.AuthorityName;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
-import io.scinapse.api.model.Member;
 import io.scinapse.api.security.TokenHelper;
 import io.scinapse.api.security.jwt.JwtUser;
 import io.scinapse.api.service.CommentService;

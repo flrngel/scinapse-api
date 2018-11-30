@@ -1,9 +1,9 @@
 package io.scinapse.api.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
-import io.scinapse.api.model.Member;
 import io.scinapse.api.security.TokenHelper;
 import io.scinapse.api.security.jwt.JwtUser;
 import io.scinapse.api.service.EmailVerificationService;
