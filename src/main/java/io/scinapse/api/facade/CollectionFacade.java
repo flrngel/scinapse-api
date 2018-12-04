@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -107,7 +108,9 @@ public class CollectionFacade {
                         Function.identity()
                 ));
 
-        return collections.map(c -> MyCollectionDto.of(c, collectionPaperMap.containsKey(c.getId())));
+        return collections.map(c -> Optional.ofNullable(collectionPaperMap.get(c.getId()))
+                .map(cp -> MyCollectionDto.of(c, cp.getNote()))
+                .orElse(MyCollectionDto.of(c)));
     }
 
     @Transactional

@@ -13,23 +13,26 @@ import lombok.Setter;
 public class MyCollectionDto extends CollectionDto {
 
     @JsonProperty("contains_selected")
-    private Boolean containsSelected;
+    private boolean containsSelected = false;
+
+    private String note;
 
     private MyCollectionDto(Collection collection) {
         super(collection);
     }
 
-    private MyCollectionDto(Collection collection, boolean containsSelected) {
-        super(collection);
-        this.containsSelected = containsSelected;
+    private MyCollectionDto(Collection collection, String note) {
+        this(collection);
+        this.containsSelected = true;
+        this.note = note;
     }
 
     public static MyCollectionDto of(Collection collection) {
         return new MyCollectionDto(collection);
     }
 
-    public static MyCollectionDto of(Collection collection, boolean containsSelected) {
-        return new MyCollectionDto(collection, containsSelected);
+    public static MyCollectionDto of(Collection collection, String note) {
+        return new MyCollectionDto(collection, note);
     }
 
 }
