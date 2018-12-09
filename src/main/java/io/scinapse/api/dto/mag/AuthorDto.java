@@ -1,6 +1,5 @@
 package io.scinapse.api.dto.mag;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.data.academic.Author;
 import lombok.Getter;
@@ -40,6 +39,9 @@ public class AuthorDto {
     @JsonProperty("selected_papers")
     private List<PaperDto> selectedPapers = new ArrayList<>();
 
+    @JsonProperty("representative_papers")
+    private List<PaperDto> representativePapers = new ArrayList<>();
+
     @JsonProperty("fos_list")
     private List<FosDto> fosList = new ArrayList<>();
 
@@ -59,16 +61,6 @@ public class AuthorDto {
         if (author.getLastKnownAffiliation() != null) {
             this.lastKnownAffiliation = new AffiliationDto(author.getLastKnownAffiliation());
         }
-    }
-
-    @JsonGetter("profile_id")
-    public String getProfileId() {
-        return null;
-    }
-
-    @JsonGetter("is_profile_connected")
-    public boolean profileConnected() {
-        return false;
     }
 
 }

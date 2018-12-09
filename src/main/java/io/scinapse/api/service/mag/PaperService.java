@@ -16,12 +16,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -122,6 +124,9 @@ public class PaperService {
     }
 
     public List<PaperTitleDto> getAllPaperTitle(Set<Long> paperIds) {
+        if (CollectionUtils.isEmpty(paperIds)) {
+            return new ArrayList<>();
+        }
         return paperRepository.findAllPaperTitle(paperIds)
                 .stream()
                 .map(obj -> {

@@ -18,10 +18,14 @@ public class AuthorPaperDto {
     @JsonProperty("is_selected")
     private boolean selected;
 
-    public AuthorPaperDto(PaperDto dto, AuthorLayerPaper.PaperStatus status, boolean selected) {
+    @JsonProperty("is_representative")
+    private boolean representative;
+
+    public AuthorPaperDto(PaperDto dto, AuthorLayerPaper.PaperStatus status, boolean representative) {
         this.dto = dto;
         this.status = status;
-        this.selected = selected;
+        this.representative = representative;
+        this.selected = representative;
     }
 
 }

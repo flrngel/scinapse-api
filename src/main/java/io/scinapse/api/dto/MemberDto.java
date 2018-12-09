@@ -120,14 +120,4 @@ public class MemberDto {
         return this.authorId != null && this.authorId > 0;
     }
 
-    @JsonGetter("profile_id")
-    public String getProfileId() {
-        return null;
-    }
-
-    @JsonGetter("is_profile_connected")
-    public boolean profileConnected() {
-        return false;
-    }
-
 }

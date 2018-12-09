@@ -12,12 +12,9 @@ import java.util.Set;
 
 @XRayEnabled
 @Repository
-public interface PaperRepository extends JpaRepository<Paper, Long> {
+public interface PaperRepository extends JpaRepository<Paper, Long>, PaperRepositoryCustom {
 
     List<Paper> findByIdIn(List<Long> paperIds);
-
-    @Query("select p.id from Paper p where p.id in :paperIds")
-    List<Long> findIdByIdIn(@Param("paperIds") Set<Long> paperIds);
 
     @Query("select p.id, p.title, p.citationCount from Paper p where p.id in :paperIds order by p.citationCount desc")
     List<Object[]> findAllPaperTitle(@Param("paperIds") Set<Long> paperIds);

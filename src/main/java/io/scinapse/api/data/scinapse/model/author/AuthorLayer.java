@@ -37,6 +37,9 @@ public class AuthorLayer extends BaseEntity {
     @Column(nullable = false)
     private long citationCount;
 
+    @Column(nullable = false)
+    private int hindex;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LayerStatus status = LayerStatus.PENDING;
@@ -47,6 +50,9 @@ public class AuthorLayer extends BaseEntity {
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private List<AuthorLayerFos> fosList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private List<AuthorLayerCoauthor> coauthors = new ArrayList<>();
 
     public enum LayerStatus {
         SYNCED,

@@ -25,7 +25,7 @@ public class Query {
     private long journalId;
 
     private Query(String text) {
-        this.text = StringUtils.strip(text);
+        this.text = StringUtils.normalizeSpace(text);
         this.phraseQueries = TextUtils.parsePhrase(this.text);
         this.doi = TextUtils.parseDoi(this.text);
     }
@@ -65,8 +65,8 @@ public class Query {
         MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(7);
         MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
         MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(5);
-        MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("author.name", text).boost(3);
-        MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("author.affiliation", text);
+        MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(3);
+        MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("authors.affiliation", text);
         MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(3);
         MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text);
 
@@ -94,6 +94,32 @@ public class Query {
                 .must(mainQuery)
                 .filter(filter.toFilerQuery())
                 .filter(filter.toExtraFilterQuery());
+    }
+
+    public QueryBuilder toTitleQuery() {
+        if (isDoi()) {
+            return toDoiSearchQuery();
+        }
+
+        MultiMatchQueryBuilder mainQuery = QueryBuilders.multiMatchQuery(text, "title.en_stemmed")
+                .field("authors.name.en_stemmed")
+                .field("authors.affiliation")
+                .field("journal.title")
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS);
+
+        MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(2);
+        MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(2);
+        MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(2);
+        MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("authors.affiliation", text);
+        MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text);
+
+        return QueryBuilders.boolQuery()
+                .must(mainQuery)
+                .should(titleQuery)
+                .should(titleShingleQuery)
+                .should(authorNameQuery)
+                .should(authorAffiliationQuery)
+                .should(journalQuery);
     }
 
     public QueryBuilder getMainQueryClause() {
@@ -194,7 +220,7 @@ public class Query {
     }
 
     private QueryBuilder toDoiSearchQuery() {
-        return QueryBuilders.matchQuery("doi", getDoi());
+        return QueryBuilders.matchQuery("doi", doi);
     }
 
     private QueryBuilder toJournalQuery() {

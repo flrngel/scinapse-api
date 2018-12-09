@@ -10,10 +10,10 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @Entity
-public class AuthorLayerFos extends BaseEntity {
+public class AuthorLayerCoauthor extends BaseEntity {
 
     @EmbeddedId
-    private AuthorLayerFosId id;
+    private AuthorLayerCoauthorId id;
 
     @MapsId("authorId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -23,10 +23,10 @@ public class AuthorLayerFos extends BaseEntity {
     @Column
     private int rank;
 
-    public AuthorLayerFos(AuthorLayer author, long fosId, int rank) {
+    public AuthorLayerCoauthor(AuthorLayer author, long coauthorId, int rank) {
         this.author = author;
         this.rank = rank;
-        this.id = AuthorLayerFosId.of(author.getAuthorId(), fosId);
+        this.id = AuthorLayerCoauthorId.of(author.getAuthorId(), coauthorId);
     }
 
     @Embeddable
@@ -35,11 +35,11 @@ public class AuthorLayerFos extends BaseEntity {
     @EqualsAndHashCode
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     @AllArgsConstructor(staticName = "of")
-    public static class AuthorLayerFosId implements Serializable {
+    public static class AuthorLayerCoauthorId implements Serializable {
         @Column
         private long authorId;
         @Column
-        private long fosId;
+        private long coauthorId;
     }
 
 }

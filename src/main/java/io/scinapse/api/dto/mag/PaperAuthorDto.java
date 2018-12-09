@@ -1,6 +1,5 @@
 package io.scinapse.api.dto.mag;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.data.academic.PaperAuthor;
 import io.scinapse.api.data.academic.PaperTopAuthor;
@@ -53,16 +52,6 @@ public class PaperAuthorDto {
         if (paperTopAuthor.getAuthor().getAuthorHIndex() != null) {
             this.hIndex = paperTopAuthor.getAuthor().getAuthorHIndex().getHIndex();
         }
-    }
-
-    @JsonGetter("profile_id")
-    public String getProfileId() {
-        return null;
-    }
-
-    @JsonGetter("is_profile_connected")
-    public boolean profileConnected() {
-        return false;
     }
 
 }

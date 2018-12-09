@@ -108,8 +108,6 @@ public class SearchService {
         Preconditions.checkNotNull(query);
         Preconditions.checkNotNull(pageRequest);
 
-        SearchRequest request = new SearchRequest(indexName);
-
         SearchSourceBuilder builder = SearchSourceBuilder.searchSource();
 
         // set query
@@ -128,20 +126,7 @@ public class SearchService {
             builder.addRescorer(query.getAbsenceRescoreQuery());
         }
 
-        request.source(builder);
-
-        try {
-            SearchResponse response = restHighLevelClient.search(request);
-
-            List<Long> list = new ArrayList<>();
-            for (SearchHit hit : response.getHits()) {
-                list.add(Long.valueOf(hit.getId()));
-            }
-            return new PageImpl<>(list, pageRequest.toPageable(), response.getHits().getTotalHits());
-
-        } catch (IOException | NumberFormatException e) {
-            throw new RuntimeException("Elasticsearch exception", e);
-        }
+        return searchAndExtractId(indexName, builder, pageRequest);
     }
 
     public Page<Long> searchWithSort(Query query, List<SortBuilder> sorts, PageRequest pageRequest) {
@@ -153,18 +138,7 @@ public class SearchService {
 
         sorts.forEach(builder::sort);
 
-        try {
-            SearchRequest request = new SearchRequest(indexName).source(builder);
-            SearchResponse response = restHighLevelClient.search(request);
-
-            List<Long> list = new ArrayList<>();
-            for (SearchHit hit : response.getHits()) {
-                list.add(Long.valueOf(hit.getId()));
-            }
-            return new PageImpl<>(list, pageRequest.toPageable(), response.getHits().getTotalHits());
-        } catch (IOException | NumberFormatException e) {
-            throw new RuntimeException("Elasticsearch exception", e);
-        }
+        return searchAndExtractId(indexName, builder, pageRequest);
     }
 
     public Page<Long> searchAuthor(String keyword, PageRequest pageRequest) {
@@ -195,8 +169,22 @@ public class SearchService {
                 .from(pageRequest.getOffset())
                 .size(pageRequest.getSize());
 
+        return searchAndExtractId(authorIndex, source, pageRequest);
+    }
+
+    public Page<Long> searchAuthorPaper(Query query, PageRequest pageRequest) {
+        SearchSourceBuilder builder = SearchSourceBuilder.searchSource()
+                .query(query.toTitleQuery())
+                .fetchSource(false)
+                .from(pageRequest.getOffset())
+                .size(pageRequest.getSize());
+
+        return searchAndExtractId(indexName, builder, pageRequest);
+    }
+
+    private Page<Long> searchAndExtractId(String indexName, SearchSourceBuilder builder, PageRequest pageRequest) {
         try {
-            SearchRequest request = new SearchRequest(authorIndex).source(source);
+            SearchRequest request = new SearchRequest(indexName).source(builder);
             SearchResponse response = restHighLevelClient.search(request);
 
             List<Long> list = new ArrayList<>();

@@ -38,8 +38,13 @@ public class AuthorLayerFacade {
     private final PaperService paperService;
 
     public Page<AuthorPaperDto> findPapers(long authorId, String[] keywords, PageRequest pageRequest) {
-        if (layerService.exists(authorId)) {
-            Page<AuthorLayerPaper> papers = layerService.findPapers(authorId, keywords, pageRequest);
+        if (!authorService.exists(authorId)) {
+            throw new BadRequestException("Author[" + authorId + "] dose not exist.");
+        }
+
+        Optional<AuthorLayer> layer = layerService.find(authorId);
+        if (layer.isPresent()) {
+            Page<AuthorLayerPaper> papers = layerService.findPapers(layer.get(), keywords, pageRequest);
 
             List<Long> paperIds = papers.getContent()
                     .stream()
@@ -56,8 +61,7 @@ public class AuthorLayerFacade {
                         if (paperDto == null) {
                             return null;
                         }
-
-                        return new AuthorPaperDto(paperDto, lp.getStatus(), lp.isSelected());
+                        return new AuthorPaperDto(paperDto, lp.getStatus(), lp.isRepresentative());
                     })
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
@@ -73,7 +77,15 @@ public class AuthorLayerFacade {
             throw new BadRequestException("Author[" + authorId + "] dose not exist.");
         }
 
-        List<AuthorDto> coAuthors = authorService.findCoAuthors(authorId);
+        List<AuthorDto> coAuthors;
+
+        Optional<AuthorLayer> layer = layerService.find(authorId);
+        if (layer.isPresent()) {
+            coAuthors = layerService.findCoauthors(layer.get());
+        } else {
+            coAuthors = authorService.findCoAuthors(authorId);
+        }
+
         return layerService.decorateAuthors(coAuthors);
     }
 
@@ -102,14 +114,15 @@ public class AuthorLayerFacade {
         // put detailed information.
         layerService.decorateAuthorDetail(dto, layer.get());
 
-        // add selected publication information.
-        List<Long> paperIds = layerService.findSelectedPapers(authorId)
+        // add representative publication information.
+        List<Long> paperIds = layerService.findRepresentativePapers(authorId)
                 .stream()
                 .map(AuthorLayerPaper::getId)
                 .map(AuthorLayerPaper.AuthorLayerPaperId::getPaperId)
                 .collect(Collectors.toList());
-        List<PaperDto> selected = paperFacade.findIn(paperIds, PaperConverter.detail());
-        dto.setSelectedPapers(selected);
+        List<PaperDto> representative = paperFacade.findIn(paperIds, PaperConverter.detail());
+        dto.setRepresentativePapers(representative);
+        dto.setSelectedPapers(representative);
 
         return dto;
     }
@@ -131,11 +144,11 @@ public class AuthorLayerFacade {
     }
 
     @Transactional
-    public List<PaperDto> updateSelected(Member member, long authorId, Set<Long> selectedPaperIds) {
+    public List<PaperDto> updateRepresentative(Member member, long authorId, Set<Long> representativePaperIds) {
         AuthorLayer layer = findLayer(authorId);
         checkOwner(member, layer.getAuthorId());
 
-        List<Long> paperIds = layerService.updateSelected(layer, selectedPaperIds)
+        List<Long> paperIds = layerService.updateRepresentative(layer, representativePaperIds)
                 .stream()
                 .map(AuthorLayerPaper::getId)
                 .map(AuthorLayerPaper.AuthorLayerPaperId::getPaperId)
@@ -166,7 +179,10 @@ public class AuthorLayerFacade {
         return paperService.getAllPaperTitle(layerPaperMap.keySet())
                 .stream()
                 .peek(dto -> Optional.ofNullable(layerPaperMap.get(dto.getPaperId()))
-                        .ifPresent(layerPaper -> dto.setSelected(layerPaper.isSelected())))
+                        .ifPresent(layerPaper -> {
+                            dto.setRepresentative(layerPaper.isRepresentative());
+                            dto.setSelected(layerPaper.isRepresentative());
+                        }))
                 .collect(Collectors.toList());
     }
 

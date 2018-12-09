@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 public class NoSpecialCharsValidator implements ConstraintValidator<NoSpecialChars, String> {
 
-    private static final Pattern SPECIAL_CHARACTERS = Pattern.compile("[\\p{Punct}&&[^.']]");
+    private static final Pattern SPECIAL_CHARACTERS = Pattern.compile("[\\p{Punct}&&[^.'-]]");
 
     @Override
     public void initialize(NoSpecialChars constraintAnnotation) {}

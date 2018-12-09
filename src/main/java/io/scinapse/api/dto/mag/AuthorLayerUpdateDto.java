@@ -3,12 +3,12 @@ package io.scinapse.api.dto.mag;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.scinapse.api.validator.NoSpecialChars;
+import io.scinapse.api.validator.Website;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -25,13 +25,15 @@ public class AuthorLayerUpdateDto {
     private String name;
 
     @Email
+    @Size(min = 1)
     @NotNull
     private String email;
 
     @Size(min = 1)
     private String bio;
 
-    @URL
+    @Website
+    @Size(min = 1)
     private String webPage;
 
     private Long affiliationId;

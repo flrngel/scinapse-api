@@ -22,7 +22,16 @@ public class AuthorLayerPaper extends BaseEntity {
     private Integer authorSequenceNumber;
 
     @Column
-    private boolean selected = false;
+    private String title;
+
+    @Column
+    private Integer year;
+
+    @Column
+    private Long citationCount;
+
+    @Column
+    private boolean representative = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -1,6 +1,6 @@
 package io.scinapse.api.util;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,7 @@ public class TextUtils {
     private static Pattern QUERY_PHRASE_MATCH = Pattern.compile("(?<= \")(.*?)(?=\" )");
 
     public static String parseDoi(String doiStr) {
-        if (!StringUtils.hasText(doiStr)) {
+        if (StringUtils.isBlank(doiStr)) {
             return null;
         }
 
@@ -56,7 +56,7 @@ public class TextUtils {
     }
 
     public static List<String> parsePhrase(String query) {
-        if (!StringUtils.hasText(query)) {
+        if (StringUtils.isBlank(query)) {
             return new ArrayList<>();
         }
 

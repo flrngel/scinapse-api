@@ -127,8 +127,8 @@ public class PaperFacade {
         return searchFromES(query, pageRequest);
     }
 
-    public Page<AuthorSearchPaperDto> search(Query query, long authorId, PageRequest pageRequest) {
-        Page<Long> paperIdPage = searchService.search(query, pageRequest);
+    public Page<AuthorSearchPaperDto> searchAuthorPaper(Query query, long authorId, PageRequest pageRequest) {
+        Page<Long> paperIdPage = searchService.searchAuthorPaper(query, pageRequest);
         List<PaperDto> paperDtos = findIn(paperIdPage.getContent(), PaperConverter.simple());
         List<AuthorSearchPaperDto> dtos = authorLayerService.decorateSearchResult(authorId, paperDtos);
         return new PageImpl<>(dtos, pageRequest.toPageable(), paperIdPage.getTotalElements());

@@ -44,16 +44,16 @@ public class PaperController {
     }
 
     @RequestMapping(value = "/papers", method = RequestMethod.GET, params = "check_author_included")
-    public Response<List<AuthorSearchPaperDto>> search(@RequestParam("query") String queryStr,
-                                                       @RequestParam(value = "filter", required = false) String filterStr,
-                                                       @RequestParam("check_author_included") long authorId,
-                                                       PageRequest pageRequest) {
+    public Response<List<AuthorSearchPaperDto>> searchAuthorPaper(@RequestParam("query") String queryStr,
+                                                                  @RequestParam(value = "filter", required = false) String filterStr,
+                                                                  @RequestParam("check_author_included") long authorId,
+                                                                  PageRequest pageRequest) {
         Query query = Query.parse(queryStr, filterStr);
         if (!query.isValid()) {
             throw new BadRequestException("Invalid query: too short or long query text");
         }
 
-        return Response.success(paperFacade.search(query, authorId, pageRequest));
+        return Response.success(paperFacade.searchAuthorPaper(query, authorId, pageRequest));
     }
 
     @RequestMapping(value = "/papers/aggregate", method = RequestMethod.GET)

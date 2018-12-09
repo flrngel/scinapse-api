@@ -18,4 +18,7 @@ public class PaperTitleDto {
     @JsonProperty("is_selected")
     private boolean selected = false;
 
+    @JsonProperty("is_representative")
+    private boolean representative = false;
+
 }

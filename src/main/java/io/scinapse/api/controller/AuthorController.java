@@ -9,6 +9,7 @@ import io.scinapse.api.dto.mag.AuthorLayerUpdateDto;
 import io.scinapse.api.dto.mag.AuthorPaperDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.dto.response.Response;
+import io.scinapse.api.enums.AuthorityName;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.facade.AuthorFacade;
 import io.scinapse.api.facade.AuthorLayerFacade;
@@ -18,9 +19,15 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import javax.validation.Valid;
 import java.util.*;
@@ -33,6 +40,16 @@ public class AuthorController {
     private final AuthorFacade authorFacade;
     private final AuthorLayerFacade authorLayerFacade;
     private final MemberFacade memberFacade;
+
+    private final Environment environment;
+
+    private final AsyncRestTemplate restTemplate = new AsyncRestTemplate();
+
+    @Value("${pluto.server.slack.author.url}")
+    private String slackUrl;
+
+    @Value("${pluto.server.web.url}")
+    private String webPageUrl;
 
     @RequestMapping(value = "/authors/{authorId}", method = RequestMethod.GET)
     public Map<String, Object> find(@PathVariable long authorId) {
@@ -80,11 +97,43 @@ public class AuthorController {
     @RequestMapping(value = "/authors/{authorId}/connect", method = RequestMethod.POST)
     public Response<AuthorDto> connect(JwtUser user, @PathVariable long authorId, @RequestBody @Valid AuthorLayerUpdateDto dto) {
         Member member = memberFacade.loadMember(user);
-        return Response.success(authorLayerFacade.connect(member, authorId, dto));
+        AuthorDto connectedDto = authorLayerFacade.connect(member, authorId, dto);
+
+        if (environment.acceptsProfiles("prod")) {
+            sendSlackAlarm(user, connectedDto);
+        }
+
+        return Response.success(connectedDto);
+    }
+
+    private void sendSlackAlarm(JwtUser user, AuthorDto connectedDto) {
+        Map<String, Object> slackData = new HashMap<>();
+        slackData.put("text", "Author connection occurs!! "
+                + "member: [ " + user.getId()
+                + " ], member name: [ " + user.getName()
+                + " ], member email: [ " + user.getEmail()
+                + " ], name: [ " + connectedDto.getName()
+                + " ], email: [ " + connectedDto.getEmail()
+                + " ] , connected author: [ " + webPageUrl + "/authors/" + connectedDto.getId() + " ]");
+        HttpEntity<Map<String, Object>> body = new HttpEntity<>(slackData);
+        restTemplate.postForEntity(slackUrl, body, String.class);
     }
 
     @RequestMapping(value = "/authors/{authorId}/disconnect", method = RequestMethod.GET)
-    public Response disconnect(@PathVariable long authorId) {
+    public Response disconnect(@PathVariable long authorId, JwtUser user) {
+        if (environment.acceptsProfiles("prod")) {
+            if (user == null || CollectionUtils.isEmpty(user.getAuthorities())) {
+                throw new AccessDeniedException("Login is required.");
+            }
+            boolean isAdmin = user.getAuthorities()
+                    .stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch(auth -> StringUtils.equalsIgnoreCase(auth, AuthorityName.ROLE_ADMIN.name()));
+            if (!isAdmin) {
+                throw new AccessDeniedException("Access is denied. Only admin user can access.");
+            }
+        }
+
         authorLayerFacade.disconnect(authorId);
         return Response.success();
     }
@@ -115,12 +164,12 @@ public class AuthorController {
         return Response.success();
     }
 
-    @RequestMapping(value = "/authors/{authorId}/papers/selected", method = RequestMethod.PUT)
-    public Response<List<PaperDto>> updateSelected(JwtUser user,
-                                                   @PathVariable long authorId,
-                                                   @RequestBody PaperIdWrapper wrapper) {
+    @RequestMapping(value = { "/authors/{authorId}/papers/selected", "/authors/{authorId}/papers/representative" }, method = RequestMethod.PUT)
+    public Response<List<PaperDto>> updateRepresentative(JwtUser user,
+                                                         @PathVariable long authorId,
+                                                         @RequestBody PaperIdWrapper wrapper) {
         Member member = memberFacade.loadMember(user);
-        return Response.success(authorLayerFacade.updateSelected(member, authorId, wrapper.getPaperIds()));
+        return Response.success(authorLayerFacade.updateRepresentative(member, authorId, wrapper.getPaperIds()));
     }
 
     @RequestMapping(value = "/authors/{authorId}", method = RequestMethod.PUT)

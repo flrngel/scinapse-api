@@ -2,32 +2,27 @@ package io.scinapse.api.service.author;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
-import io.scinapse.api.data.academic.FieldsOfStudy;
+import io.scinapse.api.data.academic.Paper;
 import io.scinapse.api.data.academic.repository.*;
 import io.scinapse.api.data.scinapse.model.Member;
-import io.scinapse.api.data.scinapse.model.author.AuthorLayer;
-import io.scinapse.api.data.scinapse.model.author.AuthorLayerFos;
-import io.scinapse.api.data.scinapse.model.author.AuthorLayerPaper;
-import io.scinapse.api.data.scinapse.model.author.AuthorLayerPaperHistory;
+import io.scinapse.api.data.scinapse.model.author.*;
 import io.scinapse.api.data.scinapse.repository.MemberRepository;
-import io.scinapse.api.data.scinapse.repository.author.AuthorLayerFosRepository;
-import io.scinapse.api.data.scinapse.repository.author.AuthorLayerPaperHistoryRepository;
-import io.scinapse.api.data.scinapse.repository.author.AuthorLayerPaperRepository;
-import io.scinapse.api.data.scinapse.repository.author.AuthorLayerRepository;
+import io.scinapse.api.data.scinapse.repository.author.*;
+import io.scinapse.api.dto.PaperTitleDto;
 import io.scinapse.api.dto.mag.*;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.BadRequestException;
-import io.scinapse.api.error.ResourceNotFoundException;
+import io.scinapse.api.service.mag.PaperService;
 import io.scinapse.api.util.IdUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -41,10 +36,12 @@ public class AuthorLayerService {
     private final AuthorLayerPaperRepository authorLayerPaperRepository;
     private final AuthorLayerPaperHistoryRepository authorLayerPaperHistoryRepository;
     private final AuthorLayerFosRepository authorLayerFosRepository;
+    private final AuthorLayerCoauthorRepository authorLayerCoauthorRepository;
     private final AuthorRepository authorRepository;
     private final MemberRepository memberRepository;
     private final PaperAuthorRepository paperAuthorRepository;
     private final PaperRepository paperRepository;
+    private final PaperService paperService;
     private final FieldsOfStudyRepository fieldsOfStudyRepository;
     private final AffiliationRepository affiliationRepository;
 
@@ -75,10 +72,14 @@ public class AuthorLayerService {
     @Transactional
     public void disconnect(long authorId) {
         Optional.ofNullable(memberRepository.findByAuthorId(authorId)).ifPresent(member -> member.setAuthorId(null));
+        authorLayerCoauthorRepository.deleteByIdAuthorId(authorId);
         authorLayerFosRepository.deleteByIdAuthorId(authorId);
         authorLayerPaperHistoryRepository.deleteByAuthorId(authorId);
         authorLayerPaperRepository.deleteByIdAuthorId(authorId);
-        authorLayerRepository.delete(authorId);
+
+        if (authorLayerRepository.exists(authorId)) {
+            authorLayerRepository.delete(authorId);
+        }
     }
 
     private void createLayer(AuthorDto author, AuthorLayerUpdateDto dto) {
@@ -95,36 +96,112 @@ public class AuthorLayerService {
 
         AuthorLayer saved = authorLayerRepository.saveAndFlush(authorLayer);
 
-        copyPapers(author, saved);
-        initFos(saved);
+        List<AuthorLayerPaper> savedPapers = copyPapers(author, saved);
 
+        Set<Long> paperIds = savedPapers
+                .stream()
+                .map(AuthorLayerPaper::getId)
+                .map(AuthorLayerPaper.AuthorLayerPaperId::getPaperId)
+                .collect(Collectors.toSet());
+
+        updateByPapers(saved, paperIds);
         update(saved, dto);
     }
 
-    private void copyPapers(AuthorDto author, AuthorLayer layer) {
+    private List<AuthorLayerPaper> copyPapers(AuthorDto author, AuthorLayer layer) {
         List<AuthorLayerPaper> layerPapers = paperAuthorRepository.findByIdAuthorId(author.getId())
                 .stream()
                 .map(paperAuthor -> {
                     AuthorLayerPaper layerPaper = new AuthorLayerPaper(layer.getAuthorId(), paperAuthor.getId().getPaperId());
+
                     Optional.ofNullable(paperAuthor.getAffiliation())
                             .ifPresent(aff -> layerPaper.setAffiliationId(aff.getId()));
                     layerPaper.setAuthorSequenceNumber(paperAuthor.getAuthorSequenceNumber());
+
+                    // for sorting & filtering
+                    layerPaper.setTitle(paperAuthor.getPaper().getTitle());
+                    layerPaper.setYear(paperAuthor.getPaper().getYear());
+                    layerPaper.setCitationCount(paperAuthor.getPaper().getCitationCount());
+
                     return layerPaper;
                 })
                 .collect(Collectors.toList());
-        authorLayerPaperRepository.save(layerPapers);
+
+        layerPapers.stream()
+                .sorted(Comparator.comparing(AuthorLayerPaper::getCitationCount).reversed())
+                .limit(3)
+                .forEach(lp -> lp.setRepresentative(true));
+
+        return authorLayerPaperRepository.save(layerPapers);
     }
 
-    private void initFos(AuthorLayer layer) {
-        List<Long> relatedFosIds = authorRepository.getRelatedFos(layer.getAuthorId());
-        List<FieldsOfStudy> relatedFos = fieldsOfStudyRepository.findByIdIn(relatedFosIds);
-        List<AuthorLayerFos> fosList = relatedFos
+    private void updateByPapers(AuthorLayer layer) {
+        Set<Long> paperIds = authorLayerPaperRepository.findAllLayerPapers(layer.getAuthorId())
                 .stream()
-                .map(fos -> new AuthorLayerFos(layer, fos))
+                .map(AuthorLayerPaper::getId)
+                .map(AuthorLayerPaper.AuthorLayerPaperId::getPaperId)
+                .collect(Collectors.toSet());
+        updateByPapers(layer, paperIds);
+    }
+
+    private void updateByPapers(AuthorLayer layer, Set<Long> paperIds) {
+        updateMetric(layer, paperIds);
+        updateFos(layer, paperIds);
+        updateCoauthor(layer, paperIds);
+    }
+
+    private void updateMetric(AuthorLayer layer, Set<Long> paperIds) {
+        List<PaperTitleDto> allPaperTitle = paperService.getAllPaperTitle(paperIds);
+
+        List<Long> citationCounts = allPaperTitle
+                .stream()
+                .map(PaperTitleDto::getCitationCount)
+                .filter(Objects::nonNull)
+                .sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList());
 
+        int paperCount = allPaperTitle.size();
+        long citationCount = citationCounts.stream().mapToLong(Long::longValue).sum();
+        int hindex = 0;
+        for (Long count : citationCounts) {
+            if (count > hindex) {
+                hindex++;
+                continue;
+            }
+            break;
+        }
+
+        layer.setPaperCount(paperCount);
+        layer.setCitationCount(citationCount);
+        layer.setHindex(hindex);
+    }
+
+    private void updateFos(AuthorLayer layer, Set<Long> paperIds) {
+        List<Long> relatedFosIds = paperRepository.calculateFos(paperIds);
+
+        AtomicInteger rankCounter = new AtomicInteger(1);
+        List<AuthorLayerFos> fosList = relatedFosIds
+                .stream()
+                .map(fosId -> new AuthorLayerFos(layer, fosId, rankCounter.getAndIncrement()))
+                .collect(Collectors.toList());
+
+        authorLayerFosRepository.deleteByIdAuthorId(layer.getAuthorId());
         List<AuthorLayerFos> saved = authorLayerFosRepository.save(fosList);
         layer.setFosList(saved);
+    }
+
+    private void updateCoauthor(AuthorLayer layer, Set<Long> paperIds) {
+        List<Long> relatedAuthorIds = paperRepository.calculateCoauthor(layer.getAuthorId(), paperIds);
+
+        AtomicInteger rankCounter = new AtomicInteger(1);
+        List<AuthorLayerCoauthor> coauthors = relatedAuthorIds
+                .stream()
+                .map(authorId -> new AuthorLayerCoauthor(layer, authorId, rankCounter.getAndIncrement()))
+                .collect(Collectors.toList());
+
+        authorLayerCoauthorRepository.deleteByIdAuthorId(layer.getAuthorId());
+        List<AuthorLayerCoauthor> saved = authorLayerCoauthorRepository.save(coauthors);
+        layer.setCoauthors(saved);
     }
 
     public boolean exists(long authorId) {
@@ -135,13 +212,36 @@ public class AuthorLayerService {
         return Optional.ofNullable(authorLayerRepository.findOne(authorId));
     }
 
-    public Page<AuthorLayerPaper> findPapers(long authorId, String[] keywords, PageRequest pageRequest) {
-        AuthorLayer author = find(authorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Author not found: " + authorId));
+    public List<AuthorDto> findCoauthors(AuthorLayer layer) {
+        if (CollectionUtils.isEmpty(layer.getCoauthors())) {
+            return new ArrayList<>();
+        }
 
+        List<Long> coauthorIds = layer.getCoauthors()
+                .stream()
+                .sorted(Comparator.comparing(AuthorLayerCoauthor::getRank))
+                .map(AuthorLayerCoauthor::getId)
+                .map(AuthorLayerCoauthor.AuthorLayerCoauthorId::getCoauthorId)
+                .collect(Collectors.toList());
+
+        Map<Long, AuthorDto> authorMap = authorRepository.findByIdIn(coauthorIds)
+                .stream()
+                .map(AuthorDto::new)
+                .collect(Collectors.toMap(
+                        AuthorDto::getId,
+                        Function.identity()
+                ));
+
+        return coauthorIds
+                .stream()
+                .map(authorMap::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    public Page<AuthorLayerPaper> findPapers(AuthorLayer layer, String[] keywords, PageRequest pageRequest) {
         PaperSort sort = PaperSort.find(pageRequest.getSort());
-        List<AuthorLayerPaper> papers = authorLayerPaperRepository.findPapers(authorId, false, keywords, sort, pageRequest.toPageable());
-        return new PageImpl<>(papers, pageRequest.toPageable(), author.getPaperCount());
+        return authorLayerPaperRepository.findPapers(layer.getAuthorId(), false, keywords, sort, pageRequest.toPageable());
     }
 
     @Transactional
@@ -151,9 +251,14 @@ public class AuthorLayerService {
             return;
         }
 
-        // set layer paper's status
         layerPapers
-                .forEach((paper) -> paper.setStatus(AuthorLayerPaper.PaperStatus.PENDING_REMOVE));
+                .forEach((paper) -> {
+                    // set layer paper's status
+                    paper.setStatus(AuthorLayerPaper.PaperStatus.PENDING_REMOVE);
+
+                    // remove from representative publication
+                    paper.setRepresentative(false);
+                });
 
         // log action history
         List<AuthorLayerPaperHistory> histories = layerPapers
@@ -173,7 +278,8 @@ public class AuthorLayerService {
         // set layer's status
         layer.setStatus(AuthorLayer.LayerStatus.PENDING);
         layer.setPaperStatus(AuthorLayer.LayerStatus.PENDING);
-        layer.setPaperCount(authorLayerPaperRepository.getPaperCount(layer.getAuthorId()));
+
+        updateByPapers(layer);
     }
 
     @Transactional
@@ -188,12 +294,18 @@ public class AuthorLayerService {
         }
 
         // add author layer papers
-        List<Long> existingPaperIds = paperRepository.findIdByIdIn(paperIds);
-        List<AuthorLayerPaper> layerPapers = existingPaperIds
+        List<Paper> existingPapers = paperRepository.findByIdIn(new ArrayList<>(paperIds));
+        List<AuthorLayerPaper> layerPapers = existingPapers
                 .stream()
-                .map(paperId -> {
-                    AuthorLayerPaper layerPaper = new AuthorLayerPaper(layer.getAuthorId(), paperId);
+                .map(paper -> {
+                    AuthorLayerPaper layerPaper = new AuthorLayerPaper(layer.getAuthorId(), paper.getId());
                     layerPaper.setStatus(AuthorLayerPaper.PaperStatus.PENDING_ADD);
+
+                    // for sorting & filtering
+                    layerPaper.setTitle(paper.getTitle());
+                    layerPaper.setYear(paper.getYear());
+                    layerPaper.setCitationCount(paper.getCitationCount());
+
                     return layerPaper;
                 })
                 .collect(Collectors.toList());
@@ -217,40 +329,41 @@ public class AuthorLayerService {
         // set layer's status
         layer.setStatus(AuthorLayer.LayerStatus.PENDING);
         layer.setPaperStatus(AuthorLayer.LayerStatus.PENDING);
-        layer.setPaperCount(authorLayerPaperRepository.getPaperCount(layer.getAuthorId()));
+
+        updateByPapers(layer);
     }
 
     @Transactional
-    public List<AuthorLayerPaper> updateSelected(AuthorLayer layer, Set<Long> selectedPaperIds) {
-        if (selectedPaperIds.size() > 10) {
-            throw new BadRequestException("Author can select up to 10 papers as selected. Current size: " + selectedPaperIds.size());
+    public List<AuthorLayerPaper> updateRepresentative(AuthorLayer layer, Set<Long> representativePaperIds) {
+        if (representativePaperIds.size() > 5) {
+            throw new BadRequestException("Author can select up to 5 papers as representative. Selected size: " + representativePaperIds.size());
         }
 
-        List<AuthorLayerPaper> layerPapersToSelect = authorLayerPaperRepository.findByIdAuthorIdAndIdPaperIdIn(layer.getAuthorId(), selectedPaperIds);
+        List<AuthorLayerPaper> layerPapersToRepresent = authorLayerPaperRepository.findByIdAuthorIdAndIdPaperIdIn(layer.getAuthorId(), representativePaperIds);
 
-        List<Long> removedPaperIds = layerPapersToSelect
+        List<Long> removedPaperIds = layerPapersToRepresent
                 .stream()
                 .filter(lp -> lp.getStatus() == AuthorLayerPaper.PaperStatus.PENDING_REMOVE)
                 .map(lp -> lp.getId().getPaperId())
                 .collect(Collectors.toList());
 
         if (!CollectionUtils.isEmpty(removedPaperIds)) {
-            throw new BadRequestException("Cannot include papers to be removed as a selected publication: " + removedPaperIds);
+            throw new BadRequestException("Cannot include papers to be removed as a representative publication: " + removedPaperIds);
         }
 
-        // unmark existing selected publications
-        authorLayerPaperRepository.findSelectedPapers(layer.getAuthorId())
-                .forEach(lp -> lp.setSelected(false));
+        // unmark existing representative publications
+        authorLayerPaperRepository.findRepresentativePapers(layer.getAuthorId())
+                .forEach(lp -> lp.setRepresentative(false));
 
-        // mark newly selected publications
-        layerPapersToSelect
-                .forEach(lp -> lp.setSelected(true));
+        // mark newly representative publications
+        layerPapersToRepresent
+                .forEach(lp -> lp.setRepresentative(true));
 
-        return layerPapersToSelect;
+        return layerPapersToRepresent;
     }
 
-    public List<AuthorLayerPaper> findSelectedPapers(long authorId) {
-        return authorLayerPaperRepository.findSelectedPapers(authorId);
+    public List<AuthorLayerPaper> findRepresentativePapers(long authorId) {
+        return authorLayerPaperRepository.findRepresentativePapers(authorId);
     }
 
     @Transactional
@@ -328,6 +441,7 @@ public class AuthorLayerService {
                     }
                     dto.setLayered(true);
                     dto.setName(layer.getName());
+                    dto.setHIndex(layer.getHindex());
                 });
     }
 
@@ -346,6 +460,7 @@ public class AuthorLayerService {
                     }
                     dto.setLayered(true);
                     dto.setName(layer.getName());
+                    dto.setHIndex(layer.getHindex());
                 });
 
         return dtos;
@@ -356,6 +471,8 @@ public class AuthorLayerService {
         dto.setName(layer.getName());
         dto.setEmail(layer.getEmail());
         dto.setPaperCount(layer.getPaperCount());
+        dto.setCitationCount(layer.getCitationCount());
+        dto.setHIndex(layer.getHindex());
         dto.setBio(layer.getBio());
         dto.setWebPage(layer.getWebPage());
 
@@ -367,6 +484,7 @@ public class AuthorLayerService {
         if (!CollectionUtils.isEmpty(layer.getFosList())) {
             List<Long> fosIds = layer.getFosList()
                     .stream()
+                    .sorted(Comparator.comparing(AuthorLayerFos::getRank))
                     .map(AuthorLayerFos::getId)
                     .map(AuthorLayerFos.AuthorLayerFosId::getFosId)
                     .collect(Collectors.toList());
