@@ -19,15 +19,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.AsyncRestTemplate;
 
 import javax.validation.Valid;
 import java.util.*;
@@ -42,14 +39,6 @@ public class AuthorController {
     private final MemberFacade memberFacade;
 
     private final Environment environment;
-
-    private final AsyncRestTemplate restTemplate = new AsyncRestTemplate();
-
-    @Value("${pluto.server.slack.author.url}")
-    private String slackUrl;
-
-    @Value("${pluto.server.web.url}")
-    private String webPageUrl;
 
     @RequestMapping(value = "/authors/{authorId}", method = RequestMethod.GET)
     public Map<String, Object> find(@PathVariable long authorId) {
@@ -99,24 +88,7 @@ public class AuthorController {
         Member member = memberFacade.loadMember(user);
         AuthorDto connectedDto = authorLayerFacade.connect(member, authorId, dto);
 
-        if (environment.acceptsProfiles("prod")) {
-            sendSlackAlarm(user, connectedDto);
-        }
-
         return Response.success(connectedDto);
-    }
-
-    private void sendSlackAlarm(JwtUser user, AuthorDto connectedDto) {
-        Map<String, Object> slackData = new HashMap<>();
-        slackData.put("text", "Author connection occurs!! "
-                + "member: [ " + user.getId()
-                + " ], member name: [ " + user.getName()
-                + " ], member email: [ " + user.getEmail()
-                + " ], name: [ " + connectedDto.getName()
-                + " ], email: [ " + connectedDto.getEmail()
-                + " ] , connected author: [ " + webPageUrl + "/authors/" + connectedDto.getId() + " ]");
-        HttpEntity<Map<String, Object>> body = new HttpEntity<>(slackData);
-        restTemplate.postForEntity(slackUrl, body, String.class);
     }
 
     @RequestMapping(value = "/authors/{authorId}/disconnect", method = RequestMethod.GET)

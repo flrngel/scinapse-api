@@ -105,7 +105,8 @@ public class Query {
                 .field("authors.name.en_stemmed")
                 .field("authors.affiliation")
                 .field("journal.title")
-                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS);
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
+                .minimumShouldMatch("-25%");
 
         MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(2);
         MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(2);

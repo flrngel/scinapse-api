@@ -16,10 +16,14 @@ import io.scinapse.api.service.mag.PaperService;
 import io.scinapse.api.util.IdUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,6 +49,16 @@ public class AuthorLayerService {
     private final FieldsOfStudyRepository fieldsOfStudyRepository;
     private final AffiliationRepository affiliationRepository;
 
+    private final Environment environment;
+
+    @Value("${pluto.server.slack.author.url}")
+    private String slackUrl;
+
+    @Value("${pluto.server.web.url}")
+    private String webPageUrl;
+
+    private final AsyncRestTemplate restTemplate = new AsyncRestTemplate();
+
     @Transactional
     public void connect(Member member, AuthorDto author, AuthorLayerUpdateDto dto) {
         Optional.ofNullable(member.getAuthorId())
@@ -66,7 +80,11 @@ public class AuthorLayerService {
         member.setAuthorId(author.getId());
 
         // the author does not have a layer. Let's create new one.
-        createLayer(author, dto);
+        AuthorLayer savedLayer = createLayer(author, dto);
+
+        if (environment.acceptsProfiles("prod")) {
+            sendSlackAlarm(member, author, savedLayer);
+        }
     }
 
     @Transactional
@@ -82,7 +100,7 @@ public class AuthorLayerService {
         }
     }
 
-    private void createLayer(AuthorDto author, AuthorLayerUpdateDto dto) {
+    private AuthorLayer createLayer(AuthorDto author, AuthorLayerUpdateDto dto) {
         AuthorLayer authorLayer = new AuthorLayer();
 
         // from author
@@ -106,6 +124,23 @@ public class AuthorLayerService {
 
         updateByPapers(saved, paperIds);
         update(saved, dto);
+
+        return saved;
+    }
+
+    private void sendSlackAlarm(Member member, AuthorDto original, AuthorLayer connected) {
+        Map<String, Object> slackData = new HashMap<>();
+        slackData.put("text", "Author connection occurs!! "
+                + "member: [ " + member.getId()
+                + " ], member name: [ " + StringUtils.join(new String[] { member.getFirstName(), member.getLastName() }, " ")
+                + " ], member email: [ " + member.getEmail()
+                + " ], connected author: [ " + webPageUrl + "/authors/" + original.getId()
+                + " ], original name: [ " + original.getName()
+                + " ], connected name: [ " + connected.getName()
+                + " ], connected email: [ " + connected.getEmail()
+                + " ]");
+        HttpEntity<Map<String, Object>> body = new HttpEntity<>(slackData);
+        restTemplate.postForEntity(slackUrl, body, String.class);
     }
 
     private List<AuthorLayerPaper> copyPapers(AuthorDto author, AuthorLayer layer) {
