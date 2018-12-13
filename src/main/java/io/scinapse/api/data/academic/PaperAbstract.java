@@ -1,17 +1,18 @@
 package io.scinapse.api.data.academic;
 
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.*;
 
 @BatchSize(size = 10)
-@Table(schema = "scinapse", name = "paper_abstract_new")
 @Entity
 public class PaperAbstract {
 
     @Id
     private long paperId;
 
+    @Nationalized
     @Column(name = "abstract")
     private String paperAbstract;
 

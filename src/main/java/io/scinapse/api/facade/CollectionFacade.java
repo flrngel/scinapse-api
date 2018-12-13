@@ -23,10 +23,7 @@ import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -167,17 +164,20 @@ public class CollectionFacade {
                         Function.identity()
                 ));
 
-        paperDtos.forEach(cp -> {
-            PaperDto paper = map.get(cp.getPaperId());
-            if (paper == null) {
-                return;
-            }
+        return paperDtos
+                .stream()
+                .map(cp -> {
+                    PaperDto paper = map.get(cp.getPaperId());
+                    if (paper == null) {
+                        return null;
+                    }
 
-            // set paper dto
-            cp.setPaper(paper);
-        });
-
-        return paperDtos;
+                    // set paper dto
+                    cp.setPaper(paper);
+                    return cp;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @Transactional

@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Nationalized;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.*;
@@ -12,13 +13,13 @@ import java.util.List;
 @EqualsAndHashCode(of = "id")
 @BatchSize(size = 50)
 @Getter
-@Table(schema = "scinapse", name = "author")
 @Entity
 public class Author {
 
     @Id
     private long id;
 
+    @Nationalized
     @Column
     private String name;
 

@@ -8,7 +8,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Getter
-@Table(schema = "public", name = "author_top_paper")
 @Entity
 public class AuthorTopPaper {
 

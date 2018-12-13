@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Nationalized;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.*;
@@ -13,7 +14,6 @@ import java.util.List;
 @BatchSize(size = 10)
 @Getter
 @Setter
-@Table(schema = "scinapse", name = "paper")
 @Entity
 public class Paper {
 
@@ -23,9 +23,11 @@ public class Paper {
     @Column
     private String doi;
 
+    @Nationalized
     @Column
     private String title;
 
+    @Nationalized
     @Column
     private String bookTitle;
 
@@ -49,7 +51,7 @@ public class Paper {
     private String lastPage;
 
     @Column
-    private Long paperCount;
+    private Long referenceCount;
 
     @Column
     private Long citationCount;

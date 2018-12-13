@@ -8,7 +8,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Getter
-@Table(schema = "scinapse", name = "paper_fos")
+@Table(name = "paper_fos")
 @Entity
 public class PaperFieldsOfStudy {
 

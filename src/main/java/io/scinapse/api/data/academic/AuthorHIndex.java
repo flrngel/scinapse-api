@@ -7,7 +7,7 @@ import javax.persistence.*;
 
 @BatchSize(size = 50)
 @Getter
-@Table(schema = "public", name = "author_hindex")
+@Table(name = "author_hindex")
 @Entity
 public class AuthorHIndex {
 

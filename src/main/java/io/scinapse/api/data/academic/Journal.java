@@ -2,20 +2,24 @@ package io.scinapse.api.data.academic;
 
 import lombok.Getter;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Nationalized;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @BatchSize(size = 10)
-@Table(schema = "scinapse", name = "journal")
 @Entity
 public class Journal {
 
     @Id
     private long id;
 
+    @Nationalized
     @Column
     private String title;
 

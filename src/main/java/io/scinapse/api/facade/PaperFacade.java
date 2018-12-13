@@ -109,7 +109,7 @@ public class PaperFacade {
 
         List<Long> referenceIds = paperService.findReferences(paperId, pageRequest);
         List<PaperDto> dtos = findIn(referenceIds);
-        return new PageImpl<>(dtos, pageRequest.toPageable(), paper.getPaperCount());
+        return new PageImpl<>(dtos, pageRequest.toPageable(), paper.getReferenceCount());
     }
 
     public Page<PaperDto> findCited(long paperId, PageRequest pageRequest) {

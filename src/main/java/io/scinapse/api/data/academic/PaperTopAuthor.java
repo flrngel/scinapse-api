@@ -10,7 +10,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Getter
-@Table(schema = "scinapse", name = "paper_top_author")
 @Entity
 public class PaperTopAuthor {
 

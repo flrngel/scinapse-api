@@ -8,7 +8,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Getter
-@Table(schema = "scinapse", name = "journal_fos")
 @Entity
 public class JournalFos {
 

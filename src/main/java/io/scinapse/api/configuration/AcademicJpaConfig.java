@@ -17,6 +17,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.inject.Named;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
+import java.util.Map;
 
 @EnableJpaRepositories(
         basePackageClasses = { Academic.class },
@@ -37,11 +38,14 @@ public class AcademicJpaConfig {
     public LocalContainerEntityManagerFactoryBean academicEntityManagerFactory(EntityManagerFactoryBuilder builder,
                                                                                @Named("academicDataSource") DataSource dataSource,
                                                                                JpaProperties properties) {
+        Map<String, String> hibernateProperties = properties.getHibernateProperties(dataSource);
+        hibernateProperties.put("hibernate.dialect", "org.hibernate.dialect.SQLServer2012Dialect");
+
         return builder
                 .dataSource(dataSource)
                 .packages(Jsr310JpaConverters.class, OffsetDateTimeConverter.class, Academic.class)
                 .persistenceUnit("academic")
-                .properties(properties.getHibernateProperties(dataSource))
+                .properties(hibernateProperties)
                 .build();
     }
 

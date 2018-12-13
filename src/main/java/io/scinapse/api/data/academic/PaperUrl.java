@@ -1,11 +1,11 @@
 package io.scinapse.api.data.academic;
 
 import lombok.Getter;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
 @Getter
-@Table(schema = "scinapse", name = "paper_url")
 @Entity
 public class PaperUrl {
 
@@ -19,6 +19,8 @@ public class PaperUrl {
     @Column
     private Integer sourceType;
 
+    @Type(type = "text")
+    @Lob
     @Column
     private String sourceUrl;
 
