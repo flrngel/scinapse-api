@@ -66,7 +66,7 @@ public class Query {
         MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
         MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(5);
         MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(3);
-        MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("authors.affiliation", text);
+        MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("authors.affiliation.name", text);
         MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(3);
         MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text);
 
@@ -101,17 +101,25 @@ public class Query {
             return toDoiSearchQuery();
         }
 
-        MultiMatchQueryBuilder mainQuery = QueryBuilders.multiMatchQuery(text, "title.en_stemmed")
-                .field("authors.name.en_stemmed")
-                .field("authors.affiliation")
+        MultiMatchQueryBuilder mainQuery1 = QueryBuilders.multiMatchQuery(text, "authors.name")
+                .field("authors.affiliation.name")
                 .field("journal.title")
+                .field("title")
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
+                .cutoffFrequency(0.0001f);
+
+        MultiMatchQueryBuilder mainQuery2 = QueryBuilders.multiMatchQuery(text, "title.stemmed")
                 .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
                 .minimumShouldMatch("-25%");
+
+        BoolQueryBuilder mainQuery = QueryBuilders.boolQuery()
+                .should(mainQuery1)
+                .should(mainQuery2);
 
         MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(2);
         MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(2);
         MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(2);
-        MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("authors.affiliation", text);
+        MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("authors.affiliation.name", text);
         MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text);
 
         return QueryBuilders.boolQuery()
@@ -124,20 +132,33 @@ public class Query {
     }
 
     public QueryBuilder getMainQueryClause() {
-        BoolQueryBuilder query = QueryBuilders.boolQuery();
 
-        MultiMatchQueryBuilder mainQuery = getMainFieldQuery()
+        MultiMatchQueryBuilder mainQuery1 = QueryBuilders.multiMatchQuery(text, "fos.name") // initializing field cannot contain boost factor
+                .field("title", 5)
+                .field("abstract", 5)
+                .field("authors.name", 3)
+                .field("authors.affiliation.name")
+                .field("journal.title")
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
+                .cutoffFrequency(0.0001f); // combining with minimum_should_match seems to have a bug.
+
+        MultiMatchQueryBuilder mainQuery2 = QueryBuilders.multiMatchQuery(text, "title.stemmed", "abstract.stemmed")
                 .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
                 .minimumShouldMatch("-25%");
-        query.must(mainQuery);
+
+        BoolQueryBuilder query = QueryBuilders.boolQuery()
+                .should(mainQuery1)
+                .should(mainQuery2);
 
         phraseQueries.forEach(q -> {
             MultiMatchQueryBuilder phrase = QueryBuilders.multiMatchQuery(
                     q,
-                    "title.en_stemmed",
-                    "abstract.en_stemmed",
-                    "authors.name.en_stemmed",
-                    "fos.name.en_stemmed")
+                    "title",
+                    "abstract",
+                    "authors.name",
+                    "authors.affiliation.name",
+                    "fos.name",
+                    "journal.title")
                     .type(MultiMatchQueryBuilder.Type.PHRASE);
             query.filter(phrase);
         });
@@ -145,16 +166,9 @@ public class Query {
         return query;
     }
 
-    private MultiMatchQueryBuilder getMainFieldQuery() {
-        return QueryBuilders.multiMatchQuery(text, "title.en_stemmed")
-                .field("abstract.en_stemmed")
-                .field("authors.name.en_stemmed")
-                .field("fos.name.en_stemmed");
-    }
-
     public QueryRescorerBuilder getPhraseRescoreQuery() {
-        MatchPhraseQueryBuilder titleQuery = QueryBuilders.matchPhraseQuery("title.en_stemmed", text).slop(5);
-        MatchPhraseQueryBuilder abstractQuery = QueryBuilders.matchPhraseQuery("abstract.en_stemmed", text).slop(5);
+        MatchPhraseQueryBuilder titleQuery = QueryBuilders.matchPhraseQuery("title.stemmed", text).slop(5).boost(7);
+        MatchPhraseQueryBuilder abstractQuery = QueryBuilders.matchPhraseQuery("abstract.stemmed", text).slop(5).boost(5);
 
         // phrase match booster for re-scoring
         BoolQueryBuilder phraseMatchQuery = QueryBuilders.boolQuery()
@@ -163,13 +177,14 @@ public class Query {
 
         // title boosting for phrase matching
         phraseQueries.forEach(q -> {
-            MatchPhraseQueryBuilder phrase = QueryBuilders.matchPhraseQuery("title", q).boost(20);
+            MatchPhraseQueryBuilder phrase = QueryBuilders.matchPhraseQuery("title", q).boost(10);
             phraseMatchQuery.should(phrase);
         });
 
         // re-scoring top 100 documents only for each shard
         return new QueryRescorerBuilder(phraseMatchQuery)
-                .windowSize(100);
+                .windowSize(100)
+                .setRescoreQueryWeight(2);
     }
 
     public QueryRescorerBuilder getCitationRescoreQuery() {
@@ -206,7 +221,7 @@ public class Query {
                 .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { abstractAbsentBooster, journalTitleAbsentBooster })
                 .maxBoost(1); // limit boosting
 
-        // re-scoring top 100 documents only for each shard
+        // re-scoring top 10 documents only for each shard
         return new QueryRescorerBuilder(functionQuery)
                 .windowSize(10) // to remove those papers only from very first page
                 .setScoreMode(QueryRescoreMode.Multiply);
