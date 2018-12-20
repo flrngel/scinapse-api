@@ -38,8 +38,21 @@ public class Error {
         setPath(request);
     }
 
+    private Error(HttpServletRequest request, Exception e, HttpStatus status) {
+        this.timestamp = OffsetDateTime.now();
+        this.status = status.value();
+        this.reason = status.getReasonPhrase();
+        this.exception = e.getClass().getName();
+        this.message = e.getMessage();
+        this.path = request.getRequestURI();
+    }
+
     public static Error of(HttpServletRequest request) {
         return new Error(request);
+    }
+
+    public static Error of(HttpServletRequest request, Exception e, HttpStatus status) {
+        return new Error(request, e, status);
     }
 
     private void setStatus(HttpServletRequest request) {

@@ -25,6 +25,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.*;
@@ -150,6 +151,24 @@ public class AuthorController {
                                                        @RequestBody @Valid AuthorLayerUpdateDto updateDto) {
         Member member = memberFacade.loadMember(user);
         return Response.success(authorLayerFacade.update(member, authorId, updateDto));
+    }
+
+    @RequestMapping(value = "/authors/{authorId}/profile-image", method = RequestMethod.PUT)
+    public Response<Map<String, String>> updateProfileImage(JwtUser user,
+                                                            @PathVariable long authorId,
+                                                            @RequestParam("profile-image") MultipartFile profileImage) {
+        Member member = memberFacade.loadMember(user);
+        String imageUrl = authorLayerFacade.updateProfileImage(member, authorId, profileImage);
+        Map<String, String> result = new HashMap<>();
+        result.put("profile_image_url", imageUrl);
+        return Response.success(result);
+    }
+
+    @RequestMapping(value = "/authors/{authorId}/profile-image", method = RequestMethod.DELETE)
+    public Response deleteProfileImage(JwtUser user, @PathVariable long authorId) {
+        Member member = memberFacade.loadMember(user);
+        authorLayerFacade.deleteProfileImage(member, authorId);
+        return Response.success();
     }
 
     @RequestMapping(value = "/authors/{authorId}/papers/all", method = RequestMethod.GET)

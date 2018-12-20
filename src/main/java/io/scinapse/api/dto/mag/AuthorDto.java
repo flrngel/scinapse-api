@@ -1,5 +1,6 @@
 package io.scinapse.api.dto.mag;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.data.academic.Author;
 import lombok.Getter;
@@ -31,7 +32,12 @@ public class AuthorDto {
 
     private String email;
     private String bio;
+
+    @JsonProperty("web_page")
     private String webPage;
+
+    @JsonProperty("profile_image_url")
+    private String profileImageUrl;
 
     @JsonProperty("is_layered")
     private boolean layered = false;
@@ -61,6 +67,11 @@ public class AuthorDto {
         if (author.getLastKnownAffiliation() != null) {
             this.lastKnownAffiliation = new AffiliationDto(author.getLastKnownAffiliation());
         }
+    }
+
+    @JsonGetter("webPage")
+    public String getCamelWebPage() {
+        return this.webPage;
     }
 
 }

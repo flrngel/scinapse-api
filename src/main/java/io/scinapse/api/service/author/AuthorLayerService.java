@@ -1,6 +1,7 @@
 package io.scinapse.api.service.author;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.configuration.ScinapseConstant;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.data.academic.Paper;
 import io.scinapse.api.data.academic.repository.*;
@@ -452,6 +453,19 @@ public class AuthorLayerService {
         return layer;
     }
 
+    @Transactional
+    public String updateProfileImage(AuthorLayer layer, Member member, String profileImageKey) {
+        layer.setProfileImage(profileImageKey);
+        member.setProfileImage(profileImageKey);
+        return ScinapseConstant.SCINAPSE_MEDIA_URL + profileImageKey;
+    }
+
+    @Transactional
+    public void deleteProfileImage(AuthorLayer layer, Member member) {
+        layer.setProfileImage(null);
+        member.setProfileImage(null);
+    }
+
     public List<AuthorLayerPaper> getAllLayerPapers(long authorId) {
         return authorLayerPaperRepository.findAllLayerPapers(authorId);
     }
@@ -496,6 +510,8 @@ public class AuthorLayerService {
                     dto.setLayered(true);
                     dto.setName(layer.getName());
                     dto.setHIndex(layer.getHindex());
+                    Optional.ofNullable(layer.getProfileImage())
+                            .ifPresent(key -> dto.setProfileImageUrl(ScinapseConstant.SCINAPSE_MEDIA_URL + key));
                 });
 
         return dtos;
@@ -510,6 +526,8 @@ public class AuthorLayerService {
         dto.setHIndex(layer.getHindex());
         dto.setBio(layer.getBio());
         dto.setWebPage(layer.getWebPage());
+        Optional.ofNullable(layer.getProfileImage())
+                .ifPresent(key -> dto.setProfileImageUrl(ScinapseConstant.SCINAPSE_MEDIA_URL + key));
 
         Optional.ofNullable(layer.getLastKnownAffiliationId())
                 .map(affiliationRepository::findOne)

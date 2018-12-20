@@ -3,6 +3,7 @@ package io.scinapse.api.dto;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.scinapse.api.configuration.ScinapseConstant;
 import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.dto.oauth.OauthUserDto;
 import io.scinapse.api.validator.NoSpecialChars;
@@ -18,6 +19,7 @@ import org.hibernate.validator.constraints.URL;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
+import java.util.Optional;
 
 @NoArgsConstructor
 @Getter
@@ -53,6 +55,9 @@ public class MemberDto {
     @URL
     private String profileImage;
 
+    @JsonProperty("profile_image_url")
+    private String profileImageUrl;
+
     @JsonProperty("author_id")
     private Long authorId;
 
@@ -79,6 +84,9 @@ public class MemberDto {
         this.firstName = member.getFirstName();
         this.lastName = member.getLastName();
         this.authorId = member.getAuthorId();
+
+        Optional.ofNullable(member.getProfileImage())
+                .ifPresent(key -> this.profileImageUrl = ScinapseConstant.SCINAPSE_MEDIA_URL + key);
     }
 
     public Member toEntity() {

@@ -11,6 +11,7 @@ import io.scinapse.api.dto.mag.AuthorLayerUpdateDto;
 import io.scinapse.api.dto.mag.AuthorPaperDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.error.BadRequestException;
+import io.scinapse.api.service.ImageUploadService;
 import io.scinapse.api.service.author.AuthorLayerService;
 import io.scinapse.api.service.mag.AuthorService;
 import io.scinapse.api.service.mag.PaperConverter;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.function.Function;
@@ -36,6 +38,7 @@ public class AuthorLayerFacade {
     private final AuthorLayerService layerService;
     private final AuthorService authorService;
     private final PaperService paperService;
+    private final ImageUploadService imageUploadService;
 
     public Page<AuthorPaperDto> findPapers(long authorId, String[] keywords, PageRequest pageRequest) {
         if (!authorService.exists(authorId)) {
@@ -164,6 +167,23 @@ public class AuthorLayerFacade {
 
         layerService.update(layer, updateDto);
         return findDetailed(authorId);
+    }
+
+    @Transactional
+    public String updateProfileImage(Member member, long authorId, MultipartFile profileImageFile) {
+        AuthorLayer layer = findLayer(authorId);
+        checkOwner(member, layer.getAuthorId());
+
+        String profileImageKey = imageUploadService.uploadImage(ImageUploadService.PROFILE_IMAGE_PATH, profileImageFile);
+        return layerService.updateProfileImage(layer, member, profileImageKey);
+    }
+
+    @Transactional
+    public void deleteProfileImage(Member member, long authorId) {
+        AuthorLayer layer = findLayer(authorId);
+        checkOwner(member, layer.getAuthorId());
+
+        layerService.deleteProfileImage(layer, member);
     }
 
     public List<PaperTitleDto> getAllPaperTitles(long authorId) {

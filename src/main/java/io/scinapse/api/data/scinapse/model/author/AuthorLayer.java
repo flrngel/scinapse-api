@@ -31,6 +31,9 @@ public class AuthorLayer extends BaseEntity {
     @Column
     private String webPage;
 
+    @Column
+    private String profileImage;
+
     @Column(nullable = false)
     private long paperCount;
 
