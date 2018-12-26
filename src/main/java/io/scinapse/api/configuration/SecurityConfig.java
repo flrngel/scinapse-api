@@ -118,6 +118,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/papers/search",
                         "/authors",
                         "/authors/*",
+                        "/authors/*/information",
                         "/authors/*/papers",
                         "/authors/*/co-authors",
                         "/journals/*",

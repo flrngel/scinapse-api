@@ -57,6 +57,15 @@ public class AuthorLayer extends BaseEntity {
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
     private List<AuthorLayerCoauthor> coauthors = new ArrayList<>();
 
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private List<AuthorEducation> educations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private List<AuthorExperience> experiences = new ArrayList<>();
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private List<AuthorAward> awards = new ArrayList<>();
+
     public enum LayerStatus {
         SYNCED,
         PENDING

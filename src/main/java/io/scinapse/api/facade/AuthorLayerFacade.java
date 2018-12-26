@@ -3,14 +3,18 @@ package io.scinapse.api.facade;
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.data.scinapse.model.Member;
-import io.scinapse.api.data.scinapse.model.author.AuthorLayer;
-import io.scinapse.api.data.scinapse.model.author.AuthorLayerPaper;
+import io.scinapse.api.data.scinapse.model.author.*;
 import io.scinapse.api.dto.PaperTitleDto;
+import io.scinapse.api.dto.author.AuthorAwardDto;
+import io.scinapse.api.dto.author.AuthorEducationDto;
+import io.scinapse.api.dto.author.AuthorExperienceDto;
+import io.scinapse.api.dto.author.AuthorInfoDto;
 import io.scinapse.api.dto.mag.AuthorDto;
 import io.scinapse.api.dto.mag.AuthorLayerUpdateDto;
 import io.scinapse.api.dto.mag.AuthorPaperDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.error.BadRequestException;
+import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.service.ImageUploadService;
 import io.scinapse.api.service.author.AuthorLayerService;
 import io.scinapse.api.service.mag.AuthorService;
@@ -204,6 +208,101 @@ public class AuthorLayerFacade {
                             dto.setSelected(layerPaper.isRepresentative());
                         }))
                 .collect(Collectors.toList());
+    }
+
+    public AuthorInfoDto getInformation(long authorId) {
+        AuthorLayer layer = findLayer(authorId);
+        return new AuthorInfoDto(layer);
+    }
+
+    @Transactional
+    public AuthorEducationDto addEducation(Member member, long authorId, AuthorEducationDto dto) {
+        AuthorLayer layer = findLayer(authorId);
+        checkOwner(member, layer.getAuthorId());
+
+        AuthorEducation education = layerService.addEducation(layer, dto.toEntity());
+        return new AuthorEducationDto(education);
+    }
+
+    @Transactional
+    public AuthorEducationDto updateEducation(Member member, String educationId, AuthorEducationDto updatedDto) {
+        AuthorEducation education = layerService.findEducation(educationId)
+                .orElseThrow(() -> new BadRequestException("Author education[" + educationId + "] dose not exist."));
+
+        checkOwner(member, education.getAuthor().getAuthorId());
+
+        AuthorEducation updated = layerService.updateEducation(education, updatedDto.toEntity());
+        return new AuthorEducationDto(updated);
+    }
+
+    @Transactional
+    public void deleteEducation(Member member, String educationId) {
+        AuthorEducation education = layerService.findEducation(educationId)
+                .orElseThrow(() -> new BadRequestException("Author education[" + educationId + "] dose not exist."));
+
+        checkOwner(member, education.getAuthor().getAuthorId());
+
+        layerService.deleteEducation(education);
+    }
+
+    @Transactional
+    public AuthorExperienceDto addExperience(Member member, long authorId, AuthorExperienceDto dto) {
+        AuthorLayer layer = findLayer(authorId);
+        checkOwner(member, layer.getAuthorId());
+
+        AuthorExperience experience = layerService.addExperience(layer, dto.toEntity());
+        return new AuthorExperienceDto(experience);
+    }
+
+    @Transactional
+    public AuthorExperienceDto updateExperience(Member member, String experienceId, AuthorExperienceDto updatedDto) {
+        AuthorExperience experience = layerService.findExperience(experienceId)
+                .orElseThrow(() -> new BadRequestException("Author experience[" + experienceId + "] dose not exist."));
+
+        checkOwner(member, experience.getAuthor().getAuthorId());
+
+        AuthorExperience updated = layerService.updateExperience(experience, updatedDto.toEntity());
+        return new AuthorExperienceDto(updated);
+    }
+
+    @Transactional
+    public void deleteExperience(Member member, String experienceId) {
+        AuthorExperience experience = layerService.findExperience(experienceId)
+                .orElseThrow(() -> new BadRequestException("Author experience[" + experienceId + "] dose not exist."));
+
+        checkOwner(member, experience.getAuthor().getAuthorId());
+
+        layerService.deleteExperience(experience);
+    }
+
+    @Transactional
+    public AuthorAwardDto addAward(Member member, long authorId, AuthorAwardDto dto) {
+        AuthorLayer layer = findLayer(authorId);
+        checkOwner(member, layer.getAuthorId());
+
+        AuthorAward award = layerService.addAward(layer, dto.toEntity());
+        return new AuthorAwardDto(award);
+    }
+
+    @Transactional
+    public AuthorAwardDto updateAward(Member member, String awardId, AuthorAwardDto updatedDto) {
+        AuthorAward award = layerService.findAward(awardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Author award[" + awardId + "] dose not exist."));
+
+        checkOwner(member, award.getAuthor().getAuthorId());
+
+        AuthorAward updated = layerService.updateAward(award, updatedDto.toEntity());
+        return new AuthorAwardDto(updated);
+    }
+
+    @Transactional
+    public void deleteAward(Member member, String awardId) {
+        AuthorAward award = layerService.findAward(awardId)
+                .orElseThrow(() -> new ResourceNotFoundException("Author award[" + awardId + "] dose not exist."));
+
+        checkOwner(member, award.getAuthor().getAuthorId());
+
+        layerService.deleteAward(award);
     }
 
     private AuthorLayer findLayer(long authorId) {

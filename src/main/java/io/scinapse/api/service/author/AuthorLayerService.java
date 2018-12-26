@@ -50,6 +50,10 @@ public class AuthorLayerService {
     private final FieldsOfStudyRepository fieldsOfStudyRepository;
     private final AffiliationRepository affiliationRepository;
 
+    private final AuthorEducationRepository educationRepository;
+    private final AuthorExperienceRepository experienceRepository;
+    private final AuthorAwardRepository awardRepository;
+
     private final Environment environment;
 
     @Value("${pluto.server.slack.author.url}")
@@ -577,6 +581,105 @@ public class AuthorLayerService {
                     return new AuthorSearchPaperDto(paperDto, included);
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public AuthorEducation addEducation(AuthorLayer layer, AuthorEducation education) {
+        checkDateValidity(education.getStartDate(), education.getEndDate());
+
+        education.setId(IdUtils.generateStringId(educationRepository));
+        education.setAuthor(layer);
+        return educationRepository.save(education);
+    }
+
+    public Optional<AuthorEducation> findEducation(String educationId) {
+        return Optional.ofNullable(educationRepository.findOne(educationId));
+    }
+
+    @Transactional
+    public AuthorEducation updateEducation(AuthorEducation old, AuthorEducation updated) {
+        checkDateValidity(updated.getStartDate(), updated.getEndDate());
+
+        old.setStartDate(updated.getStartDate());
+        old.setEndDate(updated.getEndDate());
+        old.setCurrent(updated.isCurrent());
+        old.setInstitution(updated.getInstitution());
+        old.setDepartment(updated.getDepartment());
+        old.setDegree(updated.getDegree());
+        return old;
+    }
+
+    @Transactional
+    public void deleteEducation(AuthorEducation education) {
+        educationRepository.delete(education);
+    }
+
+    @Transactional
+    public AuthorExperience addExperience(AuthorLayer layer, AuthorExperience experience) {
+        checkDateValidity(experience.getStartDate(), experience.getEndDate());
+
+        experience.setId(IdUtils.generateStringId(experienceRepository));
+        experience.setAuthor(layer);
+        return experienceRepository.save(experience);
+    }
+
+    public Optional<AuthorExperience> findExperience(String experienceId) {
+        return Optional.ofNullable(experienceRepository.findOne(experienceId));
+    }
+
+    @Transactional
+    public AuthorExperience updateExperience(AuthorExperience old, AuthorExperience updated) {
+        checkDateValidity(updated.getStartDate(), updated.getEndDate());
+
+        old.setStartDate(updated.getStartDate());
+        old.setEndDate(updated.getEndDate());
+        old.setCurrent(updated.isCurrent());
+        old.setInstitution(updated.getInstitution());
+        old.setDepartment(updated.getDepartment());
+        old.setPosition(updated.getPosition());
+        old.setDescription(updated.getDescription());
+        return old;
+    }
+
+    @Transactional
+    public void deleteExperience(AuthorExperience experience) {
+        experienceRepository.delete(experience);
+    }
+
+    @Transactional
+    public AuthorAward addAward(AuthorLayer layer, AuthorAward award) {
+        award.setId(IdUtils.generateStringId(awardRepository));
+        award.setAuthor(layer);
+        return awardRepository.save(award);
+    }
+
+    public Optional<AuthorAward> findAward(String awardId) {
+        return Optional.ofNullable(awardRepository.findOne(awardId));
+    }
+
+    @Transactional
+    public AuthorAward updateAward(AuthorAward old, AuthorAward updated) {
+        old.setReceivedDate(updated.getReceivedDate());
+        old.setTitle(updated.getTitle());
+        old.setDescription(updated.getDescription());
+        return old;
+    }
+
+    @Transactional
+    public void deleteAward(AuthorAward award) {
+        awardRepository.delete(award);
+    }
+
+    private void checkDateValidity(Date startDate, Date endDate) {
+        if (startDate == null) {
+            throw new BadRequestException("start date is required.");
+        }
+        if (endDate == null) {
+            return;
+        }
+        if (startDate.after(endDate)) {
+            throw new BadRequestException("start date must be set before end date.");
+        }
     }
 
 }
