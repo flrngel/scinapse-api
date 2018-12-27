@@ -1,5 +1,6 @@
 package io.scinapse.api.dto.mag;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.scinapse.api.validator.NoSpecialChars;
@@ -28,6 +29,9 @@ public class AuthorLayerUpdateDto {
     @Size(min = 1)
     @NotNull
     private String email;
+
+    @JsonProperty("is_email_hidden")
+    private boolean emailHidden = false;
 
     @Size(min = 1)
     private String bio;

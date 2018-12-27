@@ -42,8 +42,15 @@ public class AuthorController {
     private final Environment environment;
 
     @RequestMapping(value = "/authors/{authorId}", method = RequestMethod.GET)
-    public Map<String, Object> find(@PathVariable long authorId) {
-        AuthorDto dto = authorLayerFacade.findDetailed(authorId);
+    public Map<String, Object> find(JwtUser user, @PathVariable long authorId) {
+        boolean includeEmail = false;
+        if (user != null) {
+            Member member = memberFacade.loadMember(user);
+            if (member.getAuthorId() != null && member.getAuthorId() == authorId) {
+                includeEmail = true;
+            }
+        }
+        AuthorDto dto = authorLayerFacade.findDetailed(authorId, includeEmail);
 
         Map<String, Object> result = new HashMap<>();
         Meta meta = Meta.available();

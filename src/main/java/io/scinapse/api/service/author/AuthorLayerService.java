@@ -425,6 +425,11 @@ public class AuthorLayerService {
             layer.setEmail(updateDto.getEmail());
         }
 
+        if (layer.isEmailHidden() != updateDto.isEmailHidden()) {
+            isUpdated = true;
+            layer.setEmailHidden(updateDto.isEmailHidden());
+        }
+
         if (!StringUtils.equals(layer.getWebPage(), updateDto.getWebPage())) {
             isUpdated = true;
             layer.setWebPage(updateDto.getWebPage());
@@ -521,10 +526,13 @@ public class AuthorLayerService {
         return dtos;
     }
 
-    public void decorateAuthorDetail(AuthorDto dto, AuthorLayer layer) {
+    public void decorateAuthorDetail(AuthorDto dto, AuthorLayer layer, boolean includeEmail) {
         dto.setLayered(true);
         dto.setName(layer.getName());
-        dto.setEmail(layer.getEmail());
+        dto.setEmailHidden(layer.isEmailHidden());
+        if (includeEmail || !layer.isEmailHidden()) {
+            dto.setEmail(layer.getEmail());
+        }
         dto.setPaperCount(layer.getPaperCount());
         dto.setCitationCount(layer.getCitationCount());
         dto.setHIndex(layer.getHindex());

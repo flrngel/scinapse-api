@@ -31,6 +31,10 @@ public class AuthorDto {
     private Integer hIndex;
 
     private String email;
+
+    @JsonProperty("is_email_hidden")
+    private boolean emailHidden;
+
     private String bio;
 
     @JsonProperty("web_page")

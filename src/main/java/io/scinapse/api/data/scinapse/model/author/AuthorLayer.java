@@ -25,6 +25,9 @@ public class AuthorLayer extends BaseEntity {
     @Column
     private String email;
 
+    @Column(nullable = false)
+    private boolean emailHidden = false;
+
     @Column
     private String bio;
 

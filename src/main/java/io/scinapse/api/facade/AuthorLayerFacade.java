@@ -101,7 +101,7 @@ public class AuthorLayerFacade {
         AuthorDto author = authorFacade.find(authorId);
 
         layerService.connect(member, author, dto);
-        return findDetailed(authorId);
+        return findDetailed(authorId, true);
     }
 
     @Transactional
@@ -109,7 +109,7 @@ public class AuthorLayerFacade {
         layerService.disconnect(authorId);
     }
 
-    public AuthorDto findDetailed(long authorId) {
+    public AuthorDto findDetailed(long authorId, boolean includeEmail) {
         AuthorDto dto = authorFacade.find(authorId);
         Optional<AuthorLayer> layer = layerService.find(authorId);
 
@@ -119,7 +119,7 @@ public class AuthorLayerFacade {
         }
 
         // put detailed information.
-        layerService.decorateAuthorDetail(dto, layer.get());
+        layerService.decorateAuthorDetail(dto, layer.get(), includeEmail);
 
         // add representative publication information.
         List<Long> paperIds = layerService.findRepresentativePapers(authorId)
@@ -170,7 +170,7 @@ public class AuthorLayerFacade {
         checkOwner(member, layer.getAuthorId());
 
         layerService.update(layer, updateDto);
-        return findDetailed(authorId);
+        return findDetailed(authorId, true);
     }
 
     @Transactional
