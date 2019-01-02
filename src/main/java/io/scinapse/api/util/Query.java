@@ -106,7 +106,7 @@ public class Query {
                 .field("journal.title")
                 .field("title")
                 .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .cutoffFrequency(0.0001f);
+                .minimumShouldMatch("-25%");
 
         MultiMatchQueryBuilder mainQuery2 = QueryBuilders.multiMatchQuery(text, "title.stemmed")
                 .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
@@ -134,13 +134,13 @@ public class Query {
     public QueryBuilder getMainQueryClause() {
 
         MultiMatchQueryBuilder mainQuery1 = QueryBuilders.multiMatchQuery(text, "fos.name") // initializing field cannot contain boost factor
-                .field("title", 5)
-                .field("abstract", 5)
-                .field("authors.name", 3)
+                .field("title")
+                .field("abstract")
+                .field("authors.name")
                 .field("authors.affiliation.name")
                 .field("journal.title")
                 .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .cutoffFrequency(0.0001f); // combining with minimum_should_match seems to have a bug.
+                .minimumShouldMatch("-25%"); // combining with minimum_should_match seems to have a bug.
 
         MultiMatchQueryBuilder mainQuery2 = QueryBuilders.multiMatchQuery(text, "title.stemmed", "abstract.stemmed")
                 .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
