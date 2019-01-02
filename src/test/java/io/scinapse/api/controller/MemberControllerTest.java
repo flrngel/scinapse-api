@@ -67,7 +67,7 @@ public class MemberControllerTest {
         created.setEmail(email);
         created.setFirstName(firstName);
         created.setLastName(lastName);
-        created.setAffiliation(affiliation);
+        created.setAffiliationName(affiliation);
 
         when(memberFacade.create(any(MockHttpServletResponse.class), any(MemberDto.class))).thenReturn(created);
 
@@ -81,7 +81,7 @@ public class MemberControllerTest {
                 .andExpect(jsonPath("$.email", String.class).value(email))
                 .andExpect(jsonPath("$.firstName", String.class).value(firstName))
                 .andExpect(jsonPath("$.lastName", String.class).value(lastName))
-                .andExpect(jsonPath("$.affiliation", String.class).value(affiliation));
+                .andExpect(jsonPath("$.affiliation_name", String.class).value(affiliation));
 
         verify(memberFacade, only()).create(any(MockHttpServletResponse.class), any(MemberDto.class));
     }
@@ -154,7 +154,7 @@ public class MemberControllerTest {
         old.setId(memberId);
         old.setFirstName("alice");
         old.setLastName("bob");
-        old.setAffiliation(affiliation);
+        old.setAffiliationName(affiliation);
 
         String updateName = "charles";
         MemberDto requestDto = new MemberDto();
@@ -177,7 +177,7 @@ public class MemberControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName", String.class).value("charles"))
                 .andExpect(jsonPath("$.lastName", String.class).value("bob"))
-                .andExpect(jsonPath("$.affiliation", String.class).value(affiliation));
+                .andExpect(jsonPath("$.affiliation_name", String.class).value(affiliation));
 
         verify(memberService).findMember(memberId);
         verify(memberService).updateMember(eq(old), any());

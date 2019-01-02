@@ -45,8 +45,11 @@ public class Member extends BaseEntity {
     @Column
     private String profileImage;
 
+    @Column
+    private Long affiliationId;
+
     @Column(nullable = false)
-    private String affiliation;
+    private String affiliationName;
 
     @Column
     private String major;

@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 public class AffiliationDto {
 
-    private long id;
+    private Long id;
     private String name;
 
     public AffiliationDto(Affiliation affiliation) {

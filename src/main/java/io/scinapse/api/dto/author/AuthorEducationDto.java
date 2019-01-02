@@ -38,9 +38,11 @@ public class AuthorEducationDto {
     @JsonProperty("is_current")
     private boolean current;
 
-    @Size(min = 1, max = 200)
+    private Long institutionId;
+
+    @Size(min = 1, max = 250)
     @NotNull
-    private String institution;
+    private String institutionName;
 
     @Size(min = 1, max = 200)
     @NotNull
@@ -55,7 +57,8 @@ public class AuthorEducationDto {
         this.startDate = education.getStartDate();
         this.endDate = education.getEndDate();
         this.current = education.isCurrent();
-        this.institution = education.getInstitution();
+        this.institutionId = education.getAffiliationId();
+        this.institutionName = education.getAffiliationName();
         this.department = education.getDepartment();
         this.degree = education.getDegree();
     }
@@ -65,14 +68,15 @@ public class AuthorEducationDto {
         education.setStartDate(this.startDate);
         education.setEndDate(this.endDate);
         education.setCurrent(this.current);
-        education.setInstitution(this.institution);
+        education.setAffiliationId(this.institutionId);
+        education.setAffiliationName(this.institutionName);
         education.setDepartment(this.department);
         education.setDegree(this.degree);
         return education;
     }
 
-    public void setInstitution(String institution) {
-        this.institution = StringUtils.normalizeSpace(institution);
+    public void setInstitutionName(String institutionName) {
+        this.institutionName = StringUtils.normalizeSpace(institutionName);
     }
 
     public void setDepartment(String department) {

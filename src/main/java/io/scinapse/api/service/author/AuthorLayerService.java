@@ -3,6 +3,7 @@ package io.scinapse.api.service.author;
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.configuration.ScinapseConstant;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.data.academic.Affiliation;
 import io.scinapse.api.data.academic.Paper;
 import io.scinapse.api.data.academic.repository.*;
 import io.scinapse.api.data.scinapse.model.Member;
@@ -16,6 +17,7 @@ import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.service.mag.PaperService;
 import io.scinapse.api.util.IdUtils;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -435,24 +437,10 @@ public class AuthorLayerService {
             layer.setWebPage(updateDto.getWebPage());
         }
 
-        Long updateAffiliationId = updateDto.getAffiliationId();
-        Long oldAffiliationId = layer.getLastKnownAffiliationId();
-        if (updateAffiliationId == null) {
-            if (oldAffiliationId != null) { // case : user removes last known affiliation
-                isUpdated = true;
-                layer.setLastKnownAffiliationId(null);
-            }
-        } else {
-            if (updateAffiliationId <= 0) {
-                throw new BadRequestException("Cannot update affiliation with invalid affiliation ID: " + updateAffiliationId);
-            }
-            if (!updateAffiliationId.equals(oldAffiliationId)) { // case : user updates last known affiliation
-                if (!affiliationRepository.exists(updateAffiliationId)) {
-                    throw new BadRequestException("Cannot update affiliation with invalid affiliation ID: " + updateAffiliationId);
-                }
-                isUpdated = true;
-                layer.setLastKnownAffiliationId(updateAffiliationId);
-            }
+        if (ObjectUtils.compare(layer.getLastKnownAffiliationId(), updateDto.getAffiliationId()) != 0
+                || !StringUtils.equals(layer.getLastKnownAffiliationName(), updateDto.getAffiliationName())) {
+            isUpdated = true;
+            updateAffiliation(layer, updateDto);
         }
 
         if (isUpdated) {
@@ -460,6 +448,52 @@ public class AuthorLayerService {
         }
 
         return layer;
+    }
+
+    private void updateAffiliation(AuthorLayer layer, AuthorLayerUpdateDto updateDto) {
+        String updatedAffiliationName = updateDto.getAffiliationName();
+        Long updatedAffiliationId = updateDto.getAffiliationId();
+
+        if (StringUtils.isBlank(updatedAffiliationName) && updatedAffiliationId == null) {
+            // user tries to remove last known affiliation.
+            layer.setLastKnownAffiliationId(null);
+            layer.setLastKnownAffiliationName(null);
+            return;
+        }
+
+        if (StringUtils.isBlank(updatedAffiliationName) && updatedAffiliationId != null) {
+            // this case should not exist. exception case.
+            Affiliation updatedAffiliation = Optional.ofNullable(affiliationRepository.findOne(updatedAffiliationId))
+                    .orElseThrow(() -> new BadRequestException("Cannot update affiliation with invalid affiliation Id: " + updatedAffiliationId));
+            layer.setLastKnownAffiliationId(updatedAffiliation.getId());
+            layer.setLastKnownAffiliationName(updatedAffiliation.getName());
+            return;
+        }
+
+        if (StringUtils.isBlank(updatedAffiliationName)) {
+            throw new BadRequestException("The affiliation name must exist.");
+        }
+
+        if (updatedAffiliationId == null) {
+            // user tries to use custom affiliation.
+            layer.setLastKnownAffiliationId(null);
+            layer.setLastKnownAffiliationName(updatedAffiliationName);
+            return;
+        }
+
+        // check affiliation id validity
+        Affiliation updatedAffiliation = Optional.ofNullable(affiliationRepository.findOne(updatedAffiliationId))
+                .orElseThrow(() -> new BadRequestException("Cannot update affiliation with invalid affiliation Id: " + updatedAffiliationId));
+        if (!StringUtils.equals(updatedAffiliation.getName(), updatedAffiliationName)) {
+            throw new BadRequestException("The affiliation name was modified. " +
+                    "Original Id: [ " + updatedAffiliation.getId() + " ], " +
+                    "Original name: [ " + updatedAffiliation.getName() + " ], " +
+                    "Updated name: [ " + updatedAffiliationName + " ]");
+        }
+
+        // set valid affiliation
+        layer.setLastKnownAffiliationId(updatedAffiliationId);
+        layer.setLastKnownAffiliationName(updatedAffiliationName);
     }
 
     @Transactional
@@ -519,8 +553,11 @@ public class AuthorLayerService {
                     dto.setLayered(true);
                     dto.setName(layer.getName());
                     dto.setHIndex(layer.getHindex());
+
                     Optional.ofNullable(layer.getProfileImage())
                             .ifPresent(key -> dto.setProfileImageUrl(ScinapseConstant.SCINAPSE_MEDIA_URL + key));
+
+                    decorateAffiliation(layer, dto);
                 });
 
         return dtos;
@@ -538,13 +575,11 @@ public class AuthorLayerService {
         dto.setHIndex(layer.getHindex());
         dto.setBio(layer.getBio());
         dto.setWebPage(layer.getWebPage());
+
         Optional.ofNullable(layer.getProfileImage())
                 .ifPresent(key -> dto.setProfileImageUrl(ScinapseConstant.SCINAPSE_MEDIA_URL + key));
 
-        Optional.ofNullable(layer.getLastKnownAffiliationId())
-                .map(affiliationRepository::findOne)
-                .map(AffiliationDto::new)
-                .ifPresent(dto::setLastKnownAffiliation);
+        decorateAffiliation(layer, dto);
 
         if (!CollectionUtils.isEmpty(layer.getFosList())) {
             List<Long> fosIds = layer.getFosList()
@@ -572,6 +607,17 @@ public class AuthorLayerService {
         }
     }
 
+    private void decorateAffiliation(AuthorLayer layer, AuthorDto dto) {
+        if (layer.getLastKnownAffiliationId() == null && StringUtils.isBlank(layer.getLastKnownAffiliationName())) {
+            dto.setLastKnownAffiliation(null);
+        } else {
+            AffiliationDto affiliationDto = new AffiliationDto();
+            affiliationDto.setId(layer.getLastKnownAffiliationId());
+            affiliationDto.setName(layer.getLastKnownAffiliationName());
+            dto.setLastKnownAffiliation(affiliationDto);
+        }
+    }
+
     public List<AuthorSearchPaperDto> decorateSearchResult(long authorId, List<PaperDto> paperDtos) {
         Set<Long> paperIds = paperDtos.stream().map(PaperDto::getId).collect(Collectors.toSet());
         Map<Long, AuthorLayerPaper> layerPaperMap = authorLayerPaperRepository.findByIdAuthorIdAndIdPaperIdIn(authorId, paperIds)
@@ -594,6 +640,7 @@ public class AuthorLayerService {
     @Transactional
     public AuthorEducation addEducation(AuthorLayer layer, AuthorEducation education) {
         checkDateValidity(education.getStartDate(), education.getEndDate());
+        checkAffiliationValidity(education.getAffiliationId(), education.getAffiliationName());
 
         education.setId(IdUtils.generateStringId(educationRepository));
         education.setAuthor(layer);
@@ -607,11 +654,13 @@ public class AuthorLayerService {
     @Transactional
     public AuthorEducation updateEducation(AuthorEducation old, AuthorEducation updated) {
         checkDateValidity(updated.getStartDate(), updated.getEndDate());
+        checkAffiliationValidity(updated.getAffiliationId(), updated.getAffiliationName());
 
         old.setStartDate(updated.getStartDate());
         old.setEndDate(updated.getEndDate());
         old.setCurrent(updated.isCurrent());
-        old.setInstitution(updated.getInstitution());
+        old.setAffiliationId(updated.getAffiliationId());
+        old.setAffiliationName(updated.getAffiliationName());
         old.setDepartment(updated.getDepartment());
         old.setDegree(updated.getDegree());
         return old;
@@ -625,6 +674,7 @@ public class AuthorLayerService {
     @Transactional
     public AuthorExperience addExperience(AuthorLayer layer, AuthorExperience experience) {
         checkDateValidity(experience.getStartDate(), experience.getEndDate());
+        checkAffiliationValidity(experience.getAffiliationId(), experience.getAffiliationName());
 
         experience.setId(IdUtils.generateStringId(experienceRepository));
         experience.setAuthor(layer);
@@ -638,11 +688,13 @@ public class AuthorLayerService {
     @Transactional
     public AuthorExperience updateExperience(AuthorExperience old, AuthorExperience updated) {
         checkDateValidity(updated.getStartDate(), updated.getEndDate());
+        checkAffiliationValidity(updated.getAffiliationId(), updated.getAffiliationName());
 
         old.setStartDate(updated.getStartDate());
         old.setEndDate(updated.getEndDate());
         old.setCurrent(updated.isCurrent());
-        old.setInstitution(updated.getInstitution());
+        old.setAffiliationId(updated.getAffiliationId());
+        old.setAffiliationName(updated.getAffiliationName());
         old.setDepartment(updated.getDepartment());
         old.setPosition(updated.getPosition());
         old.setDescription(updated.getDescription());
@@ -687,6 +739,27 @@ public class AuthorLayerService {
         }
         if (startDate.after(endDate)) {
             throw new BadRequestException("start date must be set before end date.");
+        }
+    }
+
+    private void checkAffiliationValidity(Long affiliationId, String affiliationName) {
+        if (StringUtils.isBlank(affiliationName)) {
+            throw new BadRequestException("Affiliation name must exist.");
+        }
+
+        if (affiliationId == null) {
+            // custom affiliation. no need to check.
+            return;
+        }
+
+        // user tries to use auto completed affiliation. check if user modified affiliation name.
+        Affiliation updatedAffiliation = Optional.ofNullable(affiliationRepository.findOne(affiliationId))
+                .orElseThrow(() -> new BadRequestException("Cannot update affiliation with invalid affiliation Id: " + affiliationId));
+        if (!StringUtils.equals(updatedAffiliation.getName(), affiliationName)) {
+            throw new BadRequestException("The affiliation name was modified. " +
+                    "Original Id: [ " + updatedAffiliation.getId() + " ], " +
+                    "Original name: [ " + updatedAffiliation.getName() + " ], " +
+                    "Updated name: [ " + affiliationName + " ]");
         }
     }
 

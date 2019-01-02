@@ -23,6 +23,9 @@ public class AuthorLayer extends BaseEntity {
     private Long lastKnownAffiliationId;
 
     @Column
+    private String lastKnownAffiliationName;
+
+    @Column
     private String email;
 
     @Column(nullable = false)

@@ -1,11 +1,14 @@
 package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.data.academic.Affiliation;
+import io.scinapse.api.data.academic.repository.AffiliationRepository;
 import io.scinapse.api.data.scinapse.model.Authority;
 import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.data.scinapse.repository.AuthorityRepository;
 import io.scinapse.api.data.scinapse.repository.MemberRepository;
 import io.scinapse.api.enums.AuthorityName;
+import io.scinapse.api.error.BadRequestException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Collections;
+import java.util.Optional;
 
 @XRayEnabled
 @Transactional(readOnly = true)
@@ -24,9 +28,12 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final AuthorityRepository authorityRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AffiliationRepository affiliationRepository;
 
     @Transactional
     public Member saveMember(@NonNull Member member) {
+        checkAffiliationValidity(member.getAffiliationId(), member.getAffiliationName());
+
         if (StringUtils.hasText(member.getPassword())) {
             member.setPassword(passwordEncoder.encode(member.getPassword()));
         }
@@ -39,9 +46,12 @@ public class MemberService {
 
     @Transactional
     public Member updateMember(@NonNull Member old, @NonNull Member updated) {
+        checkAffiliationValidity(updated.getAffiliationId(), updated.getAffiliationName());
+
         old.setFirstName(updated.getFirstName());
         old.setLastName(updated.getLastName());
-        old.setAffiliation(updated.getAffiliation());
+        old.setAffiliationId(updated.getAffiliationId());
+        old.setAffiliationName(updated.getAffiliationName());
         old.setMajor(updated.getMajor());
         return old;
     }
@@ -79,6 +89,27 @@ public class MemberService {
             member.getAuthorities().iterator();
         }
         return member;
+    }
+
+    private void checkAffiliationValidity(Long affiliationId, String affiliationName) {
+        if (org.apache.commons.lang3.StringUtils.isBlank(affiliationName)) {
+            throw new BadRequestException("Affiliation name must exist.");
+        }
+
+        if (affiliationId == null) {
+            // custom affiliation. no need to check.
+            return;
+        }
+
+        // user tries to use auto completed affiliation. check if user modified affiliation name.
+        Affiliation updatedAffiliation = Optional.ofNullable(affiliationRepository.findOne(affiliationId))
+                .orElseThrow(() -> new BadRequestException("Cannot update affiliation with invalid affiliation Id: " + affiliationId));
+        if (!org.apache.commons.lang3.StringUtils.equals(updatedAffiliation.getName(), affiliationName)) {
+            throw new BadRequestException("The affiliation name was modified. " +
+                    "Original Id: [ " + updatedAffiliation.getId() + " ], " +
+                    "Original name: [ " + updatedAffiliation.getName() + " ], " +
+                    "Updated name: [ " + affiliationName + " ]");
+        }
     }
 
 }

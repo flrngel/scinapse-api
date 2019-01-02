@@ -42,6 +42,9 @@ public class AuthorLayerUpdateDto {
 
     private Long affiliationId;
 
+    @Size(min = 1)
+    private String affiliationName;
+
     public void setName(String name) {
         this.name = StringUtils.normalizeSpace(name);
     }
@@ -52,6 +55,10 @@ public class AuthorLayerUpdateDto {
 
     public void setWebPage(String webPage) {
         this.webPage = StringUtils.normalizeSpace(webPage);
+    }
+
+    public void setAffiliationName(String affiliationName) {
+        this.affiliationName = StringUtils.normalizeSpace(affiliationName);
     }
 
 }

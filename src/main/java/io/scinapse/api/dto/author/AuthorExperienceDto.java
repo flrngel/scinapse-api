@@ -38,9 +38,11 @@ public class AuthorExperienceDto {
     @JsonProperty("is_current")
     private boolean current;
 
-    @Size(min = 1, max = 200)
+    private Long institutionId;
+
+    @Size(min = 1, max = 250)
     @NotNull
-    private String institution;
+    private String institutionName;
 
     @Size(min = 1, max = 200)
     @NotNull
@@ -58,7 +60,8 @@ public class AuthorExperienceDto {
         this.startDate = experience.getStartDate();
         this.endDate = experience.getEndDate();
         this.current = experience.isCurrent();
-        this.institution = experience.getInstitution();
+        this.institutionId = experience.getAffiliationId();
+        this.institutionName = experience.getAffiliationName();
         this.department = experience.getDepartment();
         this.position = experience.getPosition();
         this.description = experience.getDescription();
@@ -69,15 +72,16 @@ public class AuthorExperienceDto {
         experience.setStartDate(this.startDate);
         experience.setEndDate(this.endDate);
         experience.setCurrent(this.current);
-        experience.setInstitution(this.institution);
+        experience.setAffiliationId(this.institutionId);
+        experience.setAffiliationName(this.institutionName);
         experience.setDepartment(this.department);
         experience.setPosition(this.position);
         experience.setDescription(this.description);
         return experience;
     }
 
-    public void setInstitution(String institution) {
-        this.institution = StringUtils.normalizeSpace(institution);
+    public void setInstitutionName(String institutionName) {
+        this.institutionName = StringUtils.normalizeSpace(institutionName);
     }
 
     public void setDepartment(String department) {

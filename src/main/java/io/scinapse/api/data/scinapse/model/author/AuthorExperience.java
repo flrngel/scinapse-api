@@ -30,8 +30,11 @@ public class AuthorExperience extends BaseEntity {
     @Column(nullable = false)
     private boolean current;
 
+    @Column
+    private Long affiliationId;
+
     @Column(nullable = false)
-    private String institution;
+    private String affiliationName;
 
     @Column
     private String department;

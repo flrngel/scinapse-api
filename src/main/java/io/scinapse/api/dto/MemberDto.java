@@ -7,7 +7,6 @@ import io.scinapse.api.configuration.ScinapseConstant;
 import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.dto.oauth.OauthUserDto;
 import io.scinapse.api.validator.NoSpecialChars;
-import io.scinapse.api.validator.Update;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +17,6 @@ import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.validation.groups.Default;
 import java.util.Optional;
 
 @NoArgsConstructor
@@ -61,9 +59,13 @@ public class MemberDto {
     @JsonProperty("author_id")
     private Long authorId;
 
-    @Size(min = 1, max = 200, groups = { Default.class, Update.class })
-    @NotNull(groups = { Default.class, Update.class })
-    private String affiliation;
+    @JsonProperty("affiliation_id")
+    private Long affiliationId;
+
+    @Size(min = 1, max = 250)
+    @NotNull
+    @JsonProperty("affiliation_name")
+    private String affiliationName;
 
     @Size(max = 250)
     private String major;
@@ -78,8 +80,11 @@ public class MemberDto {
         this.email = member.getEmail();
         this.emailVerified = member.isEmailVerified();
         this.profileImage = member.getProfileImage();
-        this.affiliation = member.getAffiliation();
         this.major = member.getMajor();
+
+        this.affiliationId = member.getAffiliationId();
+        this.affiliationName = member.getAffiliationName();
+
 
         this.firstName = member.getFirstName();
         this.lastName = member.getLastName();
@@ -94,11 +99,14 @@ public class MemberDto {
         member.setEmail(this.email);
         member.setPassword(this.password);
         member.setProfileImage(this.profileImage);
-        member.setAffiliation(this.affiliation);
         member.setMajor(this.major);
 
         member.setFirstName(this.firstName);
         member.setLastName(this.lastName);
+
+        member.setAffiliationId(this.affiliationId);
+        member.setAffiliationName(this.affiliationName);
+
         return member;
     }
 
@@ -119,8 +127,16 @@ public class MemberDto {
         this.lastName = StringUtils.normalizeSpace(lastName);
     }
 
+    public void setAffiliationName(String affiliationName) {
+        this.affiliationName = StringUtils.normalizeSpace(affiliationName);
+    }
+
     public void setAffiliation(String affiliation) {
-        this.affiliation = StringUtils.normalizeSpace(affiliation);
+        this.affiliationName = StringUtils.normalizeSpace(affiliation);
+    }
+
+    public String getAffiliation() {
+        return this.affiliationName;
     }
 
     @JsonGetter("is_author_connected")
