@@ -101,6 +101,9 @@ public class AuthorLayerService {
         authorLayerFosRepository.deleteByIdAuthorId(authorId);
         authorLayerPaperHistoryRepository.deleteByAuthorId(authorId);
         authorLayerPaperRepository.deleteByIdAuthorId(authorId);
+        educationRepository.deleteByAuthorAuthorId(authorId);
+        experienceRepository.deleteByAuthorAuthorId(authorId);
+        awardRepository.deleteByAuthorAuthorId(authorId);
 
         if (authorLayerRepository.exists(authorId)) {
             authorLayerRepository.delete(authorId);
@@ -117,7 +120,10 @@ public class AuthorLayerService {
         authorLayer.setCitationCount(author.getCitationCount());
 
         Optional.ofNullable(author.getLastKnownAffiliation())
-                .ifPresent(aff -> authorLayer.setLastKnownAffiliationId(aff.getId()));
+                .ifPresent(aff -> {
+                    authorLayer.setLastKnownAffiliationId(aff.getId());
+                    authorLayer.setLastKnownAffiliationName(aff.getName());
+                });
 
         AuthorLayer saved = authorLayerRepository.saveAndFlush(authorLayer);
 
