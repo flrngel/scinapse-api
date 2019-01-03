@@ -191,8 +191,8 @@ public class CollectionFacade {
             throw new ResourceNotFoundException("Collection not found : " + request.getCollectionId());
         }
 
-        if (one.getPaperCount() >= 100) {
-            throw new BadRequestException("You can only add up to 100 papers to a collection");
+        if (one.getPaperCount() >= 1000) {
+            throw new BadRequestException("You can only add up to 1000 papers to a collection");
         }
 
         if (one.getCreatedBy().getId() != user.getId()) {
