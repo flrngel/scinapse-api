@@ -16,6 +16,8 @@ import io.scinapse.api.error.ExternalApiCallException;
 import io.scinapse.api.error.ImageProcessingFailedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.geometry.Positions;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,8 +59,10 @@ public class ImageUploadService {
             throw new BadRequestException("The content type is not supported: " + imageFile.getContentType());
         }
 
-        BufferedImage scaledImage = getScaledImage(imageFile);
-        ByteArrayInputStream inputStream = convertToJpegStream(scaledImage);
+//        BufferedImage scaledImage = getScaledImage(imageFile);
+//        ByteArrayInputStream inputStream = convertToJpegStream(scaledImage);
+
+        ByteArrayInputStream inputStream = convertToJpegStream(imageFile);
 
         String objectKey = imagePath + UUID.randomUUID().toString() + JPEG_EXTENSION;
 
@@ -76,6 +80,42 @@ public class ImageUploadService {
         } catch (InterruptedException e) {
             throw new ExternalApiCallException("Fail to upload image: " + e.getMessage());
         }
+    }
+
+    private ByteArrayInputStream convertToJpegStream(MultipartFile file) {
+        int scaledLength = getScaledLength(file);
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+        try {
+            Thumbnails.of(file.getInputStream())
+                    .size(scaledLength, scaledLength)
+                    .crop(Positions.CENTER)
+                    .imageType(BufferedImage.TYPE_INT_RGB)
+                    .outputFormat(JPEG)
+                    .outputQuality(0.89f) // set efficient quality
+                    .toOutputStream(os);
+        } catch (IOException e) {
+            throw new ImageProcessingFailedException("Cannot process the image file: " + e.getMessage());
+        }
+
+        byte[] buffer = os.toByteArray();
+        return new ByteArrayInputStream(buffer);
+    }
+
+    private int getScaledLength(MultipartFile file) {
+        BufferedImage originalImage;
+        try {
+            originalImage = ImageIO.read(file.getInputStream());
+        } catch (IOException e) {
+            throw new BadRequestException("Cannot read the image file: " + e.getMessage());
+        }
+
+        if (originalImage == null) {
+            throw new BadRequestException("Cannot read the image file: " + file.getContentType());
+        }
+
+        return Math.min(400, Math.min(originalImage.getWidth(), originalImage.getHeight()));
     }
 
     private ByteArrayInputStream convertToJpegStream(BufferedImage scaledImage) {
