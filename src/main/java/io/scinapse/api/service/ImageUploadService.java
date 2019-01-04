@@ -50,6 +50,8 @@ public class ImageUploadService {
     private static final String JPEG = "JPEG";
     private static final String JPEG_MIME = "image/jpeg";
     private static final String JPEG_EXTENSION = ".jpg";
+    private static final int MAX_LENGTH_SHORTER_SIDE = 400;
+    private static final int MAX_LENGTH_LONGER_SIDE = 1000;
 
     private AmazonS3 s3Client = AmazonS3ClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
     private TransferManager tm = TransferManagerBuilder.standard().withS3Client(s3Client).build();
@@ -83,13 +85,13 @@ public class ImageUploadService {
     }
 
     private ByteArrayInputStream convertToJpegStream(MultipartFile file) {
-        int scaledLength = getScaledLength(file);
+        int[] scaledLength = getScaledLength(file);
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         try {
             Thumbnails.of(file.getInputStream())
-                    .size(scaledLength, scaledLength)
+                    .size(scaledLength[0], scaledLength[1])
                     .crop(Positions.CENTER)
                     .imageType(BufferedImage.TYPE_INT_RGB)
                     .outputFormat(JPEG)
@@ -103,19 +105,32 @@ public class ImageUploadService {
         return new ByteArrayInputStream(buffer);
     }
 
-    private int getScaledLength(MultipartFile file) {
-        BufferedImage originalImage;
+    private int[] getScaledLength(MultipartFile file) {
+        BufferedImage sourceImage;
         try {
-            originalImage = ImageIO.read(file.getInputStream());
+            sourceImage = ImageIO.read(file.getInputStream());
         } catch (IOException e) {
             throw new BadRequestException("Cannot read the image file: " + e.getMessage());
         }
 
-        if (originalImage == null) {
+        if (sourceImage == null) {
             throw new BadRequestException("Cannot read the image file: " + file.getContentType());
         }
 
-        return Math.min(400, Math.min(originalImage.getWidth(), originalImage.getHeight()));
+        int scaledWidth, scaledHeight;
+        int sourceWidth = sourceImage.getWidth();
+        int sourceHeight = sourceImage.getHeight();
+        double sourceRatio = (double) sourceWidth / (double) sourceHeight;
+
+        if (sourceRatio > 1) { // width long
+            scaledHeight = Math.min(MAX_LENGTH_SHORTER_SIDE, sourceHeight);
+            scaledWidth = Math.min(MAX_LENGTH_LONGER_SIDE, (int) Math.round(scaledHeight * sourceRatio));
+        } else { // height long
+            scaledWidth = Math.min(MAX_LENGTH_SHORTER_SIDE, sourceWidth);
+            scaledHeight = Math.min(MAX_LENGTH_LONGER_SIDE, (int) Math.round(scaledWidth / sourceRatio));
+        }
+
+        return new int[] { scaledWidth, scaledHeight };
     }
 
     private ByteArrayInputStream convertToJpegStream(BufferedImage scaledImage) {
