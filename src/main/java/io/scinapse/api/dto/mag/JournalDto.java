@@ -19,8 +19,8 @@ public class JournalDto {
     private String issn;
     private String webPage;
     private Double impactFactor;
-    private Long paperCount;
-    private Long citationCount;
+    private long paperCount;
+    private long citationCount;
     private List<JournalFosDto> fosList;
 
     @Deprecated

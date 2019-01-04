@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @BatchSize(size = 10)
@@ -41,5 +42,13 @@ public class Journal {
     @BatchSize(size = 50)
     @OneToMany(mappedBy = "journal")
     private List<JournalFos> fosList = new ArrayList<>();
+
+    public long getPaperCount() {
+        return Optional.ofNullable(this.paperCount).orElse(0L);
+    }
+
+    public long getCitationCount() {
+        return Optional.ofNullable(this.citationCount).orElse(0L);
+    }
 
 }

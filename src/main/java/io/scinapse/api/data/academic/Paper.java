@@ -10,6 +10,7 @@ import org.springframework.util.CollectionUtils;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @BatchSize(size = 10)
 @Getter
@@ -78,6 +79,14 @@ public class Paper {
             return null;
         }
         return paperAbstractHolder.get(0);
+    }
+
+    public long getReferenceCount() {
+        return Optional.ofNullable(this.referenceCount).orElse(0L);
+    }
+
+    public long getCitationCount() {
+        return Optional.ofNullable(this.citationCount).orElse(0L);
     }
 
 }

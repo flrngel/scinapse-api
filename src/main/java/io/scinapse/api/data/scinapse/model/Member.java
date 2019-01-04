@@ -51,9 +51,6 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private String affiliationName;
 
-    @Column
-    private String major;
-
     @Column(nullable = false)
     private boolean emailVerified = false;
 

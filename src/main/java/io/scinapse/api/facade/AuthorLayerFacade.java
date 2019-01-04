@@ -129,7 +129,6 @@ public class AuthorLayerFacade {
                 .collect(Collectors.toList());
         List<PaperDto> representative = paperFacade.findIn(paperIds, PaperConverter.detail());
         dto.setRepresentativePapers(representative);
-        dto.setSelectedPapers(representative);
 
         return dto;
     }

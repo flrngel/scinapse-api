@@ -52,7 +52,6 @@ public class MemberService {
         old.setLastName(updated.getLastName());
         old.setAffiliationId(updated.getAffiliationId());
         old.setAffiliationName(updated.getAffiliationName());
-        old.setMajor(updated.getMajor());
         return old;
     }
 

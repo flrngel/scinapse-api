@@ -6,6 +6,7 @@ import org.hibernate.annotations.Nationalized;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import java.util.Optional;
 
 @Getter
 @Entity
@@ -26,5 +27,13 @@ public class FieldsOfStudy {
 
     @Column
     private Long citationCount;
+
+    public long getPaperCount() {
+        return Optional.ofNullable(this.paperCount).orElse(0L);
+    }
+
+    public long getCitationCount() {
+        return Optional.ofNullable(this.citationCount).orElse(0L);
+    }
 
 }

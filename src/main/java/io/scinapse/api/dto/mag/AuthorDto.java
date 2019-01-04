@@ -1,6 +1,5 @@
 package io.scinapse.api.dto.mag;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.data.academic.Author;
 import lombok.Getter;
@@ -22,10 +21,10 @@ public class AuthorDto {
     private AffiliationDto lastKnownAffiliation;
 
     @JsonProperty("paper_count")
-    private Long paperCount;
+    private long paperCount;
 
     @JsonProperty("citation_count")
-    private Long citationCount;
+    private long citationCount;
 
     @JsonProperty("hindex")
     private Integer hIndex;
@@ -45,9 +44,6 @@ public class AuthorDto {
 
     @JsonProperty("is_layered")
     private boolean layered = false;
-
-    @JsonProperty("selected_papers")
-    private List<PaperDto> selectedPapers = new ArrayList<>();
 
     @JsonProperty("representative_papers")
     private List<PaperDto> representativePapers = new ArrayList<>();
@@ -71,11 +67,6 @@ public class AuthorDto {
         if (author.getLastKnownAffiliation() != null) {
             this.lastKnownAffiliation = new AffiliationDto(author.getLastKnownAffiliation());
         }
-    }
-
-    @JsonGetter("webPage")
-    public String getCamelWebPage() {
-        return this.webPage;
     }
 
 }

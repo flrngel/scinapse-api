@@ -67,8 +67,8 @@ public class PaperDto {
         this.doi = paper.getDoi();
         this.volume = paper.getVolume();
         this.issue = paper.getIssue();
-        this.referenceCount = paper.getReferenceCount() != null ? paper.getReferenceCount() : 0;
-        this.citedCount = paper.getCitationCount() != null ? paper.getCitationCount() : 0;
+        this.referenceCount = paper.getReferenceCount();
+        this.citedCount = paper.getCitationCount();
     }
 
     public static PaperDto of(Paper paper) {

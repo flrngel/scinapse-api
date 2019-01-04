@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Email;
-import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -49,10 +48,6 @@ public class MemberDto {
     @NotNull
     private String lastName;
 
-    @Size(max = 250)
-    @URL
-    private String profileImage;
-
     @JsonProperty("profile_image_url")
     private String profileImageUrl;
 
@@ -67,20 +62,12 @@ public class MemberDto {
     @JsonProperty("affiliation_name")
     private String affiliationName;
 
-    @Size(max = 250)
-    private String major;
-
-    @ApiModelProperty(readOnly = true)
-    private long commentCount;
-
     private OauthUserDto oauth;
 
     public MemberDto(Member member) {
         this.id = member.getId();
         this.email = member.getEmail();
         this.emailVerified = member.isEmailVerified();
-        this.profileImage = member.getProfileImage();
-        this.major = member.getMajor();
 
         this.affiliationId = member.getAffiliationId();
         this.affiliationName = member.getAffiliationName();
@@ -98,8 +85,6 @@ public class MemberDto {
         Member member = new Member();
         member.setEmail(this.email);
         member.setPassword(this.password);
-        member.setProfileImage(this.profileImage);
-        member.setMajor(this.major);
 
         member.setFirstName(this.firstName);
         member.setLastName(this.lastName);

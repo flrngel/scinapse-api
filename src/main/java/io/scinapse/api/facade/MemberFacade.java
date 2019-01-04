@@ -9,7 +9,6 @@ import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.security.TokenHelper;
 import io.scinapse.api.security.jwt.JwtUser;
-import io.scinapse.api.service.CommentService;
 import io.scinapse.api.service.EmailVerificationService;
 import io.scinapse.api.service.MemberService;
 import io.scinapse.api.service.PasswordResetService;
@@ -30,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 public class MemberFacade {
 
     private final MemberService memberService;
-    private final CommentService commentService;
     private final EmailVerificationService emailVerificationService;
     private final TokenHelper tokenHelper;
     private final OauthFacade oauthFacade;
@@ -43,12 +41,7 @@ public class MemberFacade {
             throw new ResourceNotFoundException("Member not found: " + memberId);
         }
 
-        long commentCount = commentService.getCount(member);
-
-        MemberDto memberDto = new MemberDto(member);
-        memberDto.setCommentCount(commentCount);
-
-        return memberDto;
+        return new MemberDto(member);
     }
 
     @Transactional
