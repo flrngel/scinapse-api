@@ -4,6 +4,7 @@ import io.scinapse.api.dto.collection.CollectionDto;
 import io.scinapse.api.dto.collection.CollectionPaperDto;
 import io.scinapse.api.dto.collection.CollectionPaperUpdateRequest;
 import io.scinapse.api.dto.collection.MyCollectionDto;
+import io.scinapse.api.dto.response.Response;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.facade.CollectionFacade;
 import io.scinapse.api.security.jwt.JwtUser;
@@ -101,6 +102,11 @@ public class CollectionController {
         result.put("data", dtos);
 
         return result;
+    }
+
+    @RequestMapping(value = "/collections/{collectionId}/papers", method = RequestMethod.GET, params = "page")
+    public Response<List<CollectionPaperDto>> getPapers(@PathVariable long collectionId, PageRequest pageRequest) {
+        return Response.success(collectionFacade.getPapers(collectionId, pageRequest));
     }
 
     @RequestMapping(value = "/collections/{collectionId}/papers", method = RequestMethod.POST)

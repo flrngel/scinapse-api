@@ -1,12 +1,14 @@
 package io.scinapse.api.data.scinapse.repository;
 
 import io.scinapse.api.data.scinapse.model.CollectionPaper;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
 public interface CollectionPaperRepository extends JpaRepository<CollectionPaper, CollectionPaper.CollectionPaperId> {
     List<CollectionPaper> findByIdCollectionIdOrderByUpdatedAtDesc(long collectionId);
+    List<CollectionPaper> findByIdCollectionIdOrderByUpdatedAtDesc(long collectionId, Pageable pageable);
     List<CollectionPaper> findByIdCollectionIdInAndIdPaperId(List<Long> collectionIds, long paperId);
     int countByIdCollectionId(long collectionId);
     void deleteByIdCollectionIdAndIdPaperIdIn(long collectionId, List<Long> paperIds);

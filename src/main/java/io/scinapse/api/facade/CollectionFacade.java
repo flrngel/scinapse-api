@@ -153,18 +153,21 @@ public class CollectionFacade {
             throw new ResourceNotFoundException("Collection not found : " + collectionId);
         }
 
-        List<CollectionPaper> papers = collectionService.findByCollectionId(collectionId);
-        List<CollectionPaperDto> paperDtos = papers.stream().map(CollectionPaperDto::of).collect(Collectors.toList());
+        List<CollectionPaper> collectionPapers = collectionService.findByCollectionId(collectionId);
 
-        List<Long> paperIds = paperDtos.stream().map(CollectionPaperDto::getPaperId).collect(Collectors.toList());
-        Map<Long, PaperDto> map = paperFacade.findIn(paperIds, PaperConverter.compact())
+        List<CollectionPaperDto> collectionPaperDtos = collectionPapers
                 .stream()
-                .collect(Collectors.toMap(
-                        PaperDto::getId,
-                        Function.identity()
-                ));
+                .map(CollectionPaperDto::of)
+                .collect(Collectors.toList());
 
-        return paperDtos
+        List<Long> paperIds = collectionPapers
+                .stream()
+                .map(CollectionPaper::getId)
+                .map(CollectionPaper.CollectionPaperId::getPaperId)
+                .collect(Collectors.toList());
+        Map<Long, PaperDto> map = paperFacade.findMap(paperIds, PaperConverter.compact());
+
+        return collectionPaperDtos
                 .stream()
                 .map(cp -> {
                     PaperDto paper = map.get(cp.getPaperId());
@@ -178,6 +181,44 @@ public class CollectionFacade {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    public Page<CollectionPaperDto> getPapers(long collectionId, PageRequest pageRequest) {
+        Collection one = collectionService.find(collectionId);
+        if (one == null) {
+            throw new ResourceNotFoundException("Collection not found : " + collectionId);
+        }
+
+        List<CollectionPaper> collectionPapers = collectionService.findByCollectionId(collectionId, pageRequest.toPageable());
+
+        List<CollectionPaperDto> collectionPaperDtos = collectionPapers
+                .stream()
+                .map(CollectionPaperDto::of)
+                .collect(Collectors.toList());
+
+        List<Long> paperIds = collectionPapers
+                .stream()
+                .map(CollectionPaper::getId)
+                .map(CollectionPaper.CollectionPaperId::getPaperId)
+                .collect(Collectors.toList());
+        Map<Long, PaperDto> map = paperFacade.findMap(paperIds, PaperConverter.compact());
+
+        List<CollectionPaperDto> dtos = collectionPaperDtos
+                .stream()
+                .map(cp -> {
+                    PaperDto paper = map.get(cp.getPaperId());
+                    if (paper == null) {
+                        return null;
+                    }
+
+                    // set paper dto
+                    cp.setPaper(paper);
+                    return cp;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtos, pageRequest.toPageable(), one.getPaperCount());
     }
 
     @Transactional

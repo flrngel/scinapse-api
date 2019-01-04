@@ -78,6 +78,10 @@ public class CollectionService {
         return collectionPaperRepository.findByIdCollectionIdOrderByUpdatedAtDesc(collectionId);
     }
 
+    public List<CollectionPaper> findByCollectionId(long collectionId, Pageable pageable) {
+        return collectionPaperRepository.findByIdCollectionIdOrderByUpdatedAtDesc(collectionId, pageable);
+    }
+
     public List<CollectionPaper> findByIds(List<Long> collectionIds, long paperId) {
         return collectionPaperRepository.findByIdCollectionIdInAndIdPaperId(collectionIds, paperId);
     }
