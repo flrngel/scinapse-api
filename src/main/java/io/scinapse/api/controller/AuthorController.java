@@ -105,17 +105,20 @@ public class AuthorController {
             if (user == null || CollectionUtils.isEmpty(user.getAuthorities())) {
                 throw new AccessDeniedException("Login is required.");
             }
-            boolean isAdmin = user.getAuthorities()
-                    .stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .anyMatch(auth -> StringUtils.equalsIgnoreCase(auth, AuthorityName.ROLE_ADMIN.name()));
-            if (!isAdmin) {
+            if (!isAdmin(user)) {
                 throw new AccessDeniedException("Access is denied. Only admin user can access.");
             }
         }
 
         authorLayerFacade.disconnect(authorId);
         return Response.success();
+    }
+
+    private boolean isAdmin(JwtUser user) {
+        return user.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(auth -> StringUtils.equalsIgnoreCase(auth, AuthorityName.ROLE_ADMIN.name()));
     }
 
     @RequestMapping(value = "/authors/{authorId}/papers/remove", method = RequestMethod.POST)
@@ -127,7 +130,7 @@ public class AuthorController {
         }
 
         Member member = memberFacade.loadMember(user);
-        authorLayerFacade.removePapers(member, authorId, wrapper.getPaperIds());
+        authorLayerFacade.removePapers(member, isAdmin(user), authorId, wrapper.getPaperIds());
         return Response.success();
     }
 
@@ -140,7 +143,7 @@ public class AuthorController {
         }
 
         Member member = memberFacade.loadMember(user);
-        authorLayerFacade.addPapers(member, authorId, wrapper.getPaperIds());
+        authorLayerFacade.addPapers(member, isAdmin(user), authorId, wrapper.getPaperIds());
         return Response.success();
     }
 

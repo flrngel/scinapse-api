@@ -134,17 +134,21 @@ public class AuthorLayerFacade {
     }
 
     @Transactional
-    public void removePapers(Member member, long authorId, Set<Long> paperIds) {
+    public void removePapers(Member member, boolean admin, long authorId, Set<Long> paperIds) {
         AuthorLayer layer = findLayer(authorId);
-        checkOwner(member, layer.getAuthorId());
+        if (!admin) {
+            checkOwner(member, layer.getAuthorId());
+        }
 
         layerService.removePapers(layer, paperIds);
     }
 
     @Transactional
-    public void addPapers(Member member, long authorId, Set<Long> paperIds) {
+    public void addPapers(Member member, boolean admin, long authorId, Set<Long> paperIds) {
         AuthorLayer layer = findLayer(authorId);
-        checkOwner(member, layer.getAuthorId());
+        if (!admin) {
+            checkOwner(member, layer.getAuthorId());
+        }
 
         layerService.addPapers(layer, paperIds);
     }
