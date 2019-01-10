@@ -219,93 +219,122 @@ public class AuthorLayerFacade {
     }
 
     @Transactional
-    public AuthorEducationDto addEducation(Member member, long authorId, AuthorEducationDto dto) {
+    public List<AuthorEducationDto> addEducation(Member member, long authorId, AuthorEducationDto dto) {
         AuthorLayer layer = findLayer(authorId);
         checkOwner(member, layer.getAuthorId());
 
-        AuthorEducation education = layerService.addEducation(layer, dto.toEntity());
-        return new AuthorEducationDto(education);
+        layerService.addEducation(layer, dto.toEntity());
+        return findEducations(layer.getAuthorId());
+    }
+
+    private List<AuthorEducationDto> findEducations(long authorId) {
+        return layerService.findEducations(authorId)
+                .stream()
+                .map(AuthorEducationDto::new)
+                .sorted(Comparator.comparing(AuthorEducationDto::isCurrent)
+                        .thenComparing(AuthorEducationDto::getStartDate).reversed())
+                .collect(Collectors.toList());
     }
 
     @Transactional
-    public AuthorEducationDto updateEducation(Member member, String educationId, AuthorEducationDto updatedDto) {
+    public List<AuthorEducationDto> updateEducation(Member member, String educationId, AuthorEducationDto updatedDto) {
         AuthorEducation education = layerService.findEducation(educationId)
                 .orElseThrow(() -> new BadRequestException("Author education[" + educationId + "] dose not exist."));
 
         checkOwner(member, education.getAuthor().getAuthorId());
 
-        AuthorEducation updated = layerService.updateEducation(education, updatedDto.toEntity());
-        return new AuthorEducationDto(updated);
+        layerService.updateEducation(education, updatedDto.toEntity());
+        return findEducations(education.getAuthor().getAuthorId());
     }
 
     @Transactional
-    public void deleteEducation(Member member, String educationId) {
+    public List<AuthorEducationDto> deleteEducation(Member member, String educationId) {
         AuthorEducation education = layerService.findEducation(educationId)
                 .orElseThrow(() -> new BadRequestException("Author education[" + educationId + "] dose not exist."));
 
         checkOwner(member, education.getAuthor().getAuthorId());
 
         layerService.deleteEducation(education);
+        return findEducations(education.getAuthor().getAuthorId());
     }
 
     @Transactional
-    public AuthorExperienceDto addExperience(Member member, long authorId, AuthorExperienceDto dto) {
+    public List<AuthorExperienceDto> addExperience(Member member, long authorId, AuthorExperienceDto dto) {
         AuthorLayer layer = findLayer(authorId);
         checkOwner(member, layer.getAuthorId());
 
-        AuthorExperience experience = layerService.addExperience(layer, dto.toEntity());
-        return new AuthorExperienceDto(experience);
+        layerService.addExperience(layer, dto.toEntity());
+        return findExperiences(layer.getAuthorId());
+    }
+
+    private List<AuthorExperienceDto> findExperiences(long authorId) {
+        return layerService.findExperiences(authorId)
+                .stream()
+                .map(AuthorExperienceDto::new)
+                .sorted(Comparator.comparing(AuthorExperienceDto::isCurrent)
+                        .thenComparing(AuthorExperienceDto::getStartDate).reversed())
+                .collect(Collectors.toList());
     }
 
     @Transactional
-    public AuthorExperienceDto updateExperience(Member member, String experienceId, AuthorExperienceDto updatedDto) {
+    public List<AuthorExperienceDto> updateExperience(Member member, String experienceId, AuthorExperienceDto updatedDto) {
         AuthorExperience experience = layerService.findExperience(experienceId)
                 .orElseThrow(() -> new BadRequestException("Author experience[" + experienceId + "] dose not exist."));
 
         checkOwner(member, experience.getAuthor().getAuthorId());
 
-        AuthorExperience updated = layerService.updateExperience(experience, updatedDto.toEntity());
-        return new AuthorExperienceDto(updated);
+        layerService.updateExperience(experience, updatedDto.toEntity());
+        return findExperiences(experience.getAuthor().getAuthorId());
     }
 
     @Transactional
-    public void deleteExperience(Member member, String experienceId) {
+    public List<AuthorExperienceDto> deleteExperience(Member member, String experienceId) {
         AuthorExperience experience = layerService.findExperience(experienceId)
                 .orElseThrow(() -> new BadRequestException("Author experience[" + experienceId + "] dose not exist."));
 
         checkOwner(member, experience.getAuthor().getAuthorId());
 
         layerService.deleteExperience(experience);
+        return findExperiences(experience.getAuthor().getAuthorId());
     }
 
     @Transactional
-    public AuthorAwardDto addAward(Member member, long authorId, AuthorAwardDto dto) {
+    public List<AuthorAwardDto> addAward(Member member, long authorId, AuthorAwardDto dto) {
         AuthorLayer layer = findLayer(authorId);
         checkOwner(member, layer.getAuthorId());
 
-        AuthorAward award = layerService.addAward(layer, dto.toEntity());
-        return new AuthorAwardDto(award);
+        layerService.addAward(layer, dto.toEntity());
+        return findAwards(layer.getAuthorId());
+    }
+
+    private List<AuthorAwardDto> findAwards(long authorId) {
+        return layerService.findAwards(authorId)
+                .stream()
+                .map(AuthorAwardDto::new)
+                .sorted(Comparator.comparing(AuthorAwardDto::getReceivedDate).reversed())
+                .collect(Collectors.toList());
     }
 
     @Transactional
-    public AuthorAwardDto updateAward(Member member, String awardId, AuthorAwardDto updatedDto) {
+    public List<AuthorAwardDto> updateAward(Member member, String awardId, AuthorAwardDto updatedDto) {
         AuthorAward award = layerService.findAward(awardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Author award[" + awardId + "] dose not exist."));
 
         checkOwner(member, award.getAuthor().getAuthorId());
 
-        AuthorAward updated = layerService.updateAward(award, updatedDto.toEntity());
-        return new AuthorAwardDto(updated);
+        layerService.updateAward(award, updatedDto.toEntity());
+        return findAwards(award.getAuthor().getAuthorId());
     }
 
     @Transactional
-    public void deleteAward(Member member, String awardId) {
+    public List<AuthorAwardDto> deleteAward(Member member, String awardId) {
         AuthorAward award = layerService.findAward(awardId)
                 .orElseThrow(() -> new ResourceNotFoundException("Author award[" + awardId + "] dose not exist."));
 
         checkOwner(member, award.getAuthor().getAuthorId());
 
         layerService.deleteAward(award);
+        return findAwards(award.getAuthor().getAuthorId());
     }
 
     private AuthorLayer findLayer(long authorId) {

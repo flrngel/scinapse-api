@@ -66,8 +66,9 @@ public class AuthorEducationDto {
     public AuthorEducation toEntity() {
         AuthorEducation education = new AuthorEducation();
         education.setStartDate(this.startDate);
-        education.setEndDate(this.endDate);
+        education.setEndDate(this.current ? null : this.endDate);
         education.setCurrent(this.current);
+
         education.setAffiliationId(this.institutionId);
         education.setAffiliationName(this.institutionName);
         education.setDepartment(this.department);

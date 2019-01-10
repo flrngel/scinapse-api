@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,13 +23,26 @@ public class AuthorInfoDto {
     private List<AuthorAwardDto> awards = new ArrayList<>();
 
     public AuthorInfoDto(AuthorLayer layer) {
-        List<AuthorEducationDto> educations = layer.getEducations().stream().map(AuthorEducationDto::new).collect(Collectors.toList());
-        List<AuthorExperienceDto> experiences = layer.getExperiences().stream().map(AuthorExperienceDto::new).collect(Collectors.toList());
-        List<AuthorAwardDto> awards = layer.getAwards().stream().map(AuthorAwardDto::new).collect(Collectors.toList());
-
         this.authorId = layer.getAuthorId();
-        this.educations = educations;
-        this.experiences = experiences;
-        this.awards = awards;
+
+        this.educations = layer.getEducations()
+                .stream()
+                .map(AuthorEducationDto::new)
+                .sorted(Comparator.comparing(AuthorEducationDto::isCurrent)
+                        .thenComparing(AuthorEducationDto::getStartDate).reversed())
+                .collect(Collectors.toList());
+
+        this.experiences = layer.getExperiences()
+                .stream()
+                .map(AuthorExperienceDto::new)
+                .sorted(Comparator.comparing(AuthorExperienceDto::isCurrent)
+                        .thenComparing(AuthorExperienceDto::getStartDate).reversed())
+                .collect(Collectors.toList());
+
+        this.awards = layer.getAwards()
+                .stream()
+                .map(AuthorAwardDto::new)
+                .sorted(Comparator.comparing(AuthorAwardDto::getReceivedDate).reversed())
+                .collect(Collectors.toList());
     }
 }

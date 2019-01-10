@@ -70,8 +70,9 @@ public class AuthorExperienceDto {
     public AuthorExperience toEntity() {
         AuthorExperience experience = new AuthorExperience();
         experience.setStartDate(this.startDate);
-        experience.setEndDate(this.endDate);
+        experience.setEndDate(this.current ? null : this.endDate);
         experience.setCurrent(this.current);
+
         experience.setAffiliationId(this.institutionId);
         experience.setAffiliationName(this.institutionName);
         experience.setDepartment(this.department);

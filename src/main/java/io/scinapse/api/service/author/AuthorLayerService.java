@@ -657,6 +657,10 @@ public class AuthorLayerService {
         return Optional.ofNullable(educationRepository.findOne(educationId));
     }
 
+    public List<AuthorEducation> findEducations(long authorId) {
+        return educationRepository.findByAuthorAuthorId(authorId);
+    }
+
     @Transactional
     public AuthorEducation updateEducation(AuthorEducation old, AuthorEducation updated) {
         checkDateValidity(updated.getStartDate(), updated.getEndDate());
@@ -691,6 +695,10 @@ public class AuthorLayerService {
         return Optional.ofNullable(experienceRepository.findOne(experienceId));
     }
 
+    public List<AuthorExperience> findExperiences(long authorId) {
+        return experienceRepository.findByAuthorAuthorId(authorId);
+    }
+
     @Transactional
     public AuthorExperience updateExperience(AuthorExperience old, AuthorExperience updated) {
         checkDateValidity(updated.getStartDate(), updated.getEndDate());
@@ -721,6 +729,10 @@ public class AuthorLayerService {
 
     public Optional<AuthorAward> findAward(String awardId) {
         return Optional.ofNullable(awardRepository.findOne(awardId));
+    }
+
+    public List<AuthorAward> findAwards(long authorId) {
+        return awardRepository.findByAuthorAuthorId(authorId);
     }
 
     @Transactional
