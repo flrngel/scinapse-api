@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +22,10 @@ public class PaperDto {
 
     private String title;
 
-    private int year;
+    private Integer year;
+
+    @JsonProperty("published_date")
+    private LocalDate publishedDate;
 
     @JsonProperty("abstract")
     private String paperAbstract;
@@ -64,6 +68,7 @@ public class PaperDto {
         this.id = paper.getId();
         this.title = paper.getTitle();
         this.year = paper.getYear();
+        this.publishedDate = paper.getPublishedDate();
         this.doi = paper.getDoi();
         this.volume = paper.getVolume();
         this.issue = paper.getIssue();

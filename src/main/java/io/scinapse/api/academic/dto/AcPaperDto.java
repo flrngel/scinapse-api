@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -26,6 +27,7 @@ public class AcPaperDto {
     private long id;
     private String title;
     private Integer year;
+    private LocalDate publishedDate;
 
     @JsonProperty("abstract")
     private String paperAbstract;
@@ -46,6 +48,7 @@ public class AcPaperDto {
         this.id = paper.getId();
         this.title = paper.getTitle();
         this.year = paper.getYear();
+        this.publishedDate = paper.getPublishedDate();
 
         this.doi = paper.getDoi();
         this.volume = paper.getVolume();

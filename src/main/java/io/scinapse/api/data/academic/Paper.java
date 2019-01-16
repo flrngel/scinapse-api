@@ -8,6 +8,7 @@ import org.hibernate.annotations.Nationalized;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,9 @@ public class Paper {
 
     @Column
     private Integer year;
+
+    @Column
+    private LocalDate publishedDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "journal_id")
