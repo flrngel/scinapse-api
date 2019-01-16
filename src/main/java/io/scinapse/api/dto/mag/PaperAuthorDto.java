@@ -18,7 +18,7 @@ public class PaperAuthorDto {
     private Integer hIndex;
     private String organization;
     private AffiliationDto affiliation;
-    private int order;
+    private Integer order;
     @JsonProperty("is_layered")
     private boolean layered;
 

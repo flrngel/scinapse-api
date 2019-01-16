@@ -9,6 +9,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Optional;
 
 @EqualsAndHashCode(of = "id")
 @BatchSize(size = 50)
@@ -43,6 +44,14 @@ public class Author {
             return null;
         }
         return authorHIndexHolder.get(0);
+    }
+
+    public long getPaperCount() {
+        return Optional.ofNullable(this.paperCount).orElse(0L);
+    }
+
+    public long getCitationCount() {
+        return Optional.ofNullable(this.citationCount).orElse(0L);
     }
 
 }

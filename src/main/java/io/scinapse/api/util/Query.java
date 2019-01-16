@@ -11,7 +11,10 @@ import org.elasticsearch.script.Script;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -51,21 +54,31 @@ public class Query {
         return StringUtils.isNotBlank(text) && text.length() >= 2 && text.length() < 200;
     }
 
-    public QueryBuilder toQuery() {
+    public QueryBuilder toQueryFilterQuery() {
         if (isDoi()) {
-            return toDoiSearchQuery();
+            return toDoiQuery();
         }
 
         // search specific fields
-        return toQuery(getMainQueryClause());
+        return toRelevanceQuery(getMainQueryClause())
+                .filter(filter.toFilerQuery())
+                .filter(filter.toExtraFilterQuery());
     }
 
-    private QueryBuilder toQuery(QueryBuilder mainQuery) {
+    public QueryBuilder toRelevanceQuery() {
+        return toRelevanceQuery(getMainQueryClause());
+    }
+
+    public QueryBuilder toSortQuery() {
+        return getMainQueryClause();
+    }
+
+    private BoolQueryBuilder toRelevanceQuery(QueryBuilder mainQuery) {
         MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(5);
         MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(7);
         MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
         MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(5);
-        MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(3);
+        MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(5);
         MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("authors.affiliation.name", text);
         MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(3);
         MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text);
@@ -79,12 +92,10 @@ public class Query {
                 .should(authorNameQuery)
                 .should(authorAffiliationQuery)
                 .should(fosQuery)
-                .should(journalQuery)
-                .filter(filter.toFilerQuery())
-                .filter(filter.toExtraFilterQuery());
+                .should(journalQuery);
     }
 
-    public QueryBuilder toSortQuery() {
+    public QueryBuilder toSortFilterQuery() {
         if (journalSearch) {
             return toJournalQuery();
         }
@@ -98,7 +109,7 @@ public class Query {
 
     public QueryBuilder toTitleQuery() {
         if (isDoi()) {
-            return toDoiSearchQuery();
+            return toDoiQuery();
         }
 
         MultiMatchQueryBuilder mainQuery1 = QueryBuilders.multiMatchQuery(text, "authors.name")
@@ -163,7 +174,7 @@ public class Query {
             query.filter(phrase);
         });
 
-        return query;
+        return QueryBuilders.constantScoreQuery(query);
     }
 
     public QueryRescorerBuilder getPhraseRescoreQuery() {
@@ -204,6 +215,29 @@ public class Query {
                 .setScoreMode(QueryRescoreMode.Multiply);
     }
 
+    public QueryRescorerBuilder getYearRescoreQuery() {
+        int currentYear = LocalDate.now().getYear();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("year", currentYear);
+
+        String code = "long diff = params.year - doc['year'].value; if (diff < 5) return 1.5; else if (diff < 10) return 1.2; else return 1;";
+        Script script = new Script(Script.DEFAULT_SCRIPT_TYPE, Script.DEFAULT_SCRIPT_LANG, code, params);
+
+        ScriptScoreFunctionBuilder yearFunction = new ScriptScoreFunctionBuilder(script);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder yearBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(yearFunction);
+
+
+        FunctionScoreQueryBuilder functionQuery = QueryBuilders
+                .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { yearBooster })
+                .maxBoost(1.5f); // limit boosting
+
+        // re-scoring top 100 documents only for each shard
+        return new QueryRescorerBuilder(functionQuery)
+                .windowSize(100)
+                .setScoreMode(QueryRescoreMode.Multiply);
+    }
+
     public QueryRescorerBuilder getAbsenceRescoreQuery() {
         // abstract absent booster for re-scoring
         BoolQueryBuilder abstractAbsentFilter = QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery("abstract"));
@@ -235,7 +269,7 @@ public class Query {
         return StringUtils.isNotBlank(doi);
     }
 
-    private QueryBuilder toDoiSearchQuery() {
+    public QueryBuilder toDoiQuery() {
         return QueryBuilders.matchQuery("doi", doi);
     }
 

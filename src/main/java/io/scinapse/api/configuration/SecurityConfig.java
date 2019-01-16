@@ -129,7 +129,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/complete",
                         "/complete/affiliation",
                         "/suggest",
-                        "/authors/*/disconnect"
+                        "/authors/*/disconnect",
+                        "/search",
+                        "/search/*"
                 ).permitAll()
 
                 // permit post

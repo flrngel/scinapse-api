@@ -48,6 +48,20 @@ public class Response<T> {
         return response;
     }
 
+    public static <R> Response<R> success(R content, Object additional) {
+        Data<R> data = Data.of(content, additional);
+        Response<R> response = new Response<>();
+        response.setData(data);
+        return response;
+    }
+
+    public static <S, R extends Page<S>> Response<List<S>> success(R content, Object additional) {
+        Data<List<S>> data = Data.of(content, additional);
+        Response<List<S>> response = new Response<>();
+        response.setData(data);
+        return response;
+    }
+
     public static Response success() {
         return success("success");
     }

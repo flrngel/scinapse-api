@@ -1,6 +1,8 @@
 package io.scinapse.api.service.author;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.academic.dto.AcAuthorDto;
+import io.scinapse.api.academic.dto.AcPaperAuthorDto;
 import io.scinapse.api.configuration.ScinapseConstant;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.data.academic.Affiliation;
@@ -12,6 +14,7 @@ import io.scinapse.api.data.scinapse.repository.MemberRepository;
 import io.scinapse.api.data.scinapse.repository.author.*;
 import io.scinapse.api.dto.PaperTitleDto;
 import io.scinapse.api.dto.mag.*;
+import io.scinapse.api.dto.v2.AuthorItemDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.service.mag.PaperService;
@@ -272,7 +275,11 @@ public class AuthorLayerService {
                 .map(AuthorLayerCoauthor.AuthorLayerCoauthorId::getCoauthorId)
                 .collect(Collectors.toList());
 
-        Map<Long, AuthorDto> authorMap = authorRepository.findByIdIn(coauthorIds)
+        return findAuthors(coauthorIds);
+    }
+
+    public List<AuthorDto> findAuthors(List<Long> authorIds) {
+        Map<Long, AuthorDto> authorMap = authorRepository.findByIdIn(authorIds)
                 .stream()
                 .map(AuthorDto::new)
                 .collect(Collectors.toMap(
@@ -280,11 +287,13 @@ public class AuthorLayerService {
                         Function.identity()
                 ));
 
-        return coauthorIds
+        List<AuthorDto> dtos = authorIds
                 .stream()
                 .map(authorMap::get)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+
+        return decorateAuthors(dtos);
     }
 
     public Page<AuthorLayerPaper> findPapers(AuthorLayer layer, String[] keywords, PageRequest pageRequest) {
@@ -543,6 +552,34 @@ public class AuthorLayerService {
                 });
     }
 
+    public void decoratePaperAuthorItems(List<io.scinapse.api.dto.v2.PaperAuthorDto> dtos) {
+        Set<Long> authorIds = dtos.stream()
+                .map(io.scinapse.api.dto.v2.PaperAuthorDto::getOrigin)
+                .map(AcPaperAuthorDto::getId)
+                .collect(Collectors.toSet());
+
+        Map<Long, AuthorLayer> layerMap = authorLayerRepository.findByAuthorIdIn(authorIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        AuthorLayer::getAuthorId,
+                        Function.identity()
+                ));
+
+        dtos
+                .forEach(dto -> {
+                    AuthorLayer layer = layerMap.get(dto.getOrigin().getId());
+                    if (layer == null) {
+                        return;
+                    }
+                    dto.setLayered(true);
+                    dto.setName(layer.getName());
+                    dto.setHIndex(layer.getHindex());
+
+                    Optional.ofNullable(layer.getProfileImage())
+                            .ifPresent(key -> dto.setProfileImageUrl(ScinapseConstant.SCINAPSE_MEDIA_URL + key));
+                });
+    }
+
     public List<AuthorDto> decorateAuthors(List<AuthorDto> dtos) {
         Map<Long, AuthorDto> authorMap = dtos.stream()
                 .collect(Collectors.toMap(
@@ -563,10 +600,56 @@ public class AuthorLayerService {
                     Optional.ofNullable(layer.getProfileImage())
                             .ifPresent(key -> dto.setProfileImageUrl(ScinapseConstant.SCINAPSE_MEDIA_URL + key));
 
-                    decorateAffiliation(layer, dto);
+                    dto.setLastKnownAffiliation(getLayeredAffiliation(layer));
                 });
 
         return dtos;
+    }
+
+    public void decorateAuthorItems(List<AuthorItemDto> dtos) {
+        if (CollectionUtils.isEmpty(dtos)) {
+            return;
+        }
+
+        Set<Long> authorIds = dtos.stream()
+                .map(AuthorItemDto::getOrigin)
+                .map(AcAuthorDto::getId)
+                .collect(Collectors.toSet());
+
+        Map<Long, AuthorLayer> layerMap = authorLayerRepository.findByAuthorIdIn(authorIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        AuthorLayer::getAuthorId,
+                        Function.identity()
+                ));
+
+        Map<Long, List<AuthorLayerPaper>> layerPaperMap = authorLayerPaperRepository.findRepresentativePapers(authorIds)
+                .stream()
+                .collect(Collectors.groupingBy(lp -> lp.getId().getAuthorId()));
+
+        dtos
+                .forEach(dto -> {
+                    AuthorLayer layer = layerMap.get(dto.getOrigin().getId());
+                    if (layer == null) {
+                        return;
+                    }
+                    dto.setLayered(true);
+                    dto.setName(layer.getName());
+                    dto.setHIndex(layer.getHindex());
+
+                    Optional.ofNullable(layer.getProfileImage())
+                            .map(key -> ScinapseConstant.SCINAPSE_MEDIA_URL + key)
+                            .ifPresent(dto::setProfileImageUrl);
+
+                    dto.setLastKnownAffiliation(getLayeredAffiliation(layer));
+
+                    List<AuthorLayerPaper> layerPapers = layerPaperMap.get(dto.getOrigin().getId());
+                    if (CollectionUtils.isEmpty(layerPapers)) {
+                        return;
+                    }
+
+                    dto.setRepresentativePapers(layerPapers);
+                });
     }
 
     public void decorateAuthorDetail(AuthorDto dto, AuthorLayer layer, boolean includeEmail) {
@@ -585,7 +668,7 @@ public class AuthorLayerService {
         Optional.ofNullable(layer.getProfileImage())
                 .ifPresent(key -> dto.setProfileImageUrl(ScinapseConstant.SCINAPSE_MEDIA_URL + key));
 
-        decorateAffiliation(layer, dto);
+        dto.setLastKnownAffiliation(getLayeredAffiliation(layer));
 
         if (!CollectionUtils.isEmpty(layer.getFosList())) {
             List<Long> fosIds = layer.getFosList()
@@ -613,15 +696,16 @@ public class AuthorLayerService {
         }
     }
 
-    private void decorateAffiliation(AuthorLayer layer, AuthorDto dto) {
+    private AffiliationDto getLayeredAffiliation(AuthorLayer layer) {
         if (layer.getLastKnownAffiliationId() == null && StringUtils.isBlank(layer.getLastKnownAffiliationName())) {
-            dto.setLastKnownAffiliation(null);
-        } else {
-            AffiliationDto affiliationDto = new AffiliationDto();
-            affiliationDto.setId(layer.getLastKnownAffiliationId());
-            affiliationDto.setName(layer.getLastKnownAffiliationName());
-            dto.setLastKnownAffiliation(affiliationDto);
+            return null;
         }
+
+        AffiliationDto dto = new AffiliationDto();
+        dto.setId(layer.getLastKnownAffiliationId());
+        dto.setName(layer.getLastKnownAffiliationName());
+
+        return dto;
     }
 
     public List<AuthorSearchPaperDto> decorateSearchResult(long authorId, List<PaperDto> paperDtos) {

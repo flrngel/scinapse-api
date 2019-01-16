@@ -15,6 +15,9 @@ public interface AuthorLayerPaperRepository extends JpaRepository<AuthorLayerPap
     @Query("select lp from AuthorLayerPaper lp where lp.id.authorId = :authorId and lp.representative = true")
     List<AuthorLayerPaper> findRepresentativePapers(@Param("authorId") long authorId);
 
+    @Query("select lp from AuthorLayerPaper lp where lp.id.authorId in :authorIds and lp.representative = true")
+    List<AuthorLayerPaper> findRepresentativePapers(@Param("authorIds") Set<Long> authorIds);
+
     @Query("select count(lp) from AuthorLayerPaper lp where lp.id.authorId = :authorId and lp.status <> 'PENDING_REMOVE'")
     long getPaperCount(@Param("authorId") long authorId);
 

@@ -1,14 +1,12 @@
 package io.scinapse.api.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @Getter
@@ -18,7 +16,8 @@ public class Data<T> {
     private T content;
     private Page page;
 
-    private Map<String, Object> additional = new HashMap<>();
+    @JsonUnwrapped
+    private Object additional;
 
     private Data(T content) {
         this.content = content;
@@ -38,13 +37,16 @@ public class Data<T> {
         return new Data<>(content.getContent(), page);
     }
 
-    @JsonAnyGetter
-    public Map<String, Object> getAdditional() {
-        return additional;
+    public static <R> Data<R> of(R content, Object additional) {
+        Data<R> data = of(content);
+        data.setAdditional(additional);
+        return data;
     }
 
-    public void putAdditional(String key, Object value) {
-        this.additional.put(key, value);
+    public static <S, R extends org.springframework.data.domain.Page<S>> Data<List<S>> of(R content, Object additional) {
+        Data<List<S>> data = of(content);
+        data.setAdditional(additional);
+        return data;
     }
 
 }

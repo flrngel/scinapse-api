@@ -15,6 +15,7 @@ import java.util.Set;
 public interface PaperRepository extends JpaRepository<Paper, Long>, PaperRepositoryCustom {
 
     List<Paper> findByIdIn(List<Long> paperIds);
+    List<Paper> findByIdIn(Set<Long> paperIds);
 
     @Query("select p.id, p.title, p.citationCount from Paper p where p.id in :paperIds order by p.citationCount desc")
     List<Object[]> findAllPaperTitle(@Param("paperIds") Set<Long> paperIds);

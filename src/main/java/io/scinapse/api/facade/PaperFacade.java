@@ -171,7 +171,7 @@ public class PaperFacade {
 
     public AggregationDto aggregate(Query query) {
         if (query.isDoi()) {
-            return AggregationDto.unavailable();
+            return new AggregationDto();
         }
 
         AggregationDto dto = searchService.aggregateFromSample(query);

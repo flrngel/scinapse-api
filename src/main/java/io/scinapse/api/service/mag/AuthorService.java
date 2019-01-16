@@ -14,6 +14,7 @@ import io.scinapse.api.data.academic.repository.PaperAuthorRepository;
 import io.scinapse.api.dto.mag.AuthorDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;
+import io.scinapse.api.service.author.AuthorLayerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -35,6 +36,7 @@ public class AuthorService {
     private final PaperAuthorRepository paperAuthorRepository;
     private final AuthorCoauthorRepository authorCoauthorRepository;
     private final AuthorTopPaperRepository authorTopPaperRepository;
+    private final AuthorLayerService layerService;
 
     public boolean exists(long authorId) {
         return authorRepository.exists(authorId);
@@ -69,12 +71,13 @@ public class AuthorService {
     }
 
     public List<AuthorDto> findCoAuthors(long authorId) {
-        return authorCoauthorRepository.findByAuthorId(authorId)
+        List<AuthorDto> dtos = authorCoauthorRepository.findByAuthorId(authorId)
                 .stream()
                 .sorted(Comparator.comparing(AuthorCoauthor::getRank, Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(AuthorCoauthor::getCoauthor)
                 .map(AuthorDto::new)
                 .collect(Collectors.toList());
+        return layerService.decorateAuthors(dtos);
     }
 
     public List<AuthorTopPaper> findAuthorTopPaper(List<Long> authorIds) {

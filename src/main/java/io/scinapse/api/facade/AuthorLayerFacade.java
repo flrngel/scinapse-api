@@ -84,16 +84,12 @@ public class AuthorLayerFacade {
             throw new BadRequestException("Author[" + authorId + "] dose not exist.");
         }
 
-        List<AuthorDto> coAuthors;
-
         Optional<AuthorLayer> layer = layerService.find(authorId);
         if (layer.isPresent()) {
-            coAuthors = layerService.findCoauthors(layer.get());
+            return layerService.findCoauthors(layer.get());
         } else {
-            coAuthors = authorService.findCoAuthors(authorId);
+            return authorService.findCoAuthors(authorId);
         }
-
-        return layerService.decorateAuthors(coAuthors);
     }
 
     @Transactional

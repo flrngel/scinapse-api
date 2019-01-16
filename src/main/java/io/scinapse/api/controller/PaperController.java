@@ -70,7 +70,7 @@ public class PaperController {
         result.put("data", aggregationDto);
 
         Meta meta = new Meta();
-        meta.available = aggregationDto.available;
+        meta.available = true;
         result.put("meta", meta);
 
         return result;

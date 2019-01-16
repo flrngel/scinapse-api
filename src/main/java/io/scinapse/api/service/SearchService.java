@@ -96,7 +96,6 @@ public class SearchService {
     @Value("${pluto.server.es.index.suggestion.affiliation}")
     private String affiliationSuggestionIndex;
 
-
     private static final String SAMPLE_AGG_NAME = "sample";
     private static final String JOURNAL_AGG_NAME = "journal";
     private static final String FOS_AGG_NAME = "fos";
@@ -111,7 +110,7 @@ public class SearchService {
         SearchSourceBuilder builder = SearchSourceBuilder.searchSource();
 
         // set query
-        builder.query(query.toQuery());
+        builder.query(query.toQueryFilterQuery());
 
         // do not retrieve source
         builder.fetchSource(false);
@@ -131,7 +130,7 @@ public class SearchService {
 
     public Page<Long> searchWithSort(Query query, List<SortBuilder> sorts, PageRequest pageRequest) {
         SearchSourceBuilder builder = SearchSourceBuilder.searchSource()
-                .query(query.toSortQuery())
+                .query(query.toSortFilterQuery())
                 .fetchSource(false)
                 .from(pageRequest.getOffset())
                 .size(pageRequest.getSize());
@@ -141,13 +140,13 @@ public class SearchService {
         return searchAndExtractId(indexName, builder, pageRequest);
     }
 
-    public Page<Long> searchAuthor(String keyword, PageRequest pageRequest) {
+    public Page<Long> searchAuthor(String queryText, PageRequest pageRequest) {
         BoolQueryBuilder authorQuery = QueryBuilders.boolQuery()
-                .should(QueryBuilders.matchQuery("name", keyword).operator(Operator.AND).boost(2))
-                .should(QueryBuilders.matchQuery("name", keyword).minimumShouldMatch("2").boost(2))
-                .should(QueryBuilders.matchQuery("name.metaphone", keyword))
-                .should(QueryBuilders.matchQuery("name.porter", keyword))
-                .should(QueryBuilders.matchQuery("affiliation.name", keyword).boost(2));
+                .should(QueryBuilders.matchQuery("name", queryText).operator(Operator.AND).boost(2))
+                .should(QueryBuilders.matchQuery("name", queryText).minimumShouldMatch("2").boost(2))
+                .should(QueryBuilders.matchQuery("name.metaphone", queryText))
+                .should(QueryBuilders.matchQuery("name.porter", queryText))
+                .should(QueryBuilders.matchQuery("affiliation.name", queryText).boost(2));
 
 
         // author paper/citation count booster script
@@ -527,10 +526,10 @@ public class SearchService {
         List<AggregationDto.Fos> fosList = getFosList(aggregationMap);
 
         if (journals.isEmpty() && fosList.isEmpty()) {
-            return AggregationDto.unavailable();
+            return new AggregationDto();
         }
 
-        AggregationDto dto = AggregationDto.available();
+        AggregationDto dto = new AggregationDto();
         dto.journals = journals;
         dto.fosList = fosList;
         return dto;
