@@ -1,6 +1,6 @@
-package io.scinapse.api.data.scinapse.repository.author;
+package io.scinapse.api.data.scinapse.repository;
 
-import io.scinapse.api.data.scinapse.model.author.AuthorLayerPaper;
+import io.scinapse.api.data.scinapse.model.CollectionPaper;
 import io.scinapse.api.enums.PaperSort;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
@@ -14,10 +14,10 @@ import javax.persistence.Query;
 import java.math.BigInteger;
 import java.util.List;
 
-public class AuthorLayerPaperRepositoryImpl extends QueryDslRepositorySupport implements AuthorLayerPaperRepositoryCustom {
+public class CollectionPaperRepositoryImpl extends QueryDslRepositorySupport implements CollectionPaperRepositoryCustom {
 
-    public AuthorLayerPaperRepositoryImpl() {
-        super(AuthorLayerPaper.class);
+    public CollectionPaperRepositoryImpl() {
+        super(CollectionPaper.class);
     }
 
     @PersistenceContext(unitName = "scinapse")
@@ -27,47 +27,42 @@ public class AuthorLayerPaperRepositoryImpl extends QueryDslRepositorySupport im
     }
 
     @Override
-    public Page<AuthorLayerPaper> findPapers(long authorId, boolean showAll, String[] keywords, PaperSort sort, Pageable pageable) {
-        String sql = "select lp.*\n" +
-                "from author_layer_paper lp\n" +
-                "where lp.author_id = :authorId";
-        String count = "select count(1) from author_layer_paper lp where lp.author_id = :authorId";
-
-        if (!showAll) {
-            sql += "\nand lp.status <> 'PENDING_REMOVE'";
-            count += "\nand lp.status <> 'PENDING_REMOVE'";
-        }
+    public Page<CollectionPaper> findPapers(long collectionId, String[] keywords, PaperSort sort, Pageable pageable) {
+        String sql = "select cp.*\n" +
+                "from rel_collection_paper cp\n" +
+                "where cp.collection_id = :collectionId";
+        String count = "select count(1) from rel_collection_paper cp where cp.collection_id = :collectionId";
 
         if (keywords != null && keywords.length > 0) {
-            sql += "\nand to_tsvector(lp.title) @@ to_tsquery(:keywords)";
-            count += "\nand to_tsvector(lp.title) @@ to_tsquery(:keywords)";
+            sql += "\nand to_tsvector(cp.title) @@ to_tsquery(:keywords)";
+            count += "\nand to_tsvector(cp.title) @@ to_tsquery(:keywords)";
         }
 
         if (sort == null) {
-            sort = PaperSort.NEWEST_FIRST;
+            sort = PaperSort.RECENTLY_ADDED;
         }
         switch (sort) {
-            case RECENTLY_ADDED:
-                sql += "\norder by lp.updated_at desc nulls last";
-                break;
             case MOST_CITATIONS:
-                sql += "\norder by lp.citation_count desc nulls last";
+                sql += "\norder by cp.citation_count desc nulls last";
+                break;
+            case NEWEST_FIRST:
+                sql += "\norder by cp.year desc nulls last";
                 break;
             case OLDEST_FIRST:
-                sql += "\norder by lp.year asc nulls last";
+                sql += "\norder by cp.year asc nulls last";
                 break;
             default:
-                sql += "\norder by lp.year desc nulls last";
+                sql += "\norder by cp.updated_at desc nulls last";
                 break;
         }
 
         Query countQuery = getEntityManager()
                 .createNativeQuery(count)
-                .setParameter("authorId", authorId);
+                .setParameter("collectionId", collectionId);
 
         Query query = getEntityManager()
-                .createNativeQuery(sql, AuthorLayerPaper.class)
-                .setParameter("authorId", authorId);
+                .createNativeQuery(sql, CollectionPaper.class)
+                .setParameter("collectionId", collectionId);
 
         if (keywords != null && keywords.length > 0) {
             String keywordStr = StringUtils.join(keywords, " & ");

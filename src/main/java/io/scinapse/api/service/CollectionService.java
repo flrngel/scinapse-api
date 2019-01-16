@@ -6,6 +6,7 @@ import io.scinapse.api.data.scinapse.model.CollectionPaper;
 import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.data.scinapse.repository.CollectionPaperRepository;
 import io.scinapse.api.data.scinapse.repository.CollectionRepository;
+import io.scinapse.api.enums.PaperSort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,8 +79,8 @@ public class CollectionService {
         return collectionPaperRepository.findByIdCollectionIdOrderByUpdatedAtDesc(collectionId);
     }
 
-    public List<CollectionPaper> findByCollectionId(long collectionId, Pageable pageable) {
-        return collectionPaperRepository.findByIdCollectionIdOrderByUpdatedAtDesc(collectionId, pageable);
+    public Page<CollectionPaper> findPapers(long collectionId, String[] keywords, PaperSort sort, Pageable pageable) {
+        return collectionPaperRepository.findPapers(collectionId, keywords, sort, pageable);
     }
 
     public List<CollectionPaper> findByIds(List<Long> collectionIds, long paperId) {

@@ -19,6 +19,15 @@ public class CollectionPaper extends BaseEntity {
     @Column
     private String note;
 
+    @Column
+    private String title;
+
+    @Column
+    private Integer year;
+
+    @Column
+    private Long citationCount;
+
     @Embeddable
     @EqualsAndHashCode
     @Getter

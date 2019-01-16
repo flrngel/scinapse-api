@@ -2,6 +2,7 @@ package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.data.academic.Paper;
 import io.scinapse.api.data.scinapse.model.Collection;
 import io.scinapse.api.data.scinapse.model.CollectionPaper;
 import io.scinapse.api.data.scinapse.model.Member;
@@ -9,6 +10,7 @@ import io.scinapse.api.dto.collection.CollectionDto;
 import io.scinapse.api.dto.collection.CollectionPaperDto;
 import io.scinapse.api.dto.collection.MyCollectionDto;
 import io.scinapse.api.dto.mag.PaperDto;
+import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.security.jwt.JwtUser;
@@ -183,20 +185,21 @@ public class CollectionFacade {
                 .collect(Collectors.toList());
     }
 
-    public Page<CollectionPaperDto> getPapers(long collectionId, PageRequest pageRequest) {
+    public Page<CollectionPaperDto> getPapers(long collectionId, String[] keywords, PageRequest pageRequest) {
         Collection one = collectionService.find(collectionId);
         if (one == null) {
             throw new ResourceNotFoundException("Collection not found : " + collectionId);
         }
 
-        List<CollectionPaper> collectionPapers = collectionService.findByCollectionId(collectionId, pageRequest.toPageable());
+        PaperSort sort = PaperSort.find(pageRequest.getSort());
+        Page<CollectionPaper> collectionPapers = collectionService.findPapers(collectionId, keywords, sort, pageRequest.toPageable());
 
-        List<CollectionPaperDto> collectionPaperDtos = collectionPapers
+        List<CollectionPaperDto> collectionPaperDtos = collectionPapers.getContent()
                 .stream()
                 .map(CollectionPaperDto::of)
                 .collect(Collectors.toList());
 
-        List<Long> paperIds = collectionPapers
+        List<Long> paperIds = collectionPapers.getContent()
                 .stream()
                 .map(CollectionPaper::getId)
                 .map(CollectionPaper.CollectionPaperId::getPaperId)
@@ -218,7 +221,7 @@ public class CollectionFacade {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        return new PageImpl<>(dtos, pageRequest.toPageable(), one.getPaperCount());
+        return new PageImpl<>(dtos, pageRequest.toPageable(), collectionPapers.getTotalElements());
     }
 
     @Transactional
@@ -240,7 +243,19 @@ public class CollectionFacade {
             throw new AuthorizationServiceException("Deleting collection paper is only possible by its creator");
         }
 
-        collectionService.addPaper(request.toEntity());
+        CollectionPaper collectionPaper = request.toEntity();
+
+        Paper paper = Optional.ofNullable(collectionPaper)
+                .map(CollectionPaper::getId)
+                .map(CollectionPaper.CollectionPaperId::getPaperId)
+                .map(paperService::find)
+                .orElseThrow(() -> new BadRequestException("The paper[" + request.getPaperId() + "] does not exists."));
+
+        collectionPaper.setTitle(paper.getTitle());
+        collectionPaper.setYear(paper.getYear());
+        collectionPaper.setCitationCount(paper.getCitationCount());
+
+        collectionService.addPaper(collectionPaper);
     }
 
     @Transactional

@@ -9,8 +9,8 @@ import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.facade.CollectionFacade;
 import io.scinapse.api.security.jwt.JwtUser;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -28,10 +28,6 @@ public class CollectionController {
     @RequestMapping(value = "/collections", method = RequestMethod.POST)
     public Map<String, Object> create(@ApiIgnore JwtUser user,
                                       @RequestBody @Valid CollectionDto request) {
-        if (!StringUtils.hasText(request.getTitle())) {
-            throw new BadRequestException("Title must be not empty");
-        }
-
         CollectionDto dto = collectionFacade.create(user, request);
         Map<String, Object> result = new HashMap<>();
         result.put("data", dto);
@@ -53,10 +49,6 @@ public class CollectionController {
     public Map<String, Object> update(@ApiIgnore JwtUser user,
                                       @PathVariable long collectionId,
                                       @RequestBody @Valid CollectionDto updated) {
-        if (!StringUtils.hasText(updated.getTitle())) {
-            throw new BadRequestException("Title must be not empty");
-        }
-
         CollectionDto dto = collectionFacade.update(user, collectionId, updated);
 
         Map<String, Object> result = new HashMap<>();
@@ -105,8 +97,13 @@ public class CollectionController {
     }
 
     @RequestMapping(value = "/collections/{collectionId}/papers", method = RequestMethod.GET, params = "page")
-    public Response<List<CollectionPaperDto>> getPapers(@PathVariable long collectionId, PageRequest pageRequest) {
-        return Response.success(collectionFacade.getPapers(collectionId, pageRequest));
+    public Response<List<CollectionPaperDto>> getPapers(@PathVariable long collectionId,
+                                                        @RequestParam(value = "q", required = false) String queryStr,
+                                                        PageRequest pageRequest) {
+        String query = StringUtils.normalizeSpace(queryStr);
+        String[] keywords = StringUtils.split(query);
+
+        return Response.success(collectionFacade.getPapers(collectionId, keywords, pageRequest));
     }
 
     @RequestMapping(value = "/collections/{collectionId}/papers", method = RequestMethod.POST)
