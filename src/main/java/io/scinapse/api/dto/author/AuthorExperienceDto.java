@@ -26,13 +26,13 @@ public class AuthorExperienceDto {
     private String id;
 
     @JsonSerialize(using = DateSerializer.class)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy")
     @Past
     @NotNull
     private Date startDate;
 
     @JsonSerialize(using = DateSerializer.class)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy")
     private Date endDate;
 
     @JsonProperty("is_current")
@@ -45,7 +45,6 @@ public class AuthorExperienceDto {
     private String institutionName;
 
     @Size(min = 1, max = 200)
-    @NotNull
     private String department;
 
     @Size(min = 1, max = 100)
