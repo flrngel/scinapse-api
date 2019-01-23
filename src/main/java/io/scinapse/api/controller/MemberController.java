@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.dto.MemberDto;
 import io.scinapse.api.dto.MemberDuplicationCheckDto;
+import io.scinapse.api.dto.response.Response;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.facade.MemberFacade;
 import io.scinapse.api.security.jwt.JwtUser;
 import io.scinapse.api.service.MemberService;
 import io.scinapse.api.validator.Update;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -102,6 +104,13 @@ public class MemberController {
     public Result resetPassword(@RequestBody @Valid TokenWrapper token) {
         memberFacade.resetPassword(token.token, token.password);
         return Result.success();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @RequestMapping(value = "/members/{memberId}", method = RequestMethod.DELETE)
+    public Response delete(@PathVariable long memberId) {
+        memberFacade.delete(memberId);
+        return Response.success();
     }
 
     private static class EmailWrapper {

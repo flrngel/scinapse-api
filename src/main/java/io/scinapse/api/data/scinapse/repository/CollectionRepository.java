@@ -8,5 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CollectionRepository extends JpaRepository<Collection, Long> {
     Page<Collection> findByCreatedByOrderByUpdatedAtDesc(Member creator, Pageable pageable);
-    long countByCreatedBy(Member creator);
+    long countByCreatedBy(Member createdBy);
+    void deleteByCreatedBy(Member createdBy);
 }

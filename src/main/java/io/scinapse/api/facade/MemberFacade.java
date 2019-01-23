@@ -10,6 +10,7 @@ import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.security.TokenHelper;
 import io.scinapse.api.security.jwt.JwtUser;
 import io.scinapse.api.service.EmailVerificationService;
+import io.scinapse.api.service.MemberDeleteService;
 import io.scinapse.api.service.MemberService;
 import io.scinapse.api.service.PasswordResetService;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class MemberFacade {
     private final TokenHelper tokenHelper;
     private final OauthFacade oauthFacade;
     private final PasswordResetService passwordResetService;
+    private final MemberDeleteService memberDeleteService;
 
     @Cacheable(CacheName.Member.GET_DETAIL)
     public MemberDto getDetail(long memberId) {
@@ -122,6 +124,11 @@ public class MemberFacade {
         }
 
         return member;
+    }
+
+    @Transactional
+    public void delete(long memberId) {
+        memberDeleteService.delete(memberId);
     }
 
 }
