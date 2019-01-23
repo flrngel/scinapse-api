@@ -65,12 +65,12 @@ public class Query {
                 .filter(filter.toExtraFilterQuery());
     }
 
-    public QueryBuilder toRelevanceQuery() {
+    public BoolQueryBuilder toRelevanceQuery() {
         return toRelevanceQuery(getMainQueryClause());
     }
 
-    public QueryBuilder toSortQuery() {
-        return getMainQueryClause();
+    public BoolQueryBuilder toSortQuery() {
+        return QueryBuilders.boolQuery().must(getMainQueryClause());
     }
 
     private BoolQueryBuilder toRelevanceQuery(QueryBuilder mainQuery) {

@@ -68,6 +68,8 @@ public class GlobalErrorController extends ResponseEntityExceptionHandler implem
     public ResponseEntity handleAuthException(HttpServletRequest request, Exception ex) {
         HttpStatus status = HttpStatus.UNAUTHORIZED;
 
+        ErrorUtils.logError(status, request, ex);
+
         Error error = Error.of(request.getRequestURI(), status, ex);
         return new ResponseEntity<>(Response.error(error), status);
     }
@@ -76,7 +78,7 @@ public class GlobalErrorController extends ResponseEntityExceptionHandler implem
     public ResponseEntity handleException(HttpServletRequest request, Exception ex) {
         HttpStatus status = ErrorUtils.extractStatus(ex);
 
-        logError(status, request, ex);
+        ErrorUtils.logError(status, request, ex);
 
         Error error = Error.of(request.getRequestURI(), status, ex);
         return new ResponseEntity<>(Response.error(error), status);
@@ -87,13 +89,13 @@ public class GlobalErrorController extends ResponseEntityExceptionHandler implem
         if (request instanceof ServletWebRequest) {
             HttpServletRequest servletRequest = ((ServletWebRequest) request).getRequest();
 
-            logError(status, servletRequest, ex);
+            ErrorUtils.logError(status, servletRequest, ex);
 
             Error error = Error.of(servletRequest.getRequestURI(), status, ex);
             return new ResponseEntity<>(Response.error(error), headers, status);
         }
 
-        logError(status, null, ex);
+        ErrorUtils.logError(status, null, ex);
 
         Error error = Error.of(null, status, ex);
         return new ResponseEntity<>(Response.error(error), headers, status);
@@ -103,27 +105,8 @@ public class GlobalErrorController extends ResponseEntityExceptionHandler implem
         if (!status.is5xxServerError()) {
             return;
         }
-
-        log.error("Resolved fallback exception:[ {} ], Request URI:[ {} ]", message, path, error);
+        log.error("Resolved fallback exception:[ {} ] | Request URI:[ {} ]", message, path, error);
     }
 
-    private void logError(HttpStatus status, HttpServletRequest request, Throwable error) {
-        if (!status.is5xxServerError()) {
-            return;
-        }
-
-        if (request == null) {
-            log.error("Exception occurs:[ {} ], Request not provided..", error.getMessage(), error);
-            return;
-        }
-
-        log.error("Exception occurs:[ {} ], Remote Host:[ {} ], User Agent:[ {} ], Request URI:[ {} ], Request Params:[ {} ]",
-                error.getMessage(),
-                request.getRemoteHost(),
-                request.getHeader(HttpHeaders.USER_AGENT),
-                request.getRequestURL(),
-                request.getQueryString(),
-                error);
-    }
 
 }

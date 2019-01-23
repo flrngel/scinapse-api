@@ -4,13 +4,11 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.configuration.AcademicJpaConfig;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.data.academic.Paper;
-import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CitationTextDto;
 import io.scinapse.api.dto.mag.AuthorSearchPaperDto;
 import io.scinapse.api.dto.mag.PaperAuthorDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.enums.CitationFormat;
-import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.service.SearchService;
 import io.scinapse.api.service.author.AuthorLayerService;
@@ -18,13 +16,14 @@ import io.scinapse.api.service.mag.PaperConverter;
 import io.scinapse.api.service.mag.PaperService;
 import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
-import org.elasticsearch.search.sort.SortBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -123,41 +122,11 @@ public class PaperFacade {
         return new PageImpl<>(dtos, pageRequest.toPageable(), paper.getCitationCount());
     }
 
-    public Page<PaperDto> search(Query query, PageRequest pageRequest) {
-        return searchFromES(query, pageRequest);
-    }
-
     public Page<AuthorSearchPaperDto> searchAuthorPaper(Query query, long authorId, PageRequest pageRequest) {
         Page<Long> paperIdPage = searchService.searchAuthorPaper(query, pageRequest);
         List<PaperDto> paperDtos = findIn(paperIdPage.getContent(), PaperConverter.simple());
         List<AuthorSearchPaperDto> dtos = authorLayerService.decorateSearchResult(authorId, paperDtos);
         return new PageImpl<>(dtos, pageRequest.toPageable(), paperIdPage.getTotalElements());
-    }
-
-    public Page<PaperDto> searchFromES(Query query, PageRequest pageRequest) {
-        String sort = pageRequest.getSort();
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(sort)) {
-            SortBuilder sortBuilder = PaperSort.toSortBuilder(sort);
-            if (sortBuilder != null) {
-                return searchFromES(query, Collections.singletonList(sortBuilder), pageRequest);
-            }
-        }
-
-        return searchFromES(query, new ArrayList<>(), pageRequest);
-    }
-
-    public Page<PaperDto> searchFromES(Query query, List<SortBuilder> sorts, PageRequest pageRequest) {
-        Page<Long> paperIds;
-        if (sorts.isEmpty()) {
-            paperIds = searchService.search(query, pageRequest);
-        } else {
-            paperIds = searchService.searchWithSort(query, sorts, pageRequest);
-        }
-        return convertToDto(paperIds, pageRequest);
-    }
-
-    private Page<PaperDto> convertToDto(Page<Long> paperIds, PageRequest pageRequest) {
-        return new PageImpl<>(findIn(paperIds.getContent()), pageRequest.toPageable(), paperIds.getTotalElements());
     }
 
     public CitationTextDto citation(long paperId, CitationFormat format) {
@@ -167,19 +136,6 @@ public class PaperFacade {
         }
 
         return paperService.citation(paper.getDoi(), format);
-    }
-
-    public AggregationDto aggregate(Query query) {
-        if (query.isDoi()) {
-            return new AggregationDto();
-        }
-
-        AggregationDto dto = searchService.aggregateFromSample(query);
-
-        // for calculate doc count for each buckets
-        searchService.enhanceAggregation(query, dto);
-
-        return dto;
     }
 
     public List<PaperDto> getRelatedPapers(long paperId) {

@@ -1,7 +1,6 @@
 package io.scinapse.api.controller;
 
 import io.scinapse.api.dto.CompletionDto;
-import io.scinapse.api.dto.SuggestionDto;
 import io.scinapse.api.dto.response.Response;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.service.SearchService;
@@ -71,17 +70,6 @@ public class SuggestController {
             List<CompletionDto> dtos = searchService.complete(keyword);
             result.put("data", dtos);
         }
-
-        return result;
-    }
-
-    @RequestMapping(value = "/suggest", method = RequestMethod.GET)
-    public Map<String, Object> suggest(@RequestParam("q") String keyword) {
-        keyword = StringUtils.strip(keyword);
-        SuggestionDto suggest = searchService.suggest(keyword);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("data", suggest);
 
         return result;
     }

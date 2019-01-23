@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -77,6 +79,39 @@ public class ErrorUtils {
             return type.cast(attribute);
         }
         return null;
+    }
+
+    public static void logError(HttpStatus status, HttpServletRequest request, Throwable error) {
+        if (request == null) {
+            log.error("{} | Request not provided..", error.getMessage(), error);
+            return;
+        }
+
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        String host = Optional.ofNullable(xForwardedFor)
+                .filter(StringUtils::isNotBlank)
+                .orElseGet(request::getRemoteHost);
+
+        String referer = request.getHeader("referer");
+
+        if (status.is5xxServerError()) {
+            log.error("{} | Remote Host:[ {} ] | User Agent:[ {} ] | Request URI:[ {} ] | Request Params:[ {} ] | Referer:[ {} ]",
+                    error.getMessage(),
+                    host,
+                    request.getHeader(HttpHeaders.USER_AGENT),
+                    request.getRequestURL(),
+                    request.getQueryString(),
+                    referer,
+                    error);
+        } else {
+            log.warn("{} | Remote Host:[ {} ] | User Agent:[ {} ] | Request URI:[ {} ] | Request Params:[ {} ] | Referer:[ {} ]",
+                    error.getMessage(),
+                    host,
+                    request.getHeader(HttpHeaders.USER_AGENT),
+                    request.getRequestURL(),
+                    request.getQueryString(),
+                    referer);
+        }
     }
 
 }

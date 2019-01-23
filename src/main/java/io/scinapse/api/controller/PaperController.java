@@ -1,18 +1,22 @@
 package io.scinapse.api.controller;
 
-import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.CitationTextDto;
 import io.scinapse.api.dto.mag.AuthorSearchPaperDto;
 import io.scinapse.api.dto.mag.PaperAuthorDto;
 import io.scinapse.api.dto.mag.PaperDto;
+import io.scinapse.api.dto.response.Error;
 import io.scinapse.api.dto.response.Response;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.facade.PaperFacade;
+import io.scinapse.api.util.ErrorUtils;
 import io.scinapse.api.util.HttpUtils;
 import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,18 +35,6 @@ public class PaperController {
         return paperFacade.find(paperId, HttpUtils.isBot(request));
     }
 
-    @RequestMapping(value = "/papers", method = RequestMethod.GET)
-    public Page<PaperDto> search(@RequestParam("query") String queryStr,
-                                 @RequestParam(value = "filter", required = false) String filterStr,
-                                 PageRequest pageRequest) {
-        Query query = Query.parse(queryStr, filterStr);
-        if (!query.isValid()) {
-            throw new BadRequestException("Invalid query: too short or long query text");
-        }
-
-        return paperFacade.search(query, pageRequest);
-    }
-
     @RequestMapping(value = "/papers", method = RequestMethod.GET, params = "check_author_included")
     public Response<List<AuthorSearchPaperDto>> searchAuthorPaper(@RequestParam("query") String queryStr,
                                                                   @RequestParam(value = "filter", required = false) String filterStr,
@@ -56,24 +48,14 @@ public class PaperController {
         return Response.success(paperFacade.searchAuthorPaper(query, authorId, pageRequest));
     }
 
-    @RequestMapping(value = "/papers/aggregate", method = RequestMethod.GET)
-    public Map<String, Object> aggregate(@RequestParam("query") String queryStr,
-                                         @RequestParam(value = "filter", required = false) String filterStr) {
-        Query query = Query.parse(queryStr, filterStr);
-        if (!query.isValid()) {
-            throw new BadRequestException("Invalid query: too short or long query text");
-        }
+    @ExceptionHandler({ UnsatisfiedServletRequestParameterException.class })
+    public ResponseEntity handleRequestParamException(HttpServletRequest request, Exception ex) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
 
-        HashMap<String, Object> result = new HashMap<>();
+        ErrorUtils.logError(status, request, ex);
 
-        AggregationDto aggregationDto = paperFacade.aggregate(query);
-        result.put("data", aggregationDto);
-
-        Meta meta = new Meta();
-        meta.available = true;
-        result.put("meta", meta);
-
-        return result;
+        Error error = Error.of(request.getRequestURI(), status, ex);
+        return new ResponseEntity<>(Response.error(error), status);
     }
 
     @RequestMapping(value = "/papers/{paperId}/references", method = RequestMethod.GET)

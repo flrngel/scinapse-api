@@ -4,7 +4,6 @@ import io.scinapse.api.dto.mag.JournalDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.facade.JournalFacade;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,12 +30,7 @@ public class JournalController {
     public Map<String, Object> getPapers(@PathVariable long journalId,
                                          @RequestParam(value = "query", required = false) String queryStr,
                                          PageRequest pageRequest) {
-        Page<PaperDto> dtos;
-        if (StringUtils.isBlank(queryStr)) {
-            dtos = journalFacade.getDefaultPapers(journalId, pageRequest);
-        } else {
-            dtos = journalFacade.getPapers(journalId, queryStr, pageRequest);
-        }
+        Page<PaperDto> dtos = journalFacade.searchPaper(journalId, queryStr, pageRequest);
 
         Map<String, Object> result = new HashMap<>();
         result.put("data", dtos);
