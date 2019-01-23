@@ -23,12 +23,18 @@ public class PaperItemDto {
     @JsonProperty("is_layered")
     private boolean layered = false;
 
+    private String titleHighlighted;
+    private String abstractHighlighted;
+
     private List<PaperAuthorDto> authors;
 
     public PaperItemDto(AcPaperDto dto) {
         Preconditions.checkNotNull(dto);
 
         this.origin = dto;
+
+        this.titleHighlighted = dto.getTitle();
+        this.abstractHighlighted = dto.getPaperAbstract();
 
         this.authors = dto.getAuthors()
                 .stream()

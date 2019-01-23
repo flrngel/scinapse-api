@@ -277,7 +277,8 @@ public class SearchV2Service {
         String queryText = query.getText();
 
         BoolQueryBuilder authorSearchQuery = QueryBuilders.boolQuery()
-                .must(QueryBuilders.matchQuery("name", queryText).operator(Operator.AND));
+                .must(QueryBuilders.matchQuery("name", queryText).operator(Operator.AND))
+                .filter(QueryBuilders.existsQuery("affiliation.name"));
 
         SearchSourceBuilder source = SearchSourceBuilder.searchSource()
                 .query(authorSearchQuery)

@@ -76,9 +76,8 @@ public class SearchFacade {
 
                     // add highlight information
                     PaperItemDto dto = new PaperItemDto(acPaperDto);
-                    AcPaperDto origin = dto.getOrigin();
-                    Optional.ofNullable(paper.getTitleHighlighted()).ifPresent(origin::setTitle);
-                    Optional.ofNullable(paper.getAbstractHighlighted()).ifPresent(origin::setPaperAbstract);
+                    Optional.ofNullable(paper.getTitleHighlighted()).ifPresent(dto::setTitleHighlighted);
+                    Optional.ofNullable(paper.getAbstractHighlighted()).ifPresent(dto::setAbstractHighlighted);
 
                     return dto;
                 })
