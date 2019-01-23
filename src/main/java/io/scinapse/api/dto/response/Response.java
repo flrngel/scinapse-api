@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
@@ -20,18 +18,10 @@ public class Response<T> {
     private Error error;
     private Data<T> data;
 
-    public static Response error(HttpServletRequest request) {
-        Error error = Error.of(request);
-        Response<Object> errorResponse = new Response<>();
-        errorResponse.setError(error);
-        return errorResponse;
-    }
-
-    public static Response error(HttpServletRequest request, Exception e, HttpStatus status) {
-        Error error = Error.of(request, e, status);
-        Response<Object> errorResponse = new Response<>();
-        errorResponse.setError(error);
-        return errorResponse;
+    public static Response error(Error error) {
+        Response<Object> response = new Response<>();
+        response.setError(error);
+        return response;
     }
 
     public static <R> Response<R> success(R content) {

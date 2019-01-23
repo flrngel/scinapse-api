@@ -124,7 +124,7 @@ public class AuthControllerTest {
         mvc
                 .perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"alice@pluto.network\",\"password\":\"password\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(status().reason(containsString("Member not found:")));
+                .andExpect(content().string(containsString("Member not found:")));
 
         verify(memberService, only()).getByEmail("alice@pluto.network", true);
     }
@@ -143,7 +143,7 @@ public class AuthControllerTest {
         mvc
                 .perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"alice@pluto.network\",\"password\":\"pazzward\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(status().reason("Authentication Failed. Username or Password not valid."));
+                .andExpect(content().string(containsString("Authentication Failed. Username or Password not valid.")));
 
         verify(memberService, only()).getByEmail(email, true);
     }
@@ -161,7 +161,7 @@ public class AuthControllerTest {
         mvc
                 .perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"alice@pluto.network\",\"password\":\"password\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(status().reason("Authentication Failed. Oauth user did not register password."));
+                .andExpect(content().string(containsString("Authentication Failed. Oauth user did not register password.")));
 
         verify(memberService, only()).getByEmail(email, true);
     }
@@ -180,7 +180,7 @@ public class AuthControllerTest {
         mvc
                 .perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"alice@pluto.network\",\"password\":\"password\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(status().reason("Member has no roles assigned"));
+                .andExpect(content().string(containsString("Member has no roles assigned")));
 
         verify(memberService, only()).getByEmail(email, true);
     }

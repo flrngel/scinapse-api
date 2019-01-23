@@ -19,11 +19,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -70,7 +70,7 @@ public class PaperControllerTest {
                 .perform(get("/papers"))
 
                 .andExpect(status().isBadRequest())
-                .andExpect(status().reason("Required String parameter 'query' is not present"));
+                .andExpect(content().string(containsString("Required String parameter 'query' is not present")));
 
         verifyZeroInteractions(paperFacade);
     }
