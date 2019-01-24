@@ -824,6 +824,7 @@ public class AuthorLayerService {
         old.setReceivedDate(updated.getReceivedDate());
         old.setTitle(updated.getTitle());
         old.setDescription(updated.getDescription());
+        old.setRelatedLink(updated.getRelatedLink());
         return old;
     }
 
