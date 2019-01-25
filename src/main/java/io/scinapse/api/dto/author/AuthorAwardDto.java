@@ -6,11 +6,11 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import io.scinapse.api.data.scinapse.model.author.AuthorAward;
+import io.scinapse.api.util.TextUtils;
 import io.scinapse.api.validator.Website;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
@@ -60,15 +60,15 @@ public class AuthorAwardDto {
     }
 
     public void setTitle(String title) {
-        this.title = StringUtils.normalizeSpace(title);
+        this.title = TextUtils.normalize(title);
     }
 
     public void setDescription(String description) {
-        this.description = StringUtils.normalizeSpace(description);
+        this.description = TextUtils.normalize(description);
     }
 
     public void setRelatedLink(String relatedLink) {
-        this.relatedLink = StringUtils.normalizeSpace(relatedLink);
+        this.relatedLink = TextUtils.normalize(relatedLink);
     }
 
 }

@@ -87,29 +87,41 @@ public class ErrorUtils {
             return;
         }
 
+        int statusCode = status.value();
+        String errorName = error.getClass().getName();
+        String errorMessage = error.getMessage();
+
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         String host = Optional.ofNullable(xForwardedFor)
                 .filter(StringUtils::isNotBlank)
                 .orElseGet(request::getRemoteHost);
 
+        String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
+        String requestUrl = request.getRequestURL().toString();
+        String queryString = request.getQueryString();
+
         String referer = request.getHeader("referer");
 
         if (status.is5xxServerError()) {
-            log.error("{} | Remote Host:[ {} ] | User Agent:[ {} ] | Request URI:[ {} ] | Request Params:[ {} ] | Referer:[ {} ]",
-                    error.getMessage(),
+            log.error("status:[ {} ] | exception:[ {} : {} ] | Remote Host:[ {} ] | User Agent:[ {} ] | Request URI:[ {} ] | Request Params:[ {} ] | Referer:[ {} ]",
+                    statusCode,
+                    errorName,
+                    errorMessage,
                     host,
-                    request.getHeader(HttpHeaders.USER_AGENT),
-                    request.getRequestURL(),
-                    request.getQueryString(),
+                    userAgent,
+                    requestUrl,
+                    queryString,
                     referer,
                     error);
         } else {
-            log.warn("{} | Remote Host:[ {} ] | User Agent:[ {} ] | Request URI:[ {} ] | Request Params:[ {} ] | Referer:[ {} ]",
-                    error.getMessage(),
+            log.warn("status:[ {} ] | exception:[ {} : {} ] | Remote Host:[ {} ] | User Agent:[ {} ] | Request URI:[ {} ] | Request Params:[ {} ] | Referer:[ {} ]",
+                    statusCode,
+                    errorName,
+                    errorMessage,
                     host,
-                    request.getHeader(HttpHeaders.USER_AGENT),
-                    request.getRequestURL(),
-                    request.getQueryString(),
+                    userAgent,
+                    requestUrl,
+                    queryString,
                     referer);
         }
     }

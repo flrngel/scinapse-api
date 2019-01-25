@@ -72,4 +72,9 @@ public class TextUtils {
         return results;
     }
 
+    public static String normalize(final String str) {
+        String s = StringUtils.normalizeSpace(str);
+        return StringUtils.isEmpty(s) ? null : s;
+    }
+
 }

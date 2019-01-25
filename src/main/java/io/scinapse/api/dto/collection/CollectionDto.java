@@ -3,11 +3,11 @@ package io.scinapse.api.dto.collection;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.data.scinapse.model.Collection;
 import io.scinapse.api.dto.MemberDto;
+import io.scinapse.api.util.TextUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -65,11 +65,11 @@ public class CollectionDto {
     }
 
     public void setTitle(String title) {
-        this.title = StringUtils.normalizeSpace(title);
+        this.title = TextUtils.normalize(title);
     }
 
     public void setDescription(String description) {
-        this.description = StringUtils.stripToNull(description);
+        this.description = TextUtils.normalize(description);
     }
 
 }

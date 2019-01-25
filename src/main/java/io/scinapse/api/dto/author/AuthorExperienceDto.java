@@ -7,10 +7,10 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import io.scinapse.api.data.scinapse.model.author.AuthorExperience;
+import io.scinapse.api.util.TextUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
@@ -81,15 +81,15 @@ public class AuthorExperienceDto {
     }
 
     public void setInstitutionName(String institutionName) {
-        this.institutionName = StringUtils.normalizeSpace(institutionName);
+        this.institutionName = TextUtils.normalize(institutionName);
     }
 
     public void setDepartment(String department) {
-        this.department = StringUtils.normalizeSpace(department);
+        this.department = TextUtils.normalize(department);
     }
 
     public void setPosition(String position) {
-        this.position = StringUtils.normalizeSpace(position);
+        this.position = TextUtils.normalize(position);
     }
 
 }

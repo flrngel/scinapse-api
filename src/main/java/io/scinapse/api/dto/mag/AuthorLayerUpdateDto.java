@@ -3,12 +3,12 @@ package io.scinapse.api.dto.mag;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import io.scinapse.api.util.TextUtils;
 import io.scinapse.api.validator.NoSpecialChars;
 import io.scinapse.api.validator.Website;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.Email;
 
 import javax.validation.constraints.NotNull;
@@ -46,19 +46,19 @@ public class AuthorLayerUpdateDto {
     private String affiliationName;
 
     public void setName(String name) {
-        this.name = StringUtils.normalizeSpace(name);
+        this.name = TextUtils.normalize(name);
     }
 
     public void setEmail(String email) {
-        this.email = StringUtils.normalizeSpace(email);
+        this.email = TextUtils.normalize(email);
     }
 
     public void setWebPage(String webPage) {
-        this.webPage = StringUtils.normalizeSpace(webPage);
+        this.webPage = TextUtils.normalize(webPage);
     }
 
     public void setAffiliationName(String affiliationName) {
-        this.affiliationName = StringUtils.normalizeSpace(affiliationName);
+        this.affiliationName = TextUtils.normalize(affiliationName);
     }
 
 }
