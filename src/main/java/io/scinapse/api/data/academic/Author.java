@@ -8,6 +8,7 @@ import org.hibernate.annotations.Nationalized;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,6 +46,10 @@ public class Author {
         }
         return authorHIndexHolder.get(0);
     }
+
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "author")
+    private List<AuthorTopFos> fosList = new ArrayList<>();
 
     public long getPaperCount() {
         return Optional.ofNullable(this.paperCount).orElse(0L);

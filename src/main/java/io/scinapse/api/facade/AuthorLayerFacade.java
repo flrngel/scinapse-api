@@ -94,7 +94,7 @@ public class AuthorLayerFacade {
 
     @Transactional
     public AuthorDto connect(Member member, long authorId, AuthorLayerUpdateDto dto) {
-        AuthorDto author = authorFacade.find(authorId);
+        AuthorDto author = authorFacade.find(authorId, false);
 
         layerService.connect(member, author, dto);
         return findDetailed(authorId, true);
@@ -106,7 +106,7 @@ public class AuthorLayerFacade {
     }
 
     public AuthorDto findDetailed(long authorId, boolean includeEmail) {
-        AuthorDto dto = authorFacade.find(authorId);
+        AuthorDto dto = authorFacade.find(authorId, true);
         Optional<AuthorLayer> layer = layerService.find(authorId);
 
         // just return original author if it does not have a layer.

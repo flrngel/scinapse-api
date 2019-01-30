@@ -22,10 +22,10 @@ public class AcAuthorService {
 
     private final AuthorRepository authorRepository;
 
-    public List<AcAuthorDto> findAuthors(List<Long> authorIds) {
+    public List<AcAuthorDto> findAuthors(List<Long> authorIds, boolean loadFos) {
         Map<Long, AcAuthorDto> authorMap = authorRepository.findByIdIn(authorIds)
                 .stream()
-                .map(AcAuthorDto::new)
+                .map(author -> new AcAuthorDto(author, loadFos))
                 .collect(Collectors.toMap(
                         AcAuthorDto::getId,
                         Function.identity()

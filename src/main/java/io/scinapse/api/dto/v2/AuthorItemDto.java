@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.scinapse.api.academic.dto.AcAuthorDto;
+import io.scinapse.api.academic.dto.AcAuthorFosDto;
 import io.scinapse.api.data.scinapse.model.author.AuthorLayerPaper;
 import io.scinapse.api.dto.mag.AffiliationDto;
 import lombok.Getter;
@@ -33,8 +34,10 @@ public class AuthorItemDto {
     private long citationCount;
     private AffiliationDto lastKnownAffiliation;
 
-    private String profileImageUrl;
+    private List<AcAuthorFosDto> fosList = new ArrayList<>();
     private List<AuthorPaperDto> representativePapers = new ArrayList<>();
+
+    private String profileImageUrl;
 
     public AuthorItemDto(AcAuthorDto dto) {
         this.origin = dto;
@@ -44,6 +47,8 @@ public class AuthorItemDto {
         this.paperCount = dto.getPaperCount();
         this.citationCount = dto.getCitationCount();
         this.lastKnownAffiliation = dto.getLastKnownAffiliation();
+
+        this.fosList = dto.getFosList();
     }
 
     public void setRepresentativePapers(List<AuthorLayerPaper> layerPapers) {

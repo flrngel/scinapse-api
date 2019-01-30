@@ -2,10 +2,12 @@ package io.scinapse.api.service.author;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.academic.dto.AcAuthorDto;
+import io.scinapse.api.academic.dto.AcAuthorFosDto;
 import io.scinapse.api.academic.dto.AcPaperAuthorDto;
 import io.scinapse.api.configuration.ScinapseConstant;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.data.academic.Affiliation;
+import io.scinapse.api.data.academic.FieldsOfStudy;
 import io.scinapse.api.data.academic.Paper;
 import io.scinapse.api.data.academic.repository.*;
 import io.scinapse.api.data.scinapse.model.Member;
@@ -627,6 +629,24 @@ public class AuthorLayerService {
                 .stream()
                 .collect(Collectors.groupingBy(lp -> lp.getId().getAuthorId()));
 
+        List<AuthorLayerFos> allFosList = authorLayerFosRepository.findByIdAuthorIdIn(authorIds);
+
+        Set<Long> fosIds = allFosList
+                .stream()
+                .map(AuthorLayerFos::getId)
+                .map(AuthorLayerFos.AuthorLayerFosId::getFosId)
+                .collect(Collectors.toSet());
+
+        Map<Long, FieldsOfStudy> fosMap = fieldsOfStudyRepository.findByIdIn(new ArrayList<>(fosIds))
+                .stream()
+                .collect(Collectors.toMap(
+                        FieldsOfStudy::getId,
+                        Function.identity()
+                ));
+
+        Map<Long, List<AuthorLayerFos>> layerFosMap = allFosList.stream()
+                .collect(Collectors.groupingBy(lp -> lp.getId().getAuthorId()));
+
         dtos
                 .forEach(dto -> {
                     AuthorLayer layer = layerMap.get(dto.getOrigin().getId());
@@ -644,11 +664,31 @@ public class AuthorLayerService {
                     dto.setLastKnownAffiliation(getLayeredAffiliation(layer));
 
                     List<AuthorLayerPaper> layerPapers = layerPaperMap.get(dto.getOrigin().getId());
-                    if (CollectionUtils.isEmpty(layerPapers)) {
-                        return;
+                    if (!CollectionUtils.isEmpty(layerPapers)) {
+                        dto.setRepresentativePapers(layerPapers);
                     }
 
-                    dto.setRepresentativePapers(layerPapers);
+                    List<AuthorLayerFos> layerFosList = layerFosMap.get(dto.getOrigin().getId());
+                    if (!CollectionUtils.isEmpty(layerFosList)) {
+                        List<AcAuthorFosDto> fosList = layerFosList
+                                .stream()
+                                .map(layerFos -> {
+                                    FieldsOfStudy fos = fosMap.get(layerFos.getId().getFosId());
+                                    if (fos == null) {
+                                        return null;
+                                    }
+
+                                    AcAuthorFosDto fosDto = new AcAuthorFosDto();
+                                    fosDto.setId(fos.getId());
+                                    fosDto.setName(fos.getName());
+                                    fosDto.setRank(layerFos.getRank());
+                                    return fosDto;
+                                })
+                                .filter(Objects::nonNull)
+                                .sorted(Comparator.comparing(AcAuthorFosDto::getRank, Comparator.nullsLast(Comparator.naturalOrder())))
+                                .collect(Collectors.toList());
+                        dto.setFosList(fosList);
+                    }
                 });
     }
 

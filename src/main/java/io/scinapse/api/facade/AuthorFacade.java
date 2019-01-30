@@ -80,9 +80,9 @@ public class AuthorFacade {
         return new PageImpl<>(paperDtos, pageRequest.toPageable(), paperPage.getTotalElements());
     }
 
-    public AuthorDto find(long authorId) {
+    public AuthorDto find(long authorId, boolean loadFos) {
         return authorService.find(authorId)
-                .map(AuthorDto::new)
+                .map(author -> new AuthorDto(author, loadFos))
                 .orElseThrow(() -> new BadRequestException("Author[" + authorId + "] does not exist."));
     }
 

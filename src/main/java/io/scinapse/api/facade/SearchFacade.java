@@ -106,7 +106,7 @@ public class SearchFacade {
     }
 
     private List<AuthorItemDto> getAuthorItems(List<Long> authorIds) {
-        List<AuthorItemDto> dtos = authorService.findAuthors(authorIds)
+        List<AuthorItemDto> dtos = authorService.findAuthors(authorIds, true)
                 .stream()
                 .map(AuthorItemDto::new)
                 .collect(Collectors.toList());
