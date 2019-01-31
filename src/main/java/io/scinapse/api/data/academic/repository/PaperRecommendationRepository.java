@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 @XRayEnabled
-public interface PaperRecommendationRepository extends JpaRepository<PaperRecommendation, PaperRecommendation.PaperRecommendationId> {
+public interface PaperRecommendationRepository extends JpaRepository<PaperRecommendation, PaperRecommendation.PaperRecommendationId>, PaperRecommendationRepositoryCustom {
     List<PaperRecommendation> findTop5ByPaperIdOrderByScoreDesc(long paperId);
 }

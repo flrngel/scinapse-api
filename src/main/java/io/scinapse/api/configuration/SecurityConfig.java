@@ -111,6 +111,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/papers/*/references",
                         "/papers/*/cited",
                         "/papers/*/related",
+                        "/papers/*/reading-now",
                         "/papers/*/authors",
                         "/papers/*/authors/*/related",
                         "/papers/*/citation",

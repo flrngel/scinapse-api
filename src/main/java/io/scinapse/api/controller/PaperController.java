@@ -103,6 +103,11 @@ public class PaperController {
         return result;
     }
 
+    @RequestMapping(value = "/papers/{paperId}/reading-now", method = RequestMethod.GET)
+    public Response<List<PaperDto>> readingNow(@PathVariable long paperId) {
+        return Response.success(paperFacade.getReadingNow(paperId));
+    }
+
     @RequestMapping(value = "/papers/{paperId}/authors", method = RequestMethod.GET)
     public Response<List<PaperAuthorDto>> getPaperAuthor(@PathVariable long paperId, PageRequest pageRequest) {
         return Response.success(paperFacade.getPaperAuthors(paperId, pageRequest));

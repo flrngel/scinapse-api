@@ -148,4 +148,9 @@ public class PaperFacade {
         return convert(relatedPapers, PaperConverter.simple());
     }
 
+    public List<PaperDto> getReadingNow(long paperId) {
+        List<Long> readingNowIds = paperService.getReadingNow(paperId);
+        return findIn(readingNowIds, PaperConverter.simple());
+    }
+
 }
