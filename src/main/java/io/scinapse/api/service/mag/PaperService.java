@@ -105,11 +105,16 @@ public class PaperService {
         }
     }
 
-    public List<Long> getRelatedPapers(long paperId) {
+    public List<Paper> getRelatedPapers(long paperId) {
         return paperRecommendationRepository.findTop5ByPaperIdOrderByScoreDesc(paperId)
                 .stream()
-                .map(PaperRecommendation::getRecommendedPaperId)
+                .map(PaperRecommendation::getPaper)
                 .collect(Collectors.toList());
+    }
+
+    public List<Paper> getRecommendedPapers(long paperId) {
+        return paperRecommendationRepository.getHightestCitedRecommendationPapers(paperId,
+                PageRequest.defaultPageable(3));
     }
 
     public List<Paper> getAuthorRelatedPapers(long paperId, long authorId) {

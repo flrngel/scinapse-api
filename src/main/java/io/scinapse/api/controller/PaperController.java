@@ -80,13 +80,19 @@ public class PaperController {
     }
 
     @RequestMapping(value = "/papers/{paperId}/related", method = RequestMethod.GET)
-    public Map<String, Object> related(@PathVariable long paperId) {
-        List<PaperDto> related = paperFacade.getRelatedPapers(paperId);
+    public Map<String, Object> related(@PathVariable long paperId,
+                                       @RequestParam(value = "topcited", required = false) boolean isTopCited) {
+        List<PaperDto> papers;
+        if(isTopCited) {
+            papers = paperFacade.getRecommendedPapers(paperId);
+        } else {
+            papers = paperFacade.getRelatedPapers(paperId);
+        }
 
         HashMap<String, Object> result = new HashMap<>();
-        Meta meta = related.isEmpty() ? Meta.unavailable() : Meta.available();
+        Meta meta = papers.isEmpty() ? Meta.unavailable() : Meta.available();
         result.put("meta", meta);
-        result.put("data", related);
+        result.put("data", papers);
 
         return result;
     }

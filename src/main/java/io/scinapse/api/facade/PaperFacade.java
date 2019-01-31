@@ -139,8 +139,13 @@ public class PaperFacade {
     }
 
     public List<PaperDto> getRelatedPapers(long paperId) {
-        List<Long> relatedPaperIds = paperService.getRelatedPapers(paperId);
-        return findIn(relatedPaperIds, PaperConverter.simple());
+        List<Paper> relatedPapers = paperService.getRelatedPapers(paperId);
+        return convert(relatedPapers, PaperConverter.simple());
+    }
+
+    public List<PaperDto> getRecommendedPapers(long paperId) {
+        List<Paper> recommendedPapers = paperService.getRecommendedPapers(paperId);
+        return convert(recommendedPapers, PaperConverter.simple());
     }
 
     public List<PaperDto> getAuthorRelatedPapers(long paperId, long authorId) {
@@ -152,5 +157,4 @@ public class PaperFacade {
         List<Long> readingNowIds = paperService.getReadingNow(paperId);
         return findIn(readingNowIds, PaperConverter.simple());
     }
-
 }

@@ -18,6 +18,7 @@ public class AggregationDto {
     public List<ImpactFactor> impactFactors = new ArrayList<>();
     public List<Journal> journals = new ArrayList<>();
     public List<Fos> fosList = new ArrayList<>();
+    public List<String> keywordList = new ArrayList<>();
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
     public static class Year {
@@ -55,6 +56,7 @@ public class AggregationDto {
     public static class Fos {
         public long id;
         public String name;
+        public int level;
         public long docCount;
     }
 

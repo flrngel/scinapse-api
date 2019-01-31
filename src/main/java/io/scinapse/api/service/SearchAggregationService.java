@@ -1,6 +1,7 @@
 package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.data.academic.FieldsOfStudy;
 import io.scinapse.api.data.academic.repository.FieldsOfStudyRepository;
 import io.scinapse.api.data.academic.repository.JournalRepository;
 import io.scinapse.api.dto.AggregationDto;
@@ -86,7 +87,7 @@ public class SearchAggregationService {
 
     public SamplerAggregationBuilder generateSampleAggregation() {
         TermsAggregationBuilder journalAgg = AggregationBuilders.terms(JOURNAL_AGG_NAME).field("journal.id").size(10);
-        TermsAggregationBuilder fosAgg = AggregationBuilders.terms(FOS_AGG_NAME).field("fos.id").size(10);
+        TermsAggregationBuilder fosAgg = AggregationBuilders.terms(FOS_AGG_NAME).field("fos.id").size(30);
 
         // add aggregations using top 100 results
         return AggregationBuilders.sampler(SAMPLE_AGG_NAME)
@@ -147,6 +148,8 @@ public class SearchAggregationService {
         dto.impactFactors = impactFactors;
         dto.journals = journals;
         dto.fosList = fosList;
+        dto.keywordList = getKeywordList(samplerMap);
+
         return dto;
     }
 
@@ -262,14 +265,29 @@ public class SearchAggregationService {
                 .stream()
                 .map(f -> (long) f.getKey())
                 .collect(Collectors.toList());
+
         return fieldsOfStudyRepository.findByIdIn(fosIds)
                 .stream()
                 .map(f -> {
                     AggregationDto.Fos fosDto = new AggregationDto.Fos();
                     fosDto.id = f.getId();
                     fosDto.name = f.getName();
+                    fosDto.level = f.getLevel();
                     return fosDto;
                 })
+                .collect(Collectors.toList());
+    }
+
+    private List<String> getKeywordList(Map<String, Aggregation> aggregationMap) {
+        Terms fos = (Terms) aggregationMap.get(FOS_AGG_NAME);
+        List<Long> fosIds = fos.getBuckets()
+                .stream()
+                .map(f -> (long) f.getKey())
+                .collect(Collectors.toList());
+
+        return fieldsOfStudyRepository.findTop10ByIdInOrderByLevelDesc(fosIds)
+                .stream()
+                .map(FieldsOfStudy::getName)
                 .collect(Collectors.toList());
     }
 
