@@ -109,6 +109,10 @@ public class AcPaperDto {
         private boolean loadFos;
         private boolean loadUrl;
 
+        public static DetailSelector none() {
+            return builder().build();
+        }
+
         public static DetailSelector simple() {
             return builder()
                     .loadJournal(true)

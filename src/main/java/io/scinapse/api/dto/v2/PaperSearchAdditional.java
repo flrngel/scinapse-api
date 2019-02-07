@@ -19,5 +19,6 @@ public class PaperSearchAdditional {
     private boolean resultModified = false;
     private SuggestionDto suggestion;
     private AggregationDto aggregation;
+    private MatchedAuthor matchedAuthor;
     private List<MatchedEntity> matchedEntities = new ArrayList<>();
 }

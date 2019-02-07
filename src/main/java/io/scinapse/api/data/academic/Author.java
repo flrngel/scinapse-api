@@ -51,6 +51,10 @@ public class Author {
     @OneToMany(mappedBy = "author")
     private List<AuthorTopFos> fosList = new ArrayList<>();
 
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "author")
+    private List<AuthorTopPaper> topPapers = new ArrayList<>();
+
     public long getPaperCount() {
         return Optional.ofNullable(this.paperCount).orElse(0L);
     }

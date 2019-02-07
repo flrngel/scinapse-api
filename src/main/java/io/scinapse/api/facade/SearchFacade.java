@@ -1,6 +1,7 @@
 package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.academic.dto.AcAuthorDto;
 import io.scinapse.api.academic.dto.AcPaperDto;
 import io.scinapse.api.academic.service.AcAuthorService;
 import io.scinapse.api.academic.service.AcPaperService;
@@ -96,17 +97,23 @@ public class SearchFacade {
     }
 
     private void convertAuthorItems(EsPaperSearchResponse response) {
-        List<MatchedEntity> matchedAuthors = getAuthorItems(response.getAuthorIds())
+        List<AuthorItemDto> authorItemDtos = getAuthorItems(response.getAuthorIds());
+
+        List<MatchedEntity> matchedAuthors = authorItemDtos
                 .stream()
                 .map(author -> new MatchedEntity(MatchedEntity.MatchedType.AUTHOR, author))
                 .collect(Collectors.toList());
 
+        MatchedAuthor matchedAuthor = new MatchedAuthor(response.getAuthorTotalHits(), authorItemDtos);
+
         PaperSearchAdditional additional = response.getAdditional();
+
         additional.getMatchedEntities().addAll(matchedAuthors);
+        additional.setMatchedAuthor(matchedAuthor);
     }
 
     private List<AuthorItemDto> getAuthorItems(List<Long> authorIds) {
-        List<AuthorItemDto> dtos = authorService.findAuthors(authorIds, true)
+        List<AuthorItemDto> dtos = authorService.findAuthors(authorIds, AcAuthorDto.DetailSelector.full())
                 .stream()
                 .map(AuthorItemDto::new)
                 .collect(Collectors.toList());

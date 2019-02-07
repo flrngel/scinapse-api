@@ -26,6 +26,7 @@ import java.util.stream.StreamSupport;
 public class EsPaperSearchResponse {
 
     private Query query;
+    private PageRequest pageRequest;
 
     private SearchResponse paperResponse;
     private SearchResponse authorResponse;
@@ -35,19 +36,27 @@ public class EsPaperSearchResponse {
     private Page<PaperItemDto> paperItemPage;
 
     private List<Long> authorIds;
+    private long authorTotalHits;
 
     private final PaperSearchAdditional additional = new PaperSearchAdditional();
 
     public EsPaperSearchResponse(Query query, PageRequest pageRequest, MultiSearchResponse.Item[] responses) {
         this.query = query;
+        this.pageRequest = pageRequest;
 
         this.setPaperResponse(responses[0].getResponse());
+        this.setAuthorResponse(responses[1].getResponse());
+    }
 
-        this.authorResponse = responses[1].getResponse();
+    private void setAuthorResponse(SearchResponse authorResponse) {
+        this.authorResponse = authorResponse;
+
         this.authorIds = StreamSupport.stream(authorResponse.getHits().spliterator(), false)
                 .map(SearchHit::getId)
                 .map(Long::parseLong)
                 .collect(Collectors.toList());
+
+        this.authorTotalHits = authorResponse.getHits().getTotalHits();
     }
 
     public EsPaperSearchResponse(Query query, SearchResponse paperResponse) {
