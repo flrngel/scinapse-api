@@ -1,6 +1,7 @@
 package io.scinapse.api.dto.mag;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.scinapse.api.academic.dto.AcConferenceInstanceDto;
 import io.scinapse.api.data.academic.Paper;
 import io.scinapse.api.dto.CommentDto;
 import io.scinapse.api.dto.PaperImageDto;
@@ -53,6 +54,9 @@ public class PaperDto {
     private long commentCount = 0;
 
     private JournalDto journal;
+
+    @JsonProperty("conference_instance")
+    private AcConferenceInstanceDto conferenceInstance;
 
     private List<PaperAuthorDto> authors = new ArrayList<>();
 

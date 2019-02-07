@@ -40,6 +40,8 @@ public class AcPaperDto {
     private long citedCount;
 
     private AcJournalDto journal;
+    private AcConferenceInstanceDto conferenceInstance;
+
     private List<AcPaperAuthorDto> authors = new ArrayList<>();
     private List<AcPaperFosDto> fosList = new ArrayList<>();
     private List<AcPaperUrlDto> urls = new ArrayList<>();
@@ -61,6 +63,12 @@ public class AcPaperDto {
             Optional.ofNullable(paper.getJournal())
                     .map(AcJournalDto::new)
                     .ifPresent(this::setJournal);
+        }
+
+        if (selector.loadConferenceInstance) {
+            Optional.ofNullable(paper.getConferenceInstance())
+                    .map(AcConferenceInstanceDto::new)
+                    .ifPresent(this::setConferenceInstance);
         }
 
         if (selector.loadAbstract) {
@@ -95,6 +103,7 @@ public class AcPaperDto {
     @Builder
     public static class DetailSelector {
         private boolean loadJournal;
+        private boolean loadConferenceInstance;
         private boolean loadAbstract;
         private boolean loadAuthor;
         private boolean loadFos;
@@ -103,6 +112,7 @@ public class AcPaperDto {
         public static DetailSelector simple() {
             return builder()
                     .loadJournal(true)
+                    .loadConferenceInstance(true)
                     .loadAuthor(true)
                     .build();
         }
@@ -110,6 +120,7 @@ public class AcPaperDto {
         public static DetailSelector compact() {
             return builder()
                     .loadJournal(true)
+                    .loadConferenceInstance(true)
                     .loadAuthor(true)
                     .loadUrl(true)
                     .build();
@@ -118,6 +129,7 @@ public class AcPaperDto {
         public static DetailSelector detail() {
             return builder()
                     .loadJournal(true)
+                    .loadConferenceInstance(true)
                     .loadAuthor(true)
                     .loadUrl(true)
                     .loadAbstract(true)
@@ -127,6 +139,7 @@ public class AcPaperDto {
         public static DetailSelector full() {
             return builder()
                     .loadJournal(true)
+                    .loadConferenceInstance(true)
                     .loadAuthor(true)
                     .loadUrl(true)
                     .loadAbstract(true)

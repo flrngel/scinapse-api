@@ -1,6 +1,7 @@
 package io.scinapse.api.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.academic.dto.AcConferenceInstanceDto;
 import io.scinapse.api.data.academic.Paper;
 import io.scinapse.api.dto.mag.*;
 import io.scinapse.api.service.CommentService;
@@ -33,7 +34,8 @@ public class PaperConverter {
     public static Converter simple() {
         return new Converter()
                 .withAuthors()
-                .withJournal();
+                .withJournal()
+                .withConferenceInstance();
     }
 
     public static Converter compact() {
@@ -93,6 +95,17 @@ public class PaperConverter {
                 if (paper.getJournal() != null) {
                     JournalDto journal = new JournalDto(paper.getJournal());
                     dto.setJournal(journal);
+                }
+            });
+            return this;
+        }
+
+        public Converter withConferenceInstance() {
+            if (detailLoaders.get("conference_instance") != null) return this;
+            detailLoaders.put("conference_instance", () -> {
+                if (paper.getConferenceInstance() != null) {
+                    AcConferenceInstanceDto conferenceInstance = new AcConferenceInstanceDto(paper.getConferenceInstance());
+                    dto.setConferenceInstance(conferenceInstance);
                 }
             });
             return this;

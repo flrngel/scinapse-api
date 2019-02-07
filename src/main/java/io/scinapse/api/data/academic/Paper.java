@@ -43,6 +43,14 @@ public class Paper {
     @JoinColumn(name = "journal_id")
     private Journal journal;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conference_series_id")
+    private ConferenceSeries conferenceSeries;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conference_instance_id")
+    private ConferenceInstance conferenceInstance;
+
     @Column
     private String volume;
 
