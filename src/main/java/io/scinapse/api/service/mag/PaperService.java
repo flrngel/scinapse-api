@@ -108,7 +108,7 @@ public class PaperService {
     public List<Paper> getRelatedPapers(long paperId) {
         return paperRecommendationRepository.findTop5ByPaperIdOrderByScoreDesc(paperId)
                 .stream()
-                .map(PaperRecommendation::getPaper)
+                .map(PaperRecommendation::getRecommendedPaper)
                 .collect(Collectors.toList());
     }
 
