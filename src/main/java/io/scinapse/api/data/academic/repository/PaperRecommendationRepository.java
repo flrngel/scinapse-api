@@ -15,5 +15,5 @@ public interface PaperRecommendationRepository extends JpaRepository<PaperRecomm
     List<PaperRecommendation> findTop5ByPaperIdOrderByScoreDesc(long paperId);
 
     @Query("select t.recommendedPaper from PaperRecommendation t join t.recommendedPaper WHERE t.id.paperId = :paperId order by t.recommendedPaper.citationCount desc")
-    List<Paper> getHightestCitedRecommendationPapers(@Param("paperId") long paperId, Pageable pageable);
+    List<Paper> getHighestCitedRecommendationPapers(@Param("paperId") long paperId, Pageable pageable);
 }

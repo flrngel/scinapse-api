@@ -113,7 +113,7 @@ public class PaperService {
     }
 
     public List<Paper> getRecommendedPapers(long paperId) {
-        return paperRecommendationRepository.getHightestCitedRecommendationPapers(paperId,
+        return paperRecommendationRepository.getHighestCitedRecommendationPapers(paperId,
                 PageRequest.defaultPageable(3));
     }
 

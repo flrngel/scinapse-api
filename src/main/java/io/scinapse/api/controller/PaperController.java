@@ -81,7 +81,7 @@ public class PaperController {
 
     @RequestMapping(value = "/papers/{paperId}/related", method = RequestMethod.GET)
     public Map<String, Object> related(@PathVariable long paperId,
-                                       @RequestParam(value = "topcited", required = false) boolean isTopCited) {
+                                       @RequestParam(value = "top-cited", required = false) boolean isTopCited) {
         List<PaperDto> papers;
         if(isTopCited) {
             papers = paperFacade.getRecommendedPapers(paperId);

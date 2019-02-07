@@ -148,7 +148,7 @@ public class SearchAggregationService {
         dto.impactFactors = impactFactors;
         dto.journals = journals;
         dto.fosList = fosList;
-        dto.keywordList = getKeywordList(samplerMap);
+        dto.keywordList = getKeywordList(fosList);
 
         return dto;
     }
@@ -278,17 +278,11 @@ public class SearchAggregationService {
                 .collect(Collectors.toList());
     }
 
-    private List<String> getKeywordList(Map<String, Aggregation> aggregationMap) {
-        Terms fos = (Terms) aggregationMap.get(FOS_AGG_NAME);
-        List<Long> fosIds = fos.getBuckets()
-                .stream()
-                .map(f -> (long) f.getKey())
-                .collect(Collectors.toList());
-
-        return fieldsOfStudyRepository.findTop10ByIdInOrderByLevelDesc(fosIds)
-                .stream()
-                .map(FieldsOfStudy::getName)
+    private List<String> getKeywordList(List<AggregationDto.Fos> fosList) {
+        return fosList.stream()
+                .sorted(Comparator.comparing(o -> o.level, Comparator.reverseOrder()))
+                .limit(10)
+                .map(o -> o.name)
                 .collect(Collectors.toList());
     }
-
 }

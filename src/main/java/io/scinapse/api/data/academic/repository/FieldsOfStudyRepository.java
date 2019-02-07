@@ -10,5 +10,4 @@ import java.util.List;
 @XRayEnabled
 public interface FieldsOfStudyRepository extends JpaRepository<FieldsOfStudy, Long> {
     List<FieldsOfStudy> findByIdIn(List<Long> fosIds);
-    List<FieldsOfStudy> findTop10ByIdInOrderByLevelDesc(List<Long> fosIds);
 }
