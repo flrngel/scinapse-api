@@ -59,6 +59,7 @@ public class EmailVerificationService {
         }
 
         SendTemplatedEmailRequest request = new SendTemplatedEmailRequest()
+                .withConfigurationSetName("pluto-ses-failure")
                 .withDestination(new Destination().withToAddresses(member.getEmail()))
                 .withSource("no-reply@pluto.network")
                 .withTemplate("verify-email")
@@ -97,6 +98,7 @@ public class EmailVerificationService {
         }
 
         SendTemplatedEmailRequest request = new SendTemplatedEmailRequest()
+                .withConfigurationSetName("pluto-ses-failure")
                 .withDestination(new Destination().withToAddresses(member.getEmail()))
                 .withSource("no-reply@pluto.network")
                 .withTemplate("sign-up-welcome")

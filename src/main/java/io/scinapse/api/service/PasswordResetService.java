@@ -73,6 +73,7 @@ public class PasswordResetService {
         }
 
         SendTemplatedEmailRequest request = new SendTemplatedEmailRequest()
+                .withConfigurationSetName("pluto-ses-failure")
                 .withDestination(new Destination().withToAddresses(token.getMember().getEmail()))
                 .withSource("no-reply@pluto.network")
                 .withTemplate("reset-password")
