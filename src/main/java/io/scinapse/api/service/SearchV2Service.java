@@ -20,6 +20,7 @@ import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScriptScoreFunctionBuilder;
 import org.elasticsearch.script.Script;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
@@ -33,10 +34,13 @@ import org.elasticsearch.search.suggest.phrase.DirectCandidateGeneratorBuilder;
 import org.elasticsearch.search.suggest.phrase.PhraseSuggestionBuilder;
 import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -110,6 +114,22 @@ public class SearchV2Service {
         try {
             SearchResponse response = restHighLevelClient.search(request);
             return new EsPaperSearchResponse(query, response);
+        } catch (IOException e) {
+            throw new RuntimeException("Elasticsearch exception", e);
+        }
+    }
+
+    public Page<Long> searchAuthor(Query query, PageRequest pageRequest) {
+        SearchRequest searchRequest = generateAuthorSearchRequest(query, pageRequest);
+
+        try {
+            SearchResponse response = restHighLevelClient.search(searchRequest);
+
+            List<Long> list = new ArrayList<>();
+            for (SearchHit hit : response.getHits()) {
+                list.add(Long.valueOf(hit.getId()));
+            }
+            return new PageImpl<>(list, pageRequest.toPageable(), response.getHits().getTotalHits());
         } catch (IOException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }
@@ -274,17 +294,43 @@ public class SearchV2Service {
     }
 
     private SearchRequest generateAuthorSearchRequest(Query query) {
+        PageRequest pageRequest = new PageRequest(0, 5, null);
+        return generateAuthorSearchRequest(query, pageRequest);
+    }
+
+    private SearchRequest generateAuthorSearchRequest(Query query, PageRequest pageRequest) {
         String queryText = query.getText();
 
+        BoolQueryBuilder filter = QueryBuilders.boolQuery()
+                .should(QueryBuilders.existsQuery("affiliation.name"))
+                .should(QueryBuilders.rangeQuery("citation_count").gt(0))
+                .should(QueryBuilders.rangeQuery("paper_count").gt(1));
+
+        BoolQueryBuilder main1 = QueryBuilders.boolQuery()
+                .must(QueryBuilders.multiMatchQuery(queryText, "name", "affiliation.name").type(MultiMatchQueryBuilder.Type.CROSS_FIELDS).operator(Operator.AND))
+                .must(QueryBuilders.matchQuery("name", queryText));
+
+        MatchQueryBuilder main2 = QueryBuilders.matchQuery("name.metaphone", queryText).operator(Operator.AND);
+
+        BoolQueryBuilder mainQuery = QueryBuilders.boolQuery()
+                .should(main1)
+                .should(main2);
+
         BoolQueryBuilder authorSearchQuery = QueryBuilders.boolQuery()
-                .must(QueryBuilders.matchQuery("name", queryText).operator(Operator.AND))
-                .filter(QueryBuilders.existsQuery("affiliation.name"));
+                .must(mainQuery)
+                .filter(filter)
+                .should(QueryBuilders.matchQuery("name", queryText).operator(Operator.AND).boost(2))
+                .should(QueryBuilders.matchQuery("name", queryText).minimumShouldMatch("2").boost(2))
+                .should(QueryBuilders.matchQuery("name.metaphone", queryText))
+                .should(QueryBuilders.matchQuery("name.porter", queryText))
+                .should(QueryBuilders.matchQuery("affiliation.name", queryText).boost(2));
 
         SearchSourceBuilder source = SearchSourceBuilder.searchSource()
                 .query(authorSearchQuery)
                 .addRescorer(getAuthorSearchRescorer())
                 .fetchSource(false)
-                .size(5);
+                .from(pageRequest.getOffset())
+                .size(pageRequest.getSize());
 
         return new SearchRequest(authorIndex).source(source);
     }

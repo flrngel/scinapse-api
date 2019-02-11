@@ -20,12 +20,8 @@ import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
-import org.elasticsearch.index.query.functionscore.ScriptScoreFunctionBuilder;
-import org.elasticsearch.script.Script;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.rescore.QueryRescoreMode;
-import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -124,36 +120,6 @@ public class SearchService {
                 .sort(sortBuilder);
 
         return searchAndExtractId(indexName, source, pageRequest);
-    }
-
-    public Page<Long> searchAuthor(String queryText, PageRequest pageRequest) {
-        BoolQueryBuilder authorQuery = QueryBuilders.boolQuery()
-                .should(QueryBuilders.matchQuery("name", queryText).operator(Operator.AND).boost(2))
-                .should(QueryBuilders.matchQuery("name", queryText).minimumShouldMatch("2").boost(2))
-                .should(QueryBuilders.matchQuery("name.metaphone", queryText))
-                .should(QueryBuilders.matchQuery("name.porter", queryText))
-                .should(QueryBuilders.matchQuery("affiliation.name", queryText).boost(2));
-
-        // author paper/citation count booster script
-        Script script = new Script("Math.log10(doc['paper_count'].value + doc['citation_count'].value + 10)");
-        ScriptScoreFunctionBuilder boostFunction = new ScriptScoreFunctionBuilder(script);
-
-        FunctionScoreQueryBuilder rescoreQuery = QueryBuilders
-                .functionScoreQuery(boostFunction)
-                .maxBoost(2); // limit boosting
-
-        QueryRescorerBuilder rescorer = new QueryRescorerBuilder(rescoreQuery)
-                .windowSize(10)
-                .setScoreMode(QueryRescoreMode.Multiply);
-
-        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
-                .query(authorQuery)
-                .addRescorer(rescorer)
-                .fetchSource(false)
-                .from(pageRequest.getOffset())
-                .size(pageRequest.getSize());
-
-        return searchAndExtractId(authorIndex, source, pageRequest);
     }
 
     public Page<Long> searchAuthorPaper(Query query, PageRequest pageRequest) {

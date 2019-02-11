@@ -52,8 +52,8 @@ public class SearchFacade {
         return response;
     }
 
-    public Page<AuthorItemDto> searchAuthors(String queryText, PageRequest pageRequest) {
-        Page<Long> authorIdPage = searchService.searchAuthor(queryText, pageRequest);
+    public Page<AuthorItemDto> searchAuthors(Query query, PageRequest pageRequest) {
+        Page<Long> authorIdPage = searchV2Service.searchAuthor(query, pageRequest);
 
         List<AuthorItemDto> dtos = getAuthorItems(authorIdPage.getContent());
         return new PageImpl<>(dtos, pageRequest.toPageable(), authorIdPage.getTotalElements());

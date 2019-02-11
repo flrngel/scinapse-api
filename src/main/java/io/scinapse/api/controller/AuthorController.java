@@ -82,15 +82,6 @@ public class AuthorController {
         return result;
     }
 
-    @RequestMapping(value = "/authors", method = RequestMethod.GET)
-    public Response<List<AuthorDto>> searchAuthor(@RequestParam("query") String queryStr, PageRequest pageRequest) {
-        String keyword = StringUtils.normalizeSpace(queryStr);
-        if (StringUtils.length(keyword) < 2 || StringUtils.length(keyword) > 100) {
-            throw new BadRequestException("Invalid query: too short or long query text");
-        }
-        return Response.success(authorFacade.searchAuthor(keyword, pageRequest));
-    }
-
     @RequestMapping(value = "/authors/{authorId}/connect", method = RequestMethod.POST)
     public Response<AuthorDto> connect(JwtUser user, @PathVariable long authorId, @RequestBody @Valid AuthorLayerUpdateDto dto) {
         Member member = memberFacade.loadMember(user);

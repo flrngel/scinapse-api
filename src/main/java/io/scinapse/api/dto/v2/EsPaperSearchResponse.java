@@ -48,17 +48,6 @@ public class EsPaperSearchResponse {
         this.setAuthorResponse(responses[1].getResponse());
     }
 
-    private void setAuthorResponse(SearchResponse authorResponse) {
-        this.authorResponse = authorResponse;
-
-        this.authorIds = StreamSupport.stream(authorResponse.getHits().spliterator(), false)
-                .map(SearchHit::getId)
-                .map(Long::parseLong)
-                .collect(Collectors.toList());
-
-        this.authorTotalHits = authorResponse.getHits().getTotalHits();
-    }
-
     public EsPaperSearchResponse(Query query, SearchResponse paperResponse) {
         this.query = query;
         this.setPaperResponse(paperResponse);
@@ -89,6 +78,17 @@ public class EsPaperSearchResponse {
                 .collect(Collectors.toList());
 
         this.paperTotalHits = paperResponse.getHits().totalHits;
+    }
+
+    private void setAuthorResponse(SearchResponse authorResponse) {
+        this.authorResponse = authorResponse;
+
+        this.authorIds = StreamSupport.stream(authorResponse.getHits().spliterator(), false)
+                .map(SearchHit::getId)
+                .map(Long::parseLong)
+                .collect(Collectors.toList());
+
+        this.authorTotalHits = authorResponse.getHits().getTotalHits();
     }
 
     @Getter
