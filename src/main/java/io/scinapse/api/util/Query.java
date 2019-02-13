@@ -54,17 +54,6 @@ public class Query {
         return StringUtils.isNotBlank(text) && text.length() >= 2 && text.length() < 200;
     }
 
-    public QueryBuilder toQueryFilterQuery() {
-        if (isDoi()) {
-            return toDoiQuery();
-        }
-
-        // search specific fields
-        return toRelevanceQuery(getMainQueryClause())
-                .filter(filter.toFilerQuery())
-                .filter(filter.toExtraFilterQuery());
-    }
-
     public BoolQueryBuilder toRelevanceQuery() {
         return toRelevanceQuery(getMainQueryClause());
     }
@@ -76,12 +65,13 @@ public class Query {
     private BoolQueryBuilder toRelevanceQuery(QueryBuilder mainQuery) {
         MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(5);
         MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(7);
-        MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
-        MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(5);
-        MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(5);
-        MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("authors.affiliation.name", text);
-        MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(3);
-        MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text);
+        MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(1);
+        MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(3);
+        MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(4);
+        MatchQueryBuilder authorNameShingleQuery = QueryBuilders.matchQuery("authors.name.shingles", text).boost(3);
+        MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("authors.affiliation.name", text).boost(1);
+        MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(2);
+        MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text).boost(4);
 
         return QueryBuilders.boolQuery()
                 .must(mainQuery)
@@ -90,21 +80,10 @@ public class Query {
                 .should(abstractQuery)
                 .should(abstractShingleQuery)
                 .should(authorNameQuery)
+                .should(authorNameShingleQuery)
                 .should(authorAffiliationQuery)
                 .should(fosQuery)
                 .should(journalQuery);
-    }
-
-    public QueryBuilder toSortFilterQuery() {
-        if (journalSearch) {
-            return toJournalQuery();
-        }
-
-        QueryBuilder mainQuery = getMainQueryClause();
-        return QueryBuilders.boolQuery()
-                .must(mainQuery)
-                .filter(filter.toFilerQuery())
-                .filter(filter.toExtraFilterQuery());
     }
 
     public QueryBuilder toTitleQuery() {
@@ -143,23 +122,17 @@ public class Query {
     }
 
     public QueryBuilder getMainQueryClause() {
-
-        MultiMatchQueryBuilder mainQuery1 = QueryBuilders.multiMatchQuery(text, "fos.name") // initializing field cannot contain boost factor
-                .field("title")
-                .field("abstract")
-                .field("authors.name")
-                .field("authors.affiliation.name")
-                .field("journal.title")
+        MultiMatchQueryBuilder main = QueryBuilders.multiMatchQuery(text, "title.stemmed") // initializing field cannot contain boost factor
+                .field("abstract.stemmed")
+                .field("authors.name.stemmed")
+                .field("authors.affiliation.name.stemmed")
+                .field("fos.name.stemmed")
+                .field("journal.title.stemmed")
                 .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
                 .minimumShouldMatch("-25%"); // combining with minimum_should_match seems to have a bug.
 
-        MultiMatchQueryBuilder mainQuery2 = QueryBuilders.multiMatchQuery(text, "title.stemmed", "abstract.stemmed")
-                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .minimumShouldMatch("-25%");
-
         BoolQueryBuilder query = QueryBuilders.boolQuery()
-                .should(mainQuery1)
-                .should(mainQuery2);
+                .must(main);
 
         phraseQueries.forEach(q -> {
             MultiMatchQueryBuilder phrase = QueryBuilders.multiMatchQuery(
@@ -171,7 +144,7 @@ public class Query {
                     "fos.name",
                     "journal.title")
                     .type(MultiMatchQueryBuilder.Type.PHRASE);
-            query.filter(phrase);
+            query.must(phrase);
         });
 
         return QueryBuilders.constantScoreQuery(query);
@@ -221,7 +194,7 @@ public class Query {
         Map<String, Object> params = new HashMap<>();
         params.put("year", currentYear);
 
-        String code = "long diff = params.year - doc['year'].value; if (diff < 5) return 1.5; else if (diff < 10) return 1.2; else return 1;";
+        String code = "long diff = params.year - doc['year'].value; if (diff < 3) return 1.5; else if (diff < 5) return 1.2; else return 1;";
         Script script = new Script(Script.DEFAULT_SCRIPT_TYPE, Script.DEFAULT_SCRIPT_LANG, code, params);
 
         ScriptScoreFunctionBuilder yearFunction = new ScriptScoreFunctionBuilder(script);
@@ -261,22 +234,12 @@ public class Query {
                 .setScoreMode(QueryRescoreMode.Multiply);
     }
 
-    public boolean shouldRescore() {
-        return !isDoi();
-    }
-
     public boolean isDoi() {
         return StringUtils.isNotBlank(doi);
     }
 
     public QueryBuilder toDoiQuery() {
         return QueryBuilders.matchQuery("doi", doi);
-    }
-
-    private QueryBuilder toJournalQuery() {
-        return QueryBuilders.boolQuery()
-                .filter(QueryBuilders.termQuery("journal.id", journalId))
-                .filter(filter.toFilerQuery());
     }
 
 }

@@ -32,7 +32,6 @@ import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.elasticsearch.search.suggest.phrase.DirectCandidateGeneratorBuilder;
 import org.elasticsearch.search.suggest.phrase.PhraseSuggestionBuilder;
-import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -211,17 +210,12 @@ public class SearchV2Service {
     }
 
     private SuggestBuilder generateSuggest(Query query) {
-        if (query.getText().split(" ").length == 1) {
-            return generateTermSuggest(query); // single term query
-        }
-
         DirectCandidateGeneratorBuilder candidate = new DirectCandidateGeneratorBuilder("title")
                 .size(10)
                 .maxInspections(10)
                 .minDocFreq(1)
                 .maxTermFreq(0.001f)
-                .sort(SortBy.FREQUENCY.name())
-                .suggestMode(TermSuggestionBuilder.SuggestMode.POPULAR.name());
+                .sort(SortBy.FREQUENCY.name());
 
         PhraseSuggestionBuilder phraseSuggest = SuggestBuilders.phraseSuggestion("title.shingles")
                 .text(query.getText())
@@ -234,19 +228,6 @@ public class SearchV2Service {
 
         return new SuggestBuilder()
                 .addSuggestion("suggest", phraseSuggest);
-    }
-
-    private SuggestBuilder generateTermSuggest(Query query) {
-        TermSuggestionBuilder termSuggest = SuggestBuilders.termSuggestion("title")
-                .text(query.getText())
-                .size(1)
-                .minDocFreq(1)
-                .maxTermFreq(30)
-                .sort(SortBy.FREQUENCY)
-                .suggestMode(TermSuggestionBuilder.SuggestMode.POPULAR);
-
-        return new SuggestBuilder()
-                .addSuggestion("suggest", termSuggest);
     }
 
     private void convertSuggest(EsPaperSearchResponse response) {

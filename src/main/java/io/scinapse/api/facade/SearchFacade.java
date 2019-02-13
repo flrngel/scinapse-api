@@ -7,7 +7,6 @@ import io.scinapse.api.academic.service.AcAuthorService;
 import io.scinapse.api.academic.service.AcPaperService;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.v2.*;
-import io.scinapse.api.service.SearchService;
 import io.scinapse.api.service.SearchV2Service;
 import io.scinapse.api.service.author.AuthorLayerService;
 import io.scinapse.api.util.Query;
@@ -26,7 +25,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SearchFacade {
 
-    private final SearchService searchService;
     private final SearchV2Service searchV2Service;
     private final AcAuthorService authorService;
     private final AcPaperService paperService;
