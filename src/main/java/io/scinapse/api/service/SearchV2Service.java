@@ -101,7 +101,7 @@ public class SearchV2Service {
                 && StringUtils.isNotBlank(suggestion.getSuggestion());
     }
 
-    public EsPaperSearchResponse searchDoi(Query query, PageRequest pageRequest) {
+    public EsPaperSearchResponse searchByDoi(Query query, PageRequest pageRequest) {
         SearchSourceBuilder source = SearchSourceBuilder.searchSource()
                 .query(query.toDoiQuery())
                 .fetchSource(false)
@@ -118,11 +118,39 @@ public class SearchV2Service {
         }
     }
 
-    public Page<Long> searchAuthor(Query query, PageRequest pageRequest) {
-        SearchRequest searchRequest = generateAuthorSearchRequest(query, pageRequest);
+    public EsPaperSearchResponse searchToAdd(Query query, PageRequest pageRequest) {
+        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
+                .query(query.toTitleQuery())
+                .fetchSource(false)
+                .from(pageRequest.getOffset())
+                .size(pageRequest.getSize());
+
+        SearchRequest request = new SearchRequest(paperIndex).source(source);
 
         try {
-            SearchResponse response = restHighLevelClient.search(searchRequest);
+            SearchResponse response = restHighLevelClient.search(request);
+            return new EsPaperSearchResponse(query, response);
+        } catch (IOException e) {
+            throw new RuntimeException("Elasticsearch exception", e);
+        }
+    }
+
+    public EsPaperSearchResponse searchInJournal(Query query, long journalId, PageRequest pageRequest) {
+        SearchRequest request = generatePaperSearchInJournalRequest(query, journalId, pageRequest);
+
+        try {
+            SearchResponse response = restHighLevelClient.search(request);
+            return new EsPaperSearchResponse(query, response);
+        } catch (IOException e) {
+            throw new RuntimeException("Elasticsearch exception", e);
+        }
+    }
+
+    public Page<Long> searchAuthors(Query query, PageRequest pageRequest) {
+        SearchRequest request = generateAuthorSearchRequest(query, pageRequest);
+
+        try {
+            SearchResponse response = restHighLevelClient.search(request);
 
             List<Long> list = new ArrayList<>();
             for (SearchHit hit : response.getHits()) {
@@ -206,6 +234,52 @@ public class SearchV2Service {
         source.aggregation(aggregationService.generateYearAggregation(query));
         source.aggregation(aggregationService.generateIfAggregation(query));
         source.aggregation(aggregationService.generateSampleAggregation());
+
+        return new SearchRequest(paperIndex).source(source);
+    }
+
+    private SearchRequest generatePaperSearchInJournalRequest(Query query, long journalId, PageRequest pageRequest) {
+        PaperSort sort = PaperSort.find(pageRequest.getSort());
+        if (sort == null) {
+            sort = PaperSort.NEWEST_FIRST;
+        }
+
+        if (StringUtils.isBlank(query.getText())) {
+            // no query text provided
+            SearchSourceBuilder source = SearchSourceBuilder.searchSource()
+                    .query(QueryBuilders.termQuery("journal.id", journalId))
+                    .fetchSource(false)
+                    .from(pageRequest.getOffset())
+                    .size(pageRequest.getSize())
+                    .sort(PaperSort.toSortBuilder(sort));
+            return new SearchRequest(paperIndex).source(source);
+        }
+
+        // query text provided
+        BoolQueryBuilder main;
+        if (sort == PaperSort.RELEVANCE) {
+            main = query.toRelevanceQuery()
+                    .filter(QueryBuilders.termQuery("journal.id", journalId));
+        } else {
+            main = query.toSortQuery()
+                    .filter(QueryBuilders.termQuery("journal.id", journalId));
+        }
+
+        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
+                .query(main)
+                .fetchSource(false)
+                .from(pageRequest.getOffset())
+                .size(pageRequest.getSize())
+                .highlighter(generateHighlighter(query));
+
+        if (sort == PaperSort.RELEVANCE) {
+            source.addRescorer(query.getPhraseRescoreQuery());
+            source.addRescorer(query.getCitationRescoreQuery());
+            source.addRescorer(query.getYearRescoreQuery());
+            source.addRescorer(query.getAbsenceRescoreQuery());
+        } else {
+            source.sort(PaperSort.toSortBuilder(sort));
+        }
 
         return new SearchRequest(paperIndex).source(source);
     }

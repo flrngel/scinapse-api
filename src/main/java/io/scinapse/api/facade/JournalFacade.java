@@ -6,9 +6,12 @@ import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.data.academic.Journal;
 import io.scinapse.api.dto.mag.JournalDto;
 import io.scinapse.api.dto.mag.PaperDto;
+import io.scinapse.api.dto.v2.EsPaperSearchResponse;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.service.SearchService;
+import io.scinapse.api.service.SearchV2Service;
 import io.scinapse.api.service.mag.JournalService;
+import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @XRayEnabled
@@ -27,6 +31,7 @@ public class JournalFacade {
     private final JournalService journalService;
     private final PaperFacade paperFacade;
     private final SearchService searchService;
+    private final SearchV2Service searchV2Service;
 
 
     public JournalDto find(long journalId) {
@@ -39,9 +44,16 @@ public class JournalFacade {
     }
 
     public Page<PaperDto> searchPaper(long journalId, String queryStr, PageRequest pageRequest) {
-        Page<Long> paperIdPage = searchService.searchJournalPaper(journalId, queryStr, pageRequest);
-        List<PaperDto> dtos = paperFacade.findIn(paperIdPage.getContent());
-        return new PageImpl<>(dtos, pageRequest.toPageable(), paperIdPage.getTotalElements());
+        Query query = Query.parse(queryStr);
+        EsPaperSearchResponse response = searchV2Service.searchInJournal(query, journalId, pageRequest);
+
+        List<Long> paperIds = response.getEsPapers()
+                .stream()
+                .map(EsPaperSearchResponse.EsPaper::getPaperId)
+                .collect(Collectors.toList());
+        List<PaperDto> dtos = paperFacade.findIn(paperIds);
+
+        return new PageImpl<>(dtos, pageRequest.toPageable(), response.getPaperTotalHits());
     }
 
 }

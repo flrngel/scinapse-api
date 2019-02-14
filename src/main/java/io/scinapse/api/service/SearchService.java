@@ -1,14 +1,10 @@
 package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
-import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.CompletionDto;
 import io.scinapse.api.dto.CompletionResponseDto;
 import io.scinapse.api.enums.CompletionType;
-import io.scinapse.api.enums.PaperSort;
-import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.util.JsonUtils;
-import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -17,15 +13,15 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.lucene.search.function.CombineFunction;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.ConstantScoreQueryBuilder;
+import org.elasticsearch.index.query.MatchQueryBuilder;
+import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -49,104 +45,14 @@ public class SearchService {
     private final RestHighLevelClient restHighLevelClient;
     private final RestTemplate restTemplate;
 
-    @Value("${pluto.server.es.index}")
-    private String indexName;
-
     @Value("${pluto.server.es.index.suggestion.fos}")
     private String fosSuggestionIndex;
-
-    @Value("${pluto.server.es.index.author}")
-    private String authorIndex;
 
     @Value("${pluto.server.scholar.url}")
     private String scholarUrl;
 
     @Value("${pluto.server.es.index.suggestion.affiliation}")
     private String affiliationSuggestionIndex;
-
-    public Page<Long> searchJournalPaper(long journalId, String queryText, PageRequest pageRequest) {
-        if (StringUtils.isBlank(queryText)) {
-            return searchJournalPaper(journalId, pageRequest);
-        }
-
-        Query parse = Query.parse(queryText);
-        if (!parse.isValid()) {
-            throw new BadRequestException("Invalid query: too short or long query text : " + queryText);
-        }
-
-        SortBuilder sortBuilder = PaperSort.toSortBuilder(pageRequest.getSort());
-
-        BoolQueryBuilder query;
-        if (sortBuilder != null) {
-            query = parse.toSortQuery();
-        } else {
-            query = parse.toRelevanceQuery();
-        }
-        query.filter(QueryBuilders.termQuery("journal.id", journalId));
-
-        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
-                .query(query)
-                .fetchSource(false)
-                .from(pageRequest.getOffset())
-                .size(pageRequest.getSize());
-
-        if (sortBuilder != null) {
-            source.sort(sortBuilder);
-        } else {
-            source.addRescorer(parse.getPhraseRescoreQuery());
-            source.addRescorer(parse.getCitationRescoreQuery());
-            source.addRescorer(parse.getImpactFactorRescoreQuery());
-            source.addRescorer(parse.getYearRescoreQuery());
-            source.addRescorer(parse.getAbsenceRescoreQuery());
-        }
-
-        return searchAndExtractId(indexName, source, pageRequest);
-    }
-
-    public Page<Long> searchJournalPaper(long journalId, PageRequest pageRequest) {
-        PaperSort sort = PaperSort.find(pageRequest.getSort());
-        if (sort == null) {
-            sort = PaperSort.NEWEST_FIRST;
-        }
-        SortBuilder sortBuilder = PaperSort.toSortBuilder(sort);
-
-        BoolQueryBuilder query = QueryBuilders.boolQuery()
-                .filter(QueryBuilders.termQuery("journal.id", journalId));
-
-        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
-                .query(query)
-                .fetchSource(false)
-                .from(pageRequest.getOffset())
-                .size(pageRequest.getSize())
-                .sort(sortBuilder);
-
-        return searchAndExtractId(indexName, source, pageRequest);
-    }
-
-    public Page<Long> searchAuthorPaper(Query query, PageRequest pageRequest) {
-        SearchSourceBuilder builder = SearchSourceBuilder.searchSource()
-                .query(query.toTitleQuery())
-                .fetchSource(false)
-                .from(pageRequest.getOffset())
-                .size(pageRequest.getSize());
-
-        return searchAndExtractId(indexName, builder, pageRequest);
-    }
-
-    private Page<Long> searchAndExtractId(String indexName, SearchSourceBuilder builder, PageRequest pageRequest) {
-        try {
-            SearchRequest request = new SearchRequest(indexName).source(builder);
-            SearchResponse response = restHighLevelClient.search(request);
-
-            List<Long> list = new ArrayList<>();
-            for (SearchHit hit : response.getHits()) {
-                list.add(Long.valueOf(hit.getId()));
-            }
-            return new PageImpl<>(list, pageRequest.toPageable(), response.getHits().getTotalHits());
-        } catch (IOException | NumberFormatException e) {
-            throw new RuntimeException("Elasticsearch exception", e);
-        }
-    }
 
     public List<CompletionDto> completeByScholar(String keyword) {
         URI uri = UriComponentsBuilder

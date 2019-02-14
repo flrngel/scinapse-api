@@ -35,6 +35,28 @@ public class SearchController {
         return Response.success(response.getPaperItemPage(), response.getAdditional());
     }
 
+    @RequestMapping(value = "/search/to-add", method = RequestMethod.GET)
+    public Response<List<PaperItemDto>> searchToAdd(@RequestParam("q") String queryStr,
+                                                    @RequestParam("check_author_included") long authorId,
+                                                    PageRequest pageRequest) {
+        Query query = Query.parse(queryStr);
+        if (!query.isValid()) {
+            throw new BadRequestException("Invalid query: too short or long query text. Query text length: " + query.getText());
+        }
+
+        EsPaperSearchResponse response = searchFacade.searchToAdd(query, authorId, pageRequest);
+        return Response.success(response.getPaperItemPage());
+    }
+
+    @RequestMapping(value = "/search/in-journal", method = RequestMethod.GET)
+    public Response<List<PaperItemDto>> searchInJournal(@RequestParam(value = "q", required = false) String queryStr,
+                                                        @RequestParam("journal_id") long journalId,
+                                                        PageRequest pageRequest) {
+        Query query = Query.parse(queryStr);
+        EsPaperSearchResponse response = searchFacade.searchInJournal(query, journalId, pageRequest);
+        return Response.success(response.getPaperItemPage());
+    }
+
     @RequestMapping(value = "/search/authors", method = RequestMethod.GET)
     public Response<List<AuthorItemDto>> searchAuthors(@RequestParam("q") @Valid String queryStr, PageRequest pageRequest) {
         Query query = Query.parse(queryStr);

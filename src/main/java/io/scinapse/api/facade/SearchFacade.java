@@ -32,7 +32,7 @@ public class SearchFacade {
 
     public EsPaperSearchResponse search(Query query, PageRequest pageRequest) {
         if (query.isDoi()) {
-            return searchDoi(query, pageRequest);
+            return searchByDoi(query, pageRequest);
         }
 
         EsPaperSearchResponse response = searchV2Service.search(query, pageRequest, false);
@@ -43,15 +43,36 @@ public class SearchFacade {
         return response;
     }
 
-    public EsPaperSearchResponse searchDoi(Query query, PageRequest pageRequest) {
-        EsPaperSearchResponse response = searchV2Service.searchDoi(query, pageRequest);
+    public EsPaperSearchResponse searchByDoi(Query query, PageRequest pageRequest) {
+        EsPaperSearchResponse response = searchV2Service.searchByDoi(query, pageRequest);
+
+        convertPaperItemPage(response, pageRequest);
+        return response;
+    }
+
+    public EsPaperSearchResponse searchToAdd(Query query, long authorId, PageRequest pageRequest) {
+        EsPaperSearchResponse response;
+        if (query.isDoi()) {
+            response = searchV2Service.searchByDoi(query, pageRequest);
+        } else {
+            response = searchV2Service.searchToAdd(query, pageRequest);
+        }
+
+        convertPaperItemPage(response, pageRequest);
+        layerService.decorateAuthorIncluding(response.getPaperItemPage(), authorId);
+
+        return response;
+    }
+
+    public EsPaperSearchResponse searchInJournal(Query query, long journalId, PageRequest pageRequest) {
+        EsPaperSearchResponse response = searchV2Service.searchInJournal(query, journalId, pageRequest);
 
         convertPaperItemPage(response, pageRequest);
         return response;
     }
 
     public Page<AuthorItemDto> searchAuthors(Query query, PageRequest pageRequest) {
-        Page<Long> authorIdPage = searchV2Service.searchAuthor(query, pageRequest);
+        Page<Long> authorIdPage = searchV2Service.searchAuthors(query, pageRequest);
 
         List<AuthorItemDto> dtos = getAuthorItems(authorIdPage.getContent());
         return new PageImpl<>(dtos, pageRequest.toPageable(), authorIdPage.getTotalElements());

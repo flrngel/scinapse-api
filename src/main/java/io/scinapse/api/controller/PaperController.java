@@ -35,6 +35,7 @@ public class PaperController {
         return paperFacade.find(paperId, HttpUtils.isBot(request));
     }
 
+    @Deprecated
     @RequestMapping(value = "/papers", method = RequestMethod.GET, params = "check_author_included")
     public Response<List<AuthorSearchPaperDto>> searchAuthorPaper(@RequestParam("query") String queryStr,
                                                                   @RequestParam(value = "filter", required = false) String filterStr,
@@ -45,7 +46,7 @@ public class PaperController {
             throw new BadRequestException("Invalid query: too short or long query text");
         }
 
-        return Response.success(paperFacade.searchAuthorPaper(query, authorId, pageRequest));
+        return Response.success(paperFacade.searchToAdd(query, authorId, pageRequest));
     }
 
     @ExceptionHandler({ UnsatisfiedServletRequestParameterException.class })

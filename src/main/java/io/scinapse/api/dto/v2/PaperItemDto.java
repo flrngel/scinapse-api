@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.google.common.base.Preconditions;
 import io.scinapse.api.academic.dto.AcPaperDto;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
@@ -28,6 +29,9 @@ public class PaperItemDto {
 
     private List<PaperAuthorDto> authors;
 
+    @JsonUnwrapped
+    private Object additional;
+
     public PaperItemDto(AcPaperDto dto) {
         Preconditions.checkNotNull(dto);
 
@@ -40,6 +44,12 @@ public class PaperItemDto {
                 .stream()
                 .map(PaperAuthorDto::new)
                 .collect(Collectors.toList());
+    }
+
+    @RequiredArgsConstructor
+    public static class ForAuthorAdditional {
+        @JsonProperty("is_author_included")
+        private final boolean included;
     }
 
 }

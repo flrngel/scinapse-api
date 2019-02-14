@@ -4,6 +4,7 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.academic.dto.AcAuthorDto;
 import io.scinapse.api.academic.dto.AcAuthorFosDto;
 import io.scinapse.api.academic.dto.AcPaperAuthorDto;
+import io.scinapse.api.academic.dto.AcPaperDto;
 import io.scinapse.api.configuration.ScinapseConstant;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.data.academic.Affiliation;
@@ -17,6 +18,7 @@ import io.scinapse.api.data.scinapse.repository.author.*;
 import io.scinapse.api.dto.PaperTitleDto;
 import io.scinapse.api.dto.mag.*;
 import io.scinapse.api.dto.v2.AuthorItemDto;
+import io.scinapse.api.dto.v2.PaperItemDto;
 import io.scinapse.api.enums.PaperSort;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.service.mag.PaperService;
@@ -748,6 +750,7 @@ public class AuthorLayerService {
         return dto;
     }
 
+    @Deprecated
     public List<AuthorSearchPaperDto> decorateSearchResult(long authorId, List<PaperDto> paperDtos) {
         Set<Long> paperIds = paperDtos.stream().map(PaperDto::getId).collect(Collectors.toSet());
         Map<Long, AuthorLayerPaper> layerPaperMap = authorLayerPaperRepository.findByIdAuthorIdAndIdPaperIdIn(authorId, paperIds)
@@ -765,6 +768,34 @@ public class AuthorLayerService {
                     return new AuthorSearchPaperDto(paperDto, included);
                 })
                 .collect(Collectors.toList());
+    }
+
+    public void decorateAuthorIncluding(Page<PaperItemDto> dtos, long authorId) {
+        Set<Long> paperIds = dtos
+                .getContent()
+                .stream()
+                .map(PaperItemDto::getOrigin)
+                .map(AcPaperDto::getId)
+                .collect(Collectors.toSet());
+
+        Map<Long, AuthorLayerPaper> layerPaperMap = authorLayerPaperRepository.findByIdAuthorIdAndIdPaperIdIn(authorId, paperIds)
+                .stream()
+                .filter(lp -> lp.getStatus() != AuthorLayerPaper.PaperStatus.PENDING_REMOVE)
+                .collect(Collectors.toMap(
+                        lp -> lp.getId().getPaperId(),
+                        Function.identity()
+                ));
+
+        dtos.forEach(dto -> {
+            boolean included = Optional.of(dto)
+                    .map(PaperItemDto::getOrigin)
+                    .map(AcPaperDto::getId)
+                    .map(layerPaperMap::get)
+                    .isPresent();
+
+            PaperItemDto.ForAuthorAdditional additional = new PaperItemDto.ForAuthorAdditional(included);
+            dto.setAdditional(additional);
+        });
     }
 
     @Transactional
