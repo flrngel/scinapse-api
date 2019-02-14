@@ -1,7 +1,6 @@
 package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
-import io.scinapse.api.data.academic.FieldsOfStudy;
 import io.scinapse.api.data.academic.repository.FieldsOfStudyRepository;
 import io.scinapse.api.data.academic.repository.JournalRepository;
 import io.scinapse.api.dto.AggregationDto;
@@ -89,8 +88,9 @@ public class SearchAggregationService {
         TermsAggregationBuilder journalAgg = AggregationBuilders.terms(JOURNAL_AGG_NAME).field("journal.id").size(10);
         TermsAggregationBuilder fosAgg = AggregationBuilders.terms(FOS_AGG_NAME).field("fos.id").size(30);
 
-        // add aggregations using top 100 results
+        // add aggregations using top 10 results
         return AggregationBuilders.sampler(SAMPLE_AGG_NAME)
+                .shardSize(10)
                 .subAggregation(journalAgg)
                 .subAggregation(fosAgg);
     }

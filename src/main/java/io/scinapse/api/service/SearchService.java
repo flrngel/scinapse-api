@@ -95,6 +95,7 @@ public class SearchService {
         } else {
             source.addRescorer(parse.getPhraseRescoreQuery());
             source.addRescorer(parse.getCitationRescoreQuery());
+            source.addRescorer(parse.getImpactFactorRescoreQuery());
             source.addRescorer(parse.getYearRescoreQuery());
             source.addRescorer(parse.getAbsenceRescoreQuery());
         }

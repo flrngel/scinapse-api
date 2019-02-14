@@ -189,6 +189,7 @@ public class SearchV2Service {
             // add rescorer to boost relevance score.
             source.addRescorer(query.getPhraseRescoreQuery());
             source.addRescorer(query.getCitationRescoreQuery());
+            source.addRescorer(query.getImpactFactorRescoreQuery());
             source.addRescorer(query.getYearRescoreQuery());
             source.addRescorer(query.getAbsenceRescoreQuery());
         }
@@ -284,22 +285,14 @@ public class SearchV2Service {
 
         BoolQueryBuilder filter = QueryBuilders.boolQuery()
                 .should(QueryBuilders.existsQuery("affiliation.name"))
-                .should(QueryBuilders.rangeQuery("citation_count").gt(0))
-                .should(QueryBuilders.rangeQuery("paper_count").gt(1));
-
-        BoolQueryBuilder main1 = QueryBuilders.boolQuery()
-                .must(QueryBuilders.multiMatchQuery(queryText, "name", "affiliation.name").type(MultiMatchQueryBuilder.Type.CROSS_FIELDS).operator(Operator.AND))
-                .must(QueryBuilders.matchQuery("name", queryText));
-
-        MatchQueryBuilder main2 = QueryBuilders.matchQuery("name.metaphone", queryText).operator(Operator.AND);
-
-        BoolQueryBuilder mainQuery = QueryBuilders.boolQuery()
-                .should(main1)
-                .should(main2);
+                .should(QueryBuilders.rangeQuery("citation_count").gt(0));
 
         BoolQueryBuilder authorSearchQuery = QueryBuilders.boolQuery()
-                .must(mainQuery)
                 .filter(filter)
+
+                .must(QueryBuilders.multiMatchQuery(queryText, "name", "affiliation.name").type(MultiMatchQueryBuilder.Type.CROSS_FIELDS).operator(Operator.AND))
+                .must(QueryBuilders.matchQuery("name", queryText))
+
                 .should(QueryBuilders.matchQuery("name", queryText).operator(Operator.AND).boost(2))
                 .should(QueryBuilders.matchQuery("name", queryText).minimumShouldMatch("2").boost(2))
                 .should(QueryBuilders.matchQuery("name.metaphone", queryText))

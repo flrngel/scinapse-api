@@ -63,9 +63,9 @@ public class Query {
     }
 
     private BoolQueryBuilder toRelevanceQuery(QueryBuilder mainQuery) {
-        MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(5);
-        MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(7);
-        MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(1);
+        MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(4);
+        MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(5);
+        MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
         MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(3);
         MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(4);
         MatchQueryBuilder authorNameShingleQuery = QueryBuilders.matchQuery("authors.name.shingles", text).boost(3);
@@ -122,17 +122,22 @@ public class Query {
     }
 
     public QueryBuilder getMainQueryClause() {
-        MultiMatchQueryBuilder main = QueryBuilders.multiMatchQuery(text, "title.stemmed") // initializing field cannot contain boost factor
-                .field("abstract.stemmed")
-                .field("authors.name.stemmed")
-                .field("authors.affiliation.name.stemmed")
-                .field("fos.name.stemmed")
-                .field("journal.title.stemmed")
+        MultiMatchQueryBuilder mainQuery1 = QueryBuilders.multiMatchQuery(text, "title") // initializing field cannot contain boost factor
+                .field("abstract")
+                .field("authors.name")
+                .field("authors.affiliation.name")
+                .field("fos.name")
+                .field("journal.title")
                 .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
                 .minimumShouldMatch("-25%"); // combining with minimum_should_match seems to have a bug.
 
+        MultiMatchQueryBuilder mainQuery2 = QueryBuilders.multiMatchQuery(text, "title.stemmed", "abstract.stemmed")
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
+                .minimumShouldMatch("-25%");
+
         BoolQueryBuilder query = QueryBuilders.boolQuery()
-                .must(main);
+                .should(mainQuery1)
+                .should(mainQuery2);
 
         phraseQueries.forEach(q -> {
             MultiMatchQueryBuilder phrase = QueryBuilders.multiMatchQuery(
@@ -167,7 +172,7 @@ public class Query {
 
         // re-scoring top 100 documents only for each shard
         return new QueryRescorerBuilder(phraseMatchQuery)
-                .windowSize(100)
+                .windowSize(50)
                 .setRescoreQueryWeight(2);
     }
 
@@ -180,11 +185,27 @@ public class Query {
 
         FunctionScoreQueryBuilder functionQuery = QueryBuilders
                 .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { citationBooster })
-                .maxBoost(3); // limit boosting
+                .maxBoost(2); // limit boosting
 
         // re-scoring top 100 documents only for each shard
         return new QueryRescorerBuilder(functionQuery)
-                .windowSize(100)
+                .windowSize(50)
+                .setScoreMode(QueryRescoreMode.Multiply);
+    }
+
+    public QueryRescorerBuilder getImpactFactorRescoreQuery() {
+        Script script = new Script("Math.log10(doc['journal.impact_factor'].value + 10)");
+        ScriptScoreFunctionBuilder ifFunction = new ScriptScoreFunctionBuilder(script);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder ifBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(ifFunction);
+
+
+        FunctionScoreQueryBuilder functionQuery = QueryBuilders
+                .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { ifBooster })
+                .maxBoost(1.3f); // limit boosting
+
+        // re-scoring top 100 documents only for each shard
+        return new QueryRescorerBuilder(functionQuery)
+                .windowSize(50)
                 .setScoreMode(QueryRescoreMode.Multiply);
     }
 
@@ -194,7 +215,7 @@ public class Query {
         Map<String, Object> params = new HashMap<>();
         params.put("year", currentYear);
 
-        String code = "long diff = params.year - doc['year'].value; if (diff < 3) return 1.5; else if (diff < 5) return 1.2; else return 1;";
+        String code = "long diff = params.year - doc['year'].value; if (diff < 4) return 3; else if (diff < 6) return 2.5; else if (diff < 10) return 1.5; else return 1;";
         Script script = new Script(Script.DEFAULT_SCRIPT_TYPE, Script.DEFAULT_SCRIPT_LANG, code, params);
 
         ScriptScoreFunctionBuilder yearFunction = new ScriptScoreFunctionBuilder(script);
@@ -203,11 +224,11 @@ public class Query {
 
         FunctionScoreQueryBuilder functionQuery = QueryBuilders
                 .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { yearBooster })
-                .maxBoost(1.5f); // limit boosting
+                .maxBoost(3); // limit boosting
 
         // re-scoring top 100 documents only for each shard
         return new QueryRescorerBuilder(functionQuery)
-                .windowSize(100)
+                .windowSize(50)
                 .setScoreMode(QueryRescoreMode.Multiply);
     }
 
