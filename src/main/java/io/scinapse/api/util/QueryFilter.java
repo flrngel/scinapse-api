@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -119,15 +120,19 @@ public class QueryFilter {
 
         applyYearFilter(filterQuery);
         applyImpactFactorFilter(filterQuery);
+        applyJournalFilter(filterQuery);
+        applyFosFilter(filterQuery);
+
         return filterQuery;
     }
 
-    public BoolQueryBuilder toExtraFilterQuery() {
-        BoolQueryBuilder filterQuery = QueryBuilders.boolQuery();
-
-        applyJournalFilter(filterQuery);
-        applyFosFilter(filterQuery);
-        return filterQuery;
+    public boolean hasFilter() {
+        return yearStart != null
+                || yearEnd != null
+                || ifStart != null
+                || ifEnd != null
+                || !CollectionUtils.isEmpty(journals)
+                || !CollectionUtils.isEmpty(fosList);
     }
 
     public BoolQueryBuilder toYearAggFilter() {

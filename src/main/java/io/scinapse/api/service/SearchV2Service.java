@@ -205,10 +205,9 @@ public class SearchV2Service {
                 .size(pageRequest.getSize());
 
         // add filter
-        BoolQueryBuilder filter = QueryBuilders.boolQuery()
-                .must(query.getFilter().toFilerQuery())
-                .must(query.getFilter().toExtraFilterQuery());
-        source.postFilter(filter);
+        if (query.getFilter().hasFilter()) {
+            source.postFilter(query.getFilter().toFilerQuery());
+        }
 
         if (sortBuilder != null) {
             // add sort if sort parameter exists.
@@ -231,9 +230,16 @@ public class SearchV2Service {
         }
 
         // add aggregations
+        source.aggregation(aggregationService.generateYearAllAggregation());
+        source.aggregation(aggregationService.generateSampleAggregation());
+
+        if (query.getFilter().hasFilter()) {
+            source.aggregation(aggregationService.generateYearFilteredAggregation(query));
+        }
+
+        // deprecated
         source.aggregation(aggregationService.generateYearAggregation(query));
         source.aggregation(aggregationService.generateIfAggregation(query));
-        source.aggregation(aggregationService.generateSampleAggregation());
 
         return new SearchRequest(paperIndex).source(source);
     }

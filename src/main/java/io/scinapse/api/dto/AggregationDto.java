@@ -13,8 +13,12 @@ public class AggregationDto {
 
     public static final Integer ALL = null;
 
+    public List<Year> yearAll = new ArrayList<>();
+    public List<Year> yearFiltered = null;
+
     public List<Year> years = new ArrayList<>();
     public List<ImpactFactor> impactFactors = new ArrayList<>();
+
     public List<Journal> journals = new ArrayList<>();
     public List<Fos> fosList = new ArrayList<>();
 

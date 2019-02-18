@@ -14,6 +14,7 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.filter.*;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
+import org.elasticsearch.search.aggregations.bucket.histogram.HistogramAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.range.RangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.RangeAggregator;
@@ -42,9 +43,28 @@ public class SearchAggregationService {
     private static final String SAMPLE_AGG_NAME = "sample";
     private static final String JOURNAL_AGG_NAME = "journal";
     private static final String FOS_AGG_NAME = "fos";
+
+    private static final String YEAR_ALL_AGG_NAME = "year_all";
+    private static final String YEAR_FILTERED_AGG_NAME = "year_filtered";
+
     private static final String YEAR_AGG_NAME = "year";
     private static final String IF_AGG_NAME = "if";
     private static final String IF_10_AGG_NAME = "if10";
+
+    public HistogramAggregationBuilder generateYearAllAggregation() {
+        return AggregationBuilders.histogram(YEAR_ALL_AGG_NAME)
+                .field("year")
+                .interval(1);
+    }
+
+    public FilterAggregationBuilder generateYearFilteredAggregation(Query query) {
+        HistogramAggregationBuilder yearAggs = AggregationBuilders.histogram(YEAR_FILTERED_AGG_NAME)
+                .field("year")
+                .interval(1);
+
+        return AggregationBuilders.filter(YEAR_FILTERED_AGG_NAME, query.getFilter().toFilerQuery())
+                .subAggregation(yearAggs);
+    }
 
     public FilterAggregationBuilder generateYearAggregation(Query query) {
         double year = (double) LocalDate.now().getYear();
@@ -133,6 +153,9 @@ public class SearchAggregationService {
 
     public AggregationDto convertAggregation(Aggregations aggregations) {
         Map<String, Aggregation> aggregationMap = aggregations.getAsMap();
+        List<AggregationDto.Year> yearAll = getYearAll(aggregationMap);
+        List<AggregationDto.Year> yearFiltered = getYearFiltered(aggregationMap);
+
         List<AggregationDto.Year> years = getYears(aggregationMap);
         List<AggregationDto.ImpactFactor> impactFactors = getImpactFactors(aggregationMap);
 
@@ -144,8 +167,12 @@ public class SearchAggregationService {
         List<AggregationDto.Fos> fosList = getFosList(samplerMap);
 
         AggregationDto dto = new AggregationDto();
+        dto.yearAll = yearAll;
+        dto.yearFiltered = yearFiltered;
+
         dto.years = years;
         dto.impactFactors = impactFactors;
+
         dto.journals = journals;
         dto.fosList = fosList;
 
@@ -178,6 +205,40 @@ public class SearchAggregationService {
             f.docCount = bucket.getDocCount();
         });
         dto.fosList.sort(Comparator.comparing(f -> f.docCount, Comparator.reverseOrder()));
+    }
+
+    private List<AggregationDto.Year> getYearAll(Map<String, Aggregation> aggregationMap) {
+        Histogram histogram = (Histogram) aggregationMap.get(YEAR_ALL_AGG_NAME);
+
+        return histogram.getBuckets()
+                .stream()
+                .map(y -> {
+                    AggregationDto.Year yearDto = new AggregationDto.Year();
+                    yearDto.year = ((Double) y.getKey()).intValue();
+                    yearDto.docCount = y.getDocCount();
+                    return yearDto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<AggregationDto.Year> getYearFiltered(Map<String, Aggregation> aggregationMap) {
+        Aggregation aggregation = aggregationMap.get(YEAR_FILTERED_AGG_NAME);
+        if (aggregation == null) {
+            return null;
+        }
+
+        Filter yearFiltered = (Filter) aggregation;
+        Histogram yearHistogram = yearFiltered.getAggregations().get(YEAR_FILTERED_AGG_NAME);
+
+        return yearHistogram.getBuckets()
+                .stream()
+                .map(y -> {
+                    AggregationDto.Year yearDto = new AggregationDto.Year();
+                    yearDto.year = ((Double) y.getKey()).intValue();
+                    yearDto.docCount = y.getDocCount();
+                    return yearDto;
+                })
+                .collect(Collectors.toList());
     }
 
     private List<AggregationDto.Year> getYears(Map<String, Aggregation> aggregationMap) {
