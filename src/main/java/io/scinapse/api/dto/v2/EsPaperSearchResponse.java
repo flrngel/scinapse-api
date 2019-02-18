@@ -61,13 +61,13 @@ public class EsPaperSearchResponse {
                     EsPaper esPaper = new EsPaper();
                     esPaper.paperId = Long.parseLong(paper.getId());
 
-                    esPaper.titleHighlighted = Optional.ofNullable(paper.getHighlightFields().get("title.stemmed"))
+                    esPaper.titleHighlighted = Optional.ofNullable(paper.getHighlightFields().get("title.shingles"))
                             .map(HighlightField::getFragments)
                             .map(frags -> frags[0])
                             .map(Text::string)
                             .orElse(null);
 
-                    esPaper.abstractHighlighted = Optional.ofNullable(paper.getHighlightFields().get("abstract.stemmed"))
+                    esPaper.abstractHighlighted = Optional.ofNullable(paper.getHighlightFields().get("abstract.shingles"))
                             .map(HighlightField::getFragments)
                             .map(frags -> frags[0])
                             .map(Text::string)

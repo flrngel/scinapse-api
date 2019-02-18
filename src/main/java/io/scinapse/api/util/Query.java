@@ -68,7 +68,6 @@ public class Query {
         MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
         MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(3);
         MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(4);
-        MatchQueryBuilder authorNameShingleQuery = QueryBuilders.matchQuery("authors.name.shingles", text).boost(3);
         MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("authors.affiliation.name", text).boost(1);
         MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(2);
         MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text).boost(4);
@@ -80,7 +79,6 @@ public class Query {
                 .should(abstractQuery)
                 .should(abstractShingleQuery)
                 .should(authorNameQuery)
-                .should(authorNameShingleQuery)
                 .should(authorAffiliationQuery)
                 .should(fosQuery)
                 .should(journalQuery);
@@ -91,21 +89,6 @@ public class Query {
             return toDoiQuery();
         }
 
-        MultiMatchQueryBuilder mainQuery1 = QueryBuilders.multiMatchQuery(text, "authors.name")
-                .field("authors.affiliation.name")
-                .field("journal.title")
-                .field("title")
-                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .minimumShouldMatch("-25%");
-
-        MultiMatchQueryBuilder mainQuery2 = QueryBuilders.multiMatchQuery(text, "title.stemmed")
-                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .minimumShouldMatch("-25%");
-
-        BoolQueryBuilder mainQuery = QueryBuilders.boolQuery()
-                .should(mainQuery1)
-                .should(mainQuery2);
-
         MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(2);
         MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(2);
         MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(2);
@@ -113,7 +96,7 @@ public class Query {
         MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text);
 
         return QueryBuilders.boolQuery()
-                .must(mainQuery)
+                .must(getMainQueryClause())
                 .should(titleQuery)
                 .should(titleShingleQuery)
                 .should(authorNameQuery)
@@ -122,22 +105,8 @@ public class Query {
     }
 
     public QueryBuilder getMainQueryClause() {
-        MultiMatchQueryBuilder mainQuery1 = QueryBuilders.multiMatchQuery(text, "title") // initializing field cannot contain boost factor
-                .field("abstract")
-                .field("authors.name")
-                .field("authors.affiliation.name")
-                .field("fos.name")
-                .field("journal.title")
-                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .minimumShouldMatch("-25%"); // combining with minimum_should_match seems to have a bug.
-
-        MultiMatchQueryBuilder mainQuery2 = QueryBuilders.multiMatchQuery(text, "title.stemmed", "abstract.stemmed")
-                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
-                .minimumShouldMatch("-25%");
-
         BoolQueryBuilder query = QueryBuilders.boolQuery()
-                .should(mainQuery1)
-                .should(mainQuery2);
+                .must(QueryBuilders.matchQuery("base", text).minimumShouldMatch("-25%"));
 
         phraseQueries.forEach(q -> {
             MultiMatchQueryBuilder phrase = QueryBuilders.multiMatchQuery(
@@ -156,8 +125,8 @@ public class Query {
     }
 
     public QueryRescorerBuilder getPhraseRescoreQuery() {
-        MatchPhraseQueryBuilder titleQuery = QueryBuilders.matchPhraseQuery("title.stemmed", text).slop(5).boost(7);
-        MatchPhraseQueryBuilder abstractQuery = QueryBuilders.matchPhraseQuery("abstract.stemmed", text).slop(5).boost(5);
+        MatchPhraseQueryBuilder titleQuery = QueryBuilders.matchPhraseQuery("title", text).slop(5).boost(7);
+        MatchPhraseQueryBuilder abstractQuery = QueryBuilders.matchPhraseQuery("abstract", text).slop(5).boost(5);
 
         // phrase match booster for re-scoring
         BoolQueryBuilder phraseMatchQuery = QueryBuilders.boolQuery()

@@ -223,7 +223,7 @@ public class SearchV2Service {
         }
 
         // add highlighter
-        source.highlighter(generateHighlighter(query));
+        source.highlighter(generateHighlighter());
 
         if (!searchAgain) {
             // add suggest
@@ -246,6 +246,12 @@ public class SearchV2Service {
 
         if (StringUtils.isBlank(query.getText())) {
             // no query text provided
+
+            if (sort == PaperSort.RELEVANCE) {
+                // no relevance for empty query
+                sort = PaperSort.NEWEST_FIRST;
+            }
+
             SearchSourceBuilder source = SearchSourceBuilder.searchSource()
                     .query(QueryBuilders.termQuery("journal.id", journalId))
                     .fetchSource(false)
@@ -270,7 +276,7 @@ public class SearchV2Service {
                 .fetchSource(false)
                 .from(pageRequest.getOffset())
                 .size(pageRequest.getSize())
-                .highlighter(generateHighlighter(query));
+                .highlighter(generateHighlighter());
 
         if (sort == PaperSort.RELEVANCE) {
             source.addRescorer(query.getPhraseRescoreQuery());
@@ -337,16 +343,13 @@ public class SearchV2Service {
         response.getAdditional().setSuggestion(dto);
     }
 
-    private HighlightBuilder generateHighlighter(Query query) {
-        MultiMatchQueryBuilder highlightQuery = QueryBuilders.multiMatchQuery(query.getText(), "title.stemmed", "abstract.stemmed");
-
+    private HighlightBuilder generateHighlighter() {
         return new HighlightBuilder()
-                .field("title.stemmed")
-                .field("abstract.stemmed")
+                .field("title.shingles")
+                .field("abstract.shingles")
                 .numOfFragments(0)
                 .preTags(HIGHLIGHT_PRE_TAG)
-                .postTags(HIGHLIGHT_POST_TAG)
-                .highlightQuery(highlightQuery);
+                .postTags(HIGHLIGHT_POST_TAG);
     }
 
     private SearchRequest generateAuthorSearchRequest(Query query) {
@@ -367,10 +370,8 @@ public class SearchV2Service {
                 .must(QueryBuilders.multiMatchQuery(queryText, "name", "affiliation.name").type(MultiMatchQueryBuilder.Type.CROSS_FIELDS).operator(Operator.AND))
                 .must(QueryBuilders.matchQuery("name", queryText))
 
-                .should(QueryBuilders.matchQuery("name", queryText).operator(Operator.AND).boost(2))
-                .should(QueryBuilders.matchQuery("name", queryText).minimumShouldMatch("2").boost(2))
-                .should(QueryBuilders.matchQuery("name.metaphone", queryText))
-                .should(QueryBuilders.matchQuery("name.porter", queryText))
+                .should(QueryBuilders.matchQuery("name", queryText).operator(Operator.AND).boost(3))
+                .should(QueryBuilders.matchQuery("name", queryText).minimumShouldMatch("2").boost(3))
                 .should(QueryBuilders.matchQuery("affiliation.name", queryText).boost(2));
 
         SearchSourceBuilder source = SearchSourceBuilder.searchSource()
@@ -391,7 +392,7 @@ public class SearchV2Service {
 
         FunctionScoreQueryBuilder rescoreQuery = QueryBuilders
                 .functionScoreQuery(boostFunction)
-                .maxBoost(2); // limit boosting
+                .maxBoost(3); // limit boosting
 
         return new QueryRescorerBuilder(rescoreQuery)
                 .windowSize(10)
