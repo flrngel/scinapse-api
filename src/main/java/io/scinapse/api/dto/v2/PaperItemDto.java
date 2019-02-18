@@ -24,6 +24,9 @@ public class PaperItemDto {
     @JsonProperty("is_layered")
     private boolean layered = false;
 
+    @JsonProperty("abstract")
+    private String abstractOverride = null;
+
     private String titleHighlighted;
     private String abstractHighlighted;
 

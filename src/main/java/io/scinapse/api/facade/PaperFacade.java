@@ -5,17 +5,13 @@ import io.scinapse.api.configuration.AcademicJpaConfig;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.data.academic.Paper;
 import io.scinapse.api.dto.CitationTextDto;
-import io.scinapse.api.dto.mag.AuthorSearchPaperDto;
 import io.scinapse.api.dto.mag.PaperAuthorDto;
 import io.scinapse.api.dto.mag.PaperDto;
-import io.scinapse.api.dto.v2.EsPaperSearchResponse;
 import io.scinapse.api.enums.CitationFormat;
 import io.scinapse.api.error.ResourceNotFoundException;
-import io.scinapse.api.service.SearchV2Service;
 import io.scinapse.api.service.author.AuthorLayerService;
 import io.scinapse.api.service.mag.PaperConverter;
 import io.scinapse.api.service.mag.PaperService;
-import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -34,7 +30,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PaperFacade {
 
-    private final SearchV2Service searchV2Service;
     private final PaperService paperService;
     private final AuthorLayerService authorLayerService;
     private final PaperConverter paperConverter;
@@ -123,19 +118,6 @@ public class PaperFacade {
         return new PageImpl<>(dtos, pageRequest.toPageable(), paper.getCitationCount());
     }
 
-    @Deprecated
-    public Page<AuthorSearchPaperDto> searchToAdd(Query query, long authorId, PageRequest pageRequest) {
-        EsPaperSearchResponse response = searchV2Service.searchToAdd(query, pageRequest);
-        List<Long> paperIds = response.getEsPapers()
-                .stream()
-                .map(EsPaperSearchResponse.EsPaper::getPaperId)
-                .collect(Collectors.toList());
-
-        List<PaperDto> paperDtos = findIn(paperIds, PaperConverter.simple());
-        List<AuthorSearchPaperDto> dtos = authorLayerService.decorateSearchResult(authorId, paperDtos);
-        return new PageImpl<>(dtos, pageRequest.toPageable(), response.getPaperTotalHits());
-    }
-
     public CitationTextDto citation(long paperId, CitationFormat format) {
         Paper paper = paperService.find(paperId);
         if (paper == null) {
@@ -160,8 +142,4 @@ public class PaperFacade {
         return convert(relatedPapers, PaperConverter.simple());
     }
 
-    public List<PaperDto> getReadingNow(long paperId) {
-        List<Long> readingNowIds = paperService.getReadingNow(paperId);
-        return findIn(readingNowIds, PaperConverter.simple());
-    }
 }

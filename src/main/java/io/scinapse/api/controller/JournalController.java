@@ -1,11 +1,12 @@
 package io.scinapse.api.controller;
 
 import io.scinapse.api.dto.mag.JournalDto;
-import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.facade.JournalFacade;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,18 +23,6 @@ public class JournalController {
 
         Map<String, Object> result = new HashMap<>();
         result.put("data", dto);
-
-        return result;
-    }
-
-    @RequestMapping(value = "/journals/{journalId}/papers", method = RequestMethod.GET)
-    public Map<String, Object> getPapers(@PathVariable long journalId,
-                                         @RequestParam(value = "query", required = false) String queryStr,
-                                         PageRequest pageRequest) {
-        Page<PaperDto> dtos = journalFacade.searchPaper(journalId, queryStr, pageRequest);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("data", dtos);
 
         return result;
     }

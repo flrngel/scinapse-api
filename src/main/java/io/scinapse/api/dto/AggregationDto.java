@@ -1,6 +1,5 @@
 package io.scinapse.api.dto;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.NoArgsConstructor;
@@ -18,7 +17,6 @@ public class AggregationDto {
     public List<ImpactFactor> impactFactors = new ArrayList<>();
     public List<Journal> journals = new ArrayList<>();
     public List<Fos> fosList = new ArrayList<>();
-    public List<String> keywordList = new ArrayList<>();
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
     public static class Year {
@@ -39,17 +37,6 @@ public class AggregationDto {
         public String title;
         public Double impactFactor;
         public long docCount;
-
-        @JsonGetter("impact_factor")
-        public Double getImpactFactor() {
-            return impactFactor;
-        }
-
-        @Deprecated
-        @JsonGetter("impactFactor")
-        public Double getOldField() {
-            return impactFactor;
-        }
     }
 
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
@@ -58,12 +45,6 @@ public class AggregationDto {
         public String name;
         public int level;
         public long docCount;
-    }
-
-    @Deprecated
-    @JsonGetter
-    public boolean isAvailable() {
-        return true;
     }
 
 }

@@ -1,17 +1,14 @@
 package io.scinapse.api.controller;
 
 import io.scinapse.api.dto.CitationTextDto;
-import io.scinapse.api.dto.mag.AuthorSearchPaperDto;
 import io.scinapse.api.dto.mag.PaperAuthorDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.dto.response.Error;
 import io.scinapse.api.dto.response.Response;
 import io.scinapse.api.enums.CitationFormat;
-import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.facade.PaperFacade;
 import io.scinapse.api.util.ErrorUtils;
 import io.scinapse.api.util.HttpUtils;
-import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -33,20 +30,6 @@ public class PaperController {
     @RequestMapping(value = "/papers/{paperId}", method = RequestMethod.GET)
     public PaperDto find(@PathVariable long paperId, HttpServletRequest request) {
         return paperFacade.find(paperId, HttpUtils.isBot(request));
-    }
-
-    @Deprecated
-    @RequestMapping(value = "/papers", method = RequestMethod.GET, params = "check_author_included")
-    public Response<List<AuthorSearchPaperDto>> searchAuthorPaper(@RequestParam("query") String queryStr,
-                                                                  @RequestParam(value = "filter", required = false) String filterStr,
-                                                                  @RequestParam("check_author_included") long authorId,
-                                                                  PageRequest pageRequest) {
-        Query query = Query.parse(queryStr, filterStr);
-        if (!query.isValid()) {
-            throw new BadRequestException("Invalid query: too short or long query text");
-        }
-
-        return Response.success(paperFacade.searchToAdd(query, authorId, pageRequest));
     }
 
     @ExceptionHandler({ UnsatisfiedServletRequestParameterException.class })
@@ -84,7 +67,7 @@ public class PaperController {
     public Map<String, Object> related(@PathVariable long paperId,
                                        @RequestParam(value = "top-cited", required = false) boolean isTopCited) {
         List<PaperDto> papers;
-        if(isTopCited) {
+        if (isTopCited) {
             papers = paperFacade.getRecommendedPapers(paperId);
         } else {
             papers = paperFacade.getRelatedPapers(paperId);
@@ -108,11 +91,6 @@ public class PaperController {
         result.put("data", related);
 
         return result;
-    }
-
-    @RequestMapping(value = "/papers/{paperId}/reading-now", method = RequestMethod.GET)
-    public Response<List<PaperDto>> readingNow(@PathVariable long paperId) {
-        return Response.success(paperFacade.getReadingNow(paperId));
     }
 
     @RequestMapping(value = "/papers/{paperId}/authors", method = RequestMethod.GET)

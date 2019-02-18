@@ -23,9 +23,6 @@ public class JournalDto {
     private long citationCount;
     private List<JournalFosDto> fosList;
 
-    @Deprecated
-    private String fullTitle;
-
     public JournalDto(Journal journal) {
         this(journal, false);
     }
@@ -38,9 +35,6 @@ public class JournalDto {
         this.impactFactor = journal.getImpactFactor();
         this.paperCount = journal.getPaperCount();
         this.citationCount = journal.getCitationCount();
-
-        // deprecated
-        this.fullTitle = journal.getTitle();
 
         if (loadFos && !CollectionUtils.isEmpty(journal.getFosList())) {
             this.fosList = journal.getFosList().stream().map(JournalFosDto::new).collect(Collectors.toList());

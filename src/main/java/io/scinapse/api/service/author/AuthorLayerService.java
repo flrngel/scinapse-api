@@ -750,26 +750,6 @@ public class AuthorLayerService {
         return dto;
     }
 
-    @Deprecated
-    public List<AuthorSearchPaperDto> decorateSearchResult(long authorId, List<PaperDto> paperDtos) {
-        Set<Long> paperIds = paperDtos.stream().map(PaperDto::getId).collect(Collectors.toSet());
-        Map<Long, AuthorLayerPaper> layerPaperMap = authorLayerPaperRepository.findByIdAuthorIdAndIdPaperIdIn(authorId, paperIds)
-                .stream()
-                .filter(lp -> lp.getStatus() != AuthorLayerPaper.PaperStatus.PENDING_REMOVE)
-                .collect(Collectors.toMap(
-                        lp -> lp.getId().getPaperId(),
-                        Function.identity()
-                ));
-
-        return paperDtos
-                .stream()
-                .map(paperDto -> {
-                    boolean included = Optional.ofNullable(layerPaperMap.get(paperDto.getId())).isPresent();
-                    return new AuthorSearchPaperDto(paperDto, included);
-                })
-                .collect(Collectors.toList());
-    }
-
     public void decorateAuthorIncluding(Page<PaperItemDto> dtos, long authorId) {
         Set<Long> paperIds = dtos
                 .getContent()

@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 @XRayEnabled
-public interface PaperRecommendationRepository extends JpaRepository<PaperRecommendation, PaperRecommendation.PaperRecommendationId>, PaperRecommendationRepositoryCustom {
+public interface PaperRecommendationRepository extends JpaRepository<PaperRecommendation, PaperRecommendation.PaperRecommendationId> {
     List<PaperRecommendation> findTop5ByPaperIdOrderByScoreDesc(long paperId);
 
     @Query("select t.recommendedPaper from PaperRecommendation t join t.recommendedPaper WHERE t.id.paperId = :paperId order by t.recommendedPaper.citationCount desc")

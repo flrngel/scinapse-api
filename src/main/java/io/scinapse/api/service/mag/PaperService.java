@@ -124,10 +124,6 @@ public class PaperService {
                 .collect(Collectors.toList());
     }
 
-    public List<Long> getReadingNow(long paperId) {
-        return paperRecommendationRepository.getReadingNow(paperId);
-    }
-
     public Page<PaperAuthor> getPaperAuthors(long paperId, PageRequest pageRequest) {
         return paperAuthorRepository.getByPaperIdOrderByAuthorSequenceNumber(paperId, pageRequest.toPageable());
     }
