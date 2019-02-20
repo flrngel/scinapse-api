@@ -45,16 +45,13 @@ public class SearchService {
     private final RestHighLevelClient restHighLevelClient;
     private final RestTemplate restTemplate;
 
-    @Value("${pluto.server.es.index.suggestion.fos}")
-    private String fosSuggestionIndex;
-
     @Value("${pluto.server.scholar.url}")
     private String scholarUrl;
 
     @Value("${pluto.server.es.index.suggestion.affiliation}")
     private String affiliationSuggestionIndex;
 
-    public List<CompletionDto> completeByScholar(String keyword) {
+    public List<CompletionDto> complete(String keyword) {
         URI uri = UriComponentsBuilder
                 .fromHttpUrl(scholarUrl)
                 .queryParam("q", keyword)
@@ -81,38 +78,6 @@ public class SearchService {
             log.error("Fail to retrieve completion keywords: {}", e.getMessage(), e);
         }
         return new ArrayList<>();
-    }
-
-    public List<CompletionDto> complete(String keyword) {
-        MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("name", keyword).operator(Operator.AND);
-        ConstantScoreQueryBuilder constantQuery = QueryBuilders.constantScoreQuery(matchQuery);
-        FunctionScoreQueryBuilder functionQuery = QueryBuilders.functionScoreQuery(
-                constantQuery,
-                new FieldValueFactorFunctionBuilder("paper_count")
-                        .modifier(FieldValueFactorFunction.Modifier.LOG2P))
-                .boostMode(CombineFunction.REPLACE);
-
-        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
-                .query(functionQuery)
-                .fetchSource("name", null);
-
-        try {
-            SearchRequest request = new SearchRequest(fosSuggestionIndex).source(source);
-            SearchResponse response = restHighLevelClient.search(request);
-
-            List<CompletionDto> dtos = new ArrayList<>();
-            for (SearchHit hit : response.getHits()) {
-                Object name = hit.getSourceAsMap().get("name");
-                if (name == null) {
-                    continue;
-                }
-                dtos.add(new CompletionDto((String) name, CompletionType.FOS));
-            }
-
-            return dtos.stream().distinct().collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new RuntimeException("Elasticsearch exception", e);
-        }
     }
 
     public List<CompletionDto> completeAffiliation(String keyword) {

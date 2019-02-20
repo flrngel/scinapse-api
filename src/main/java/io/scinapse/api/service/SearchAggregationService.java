@@ -12,12 +12,12 @@ import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.bucket.filter.*;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.bucket.histogram.HistogramAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.range.RangeAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.range.RangeAggregator;
 import org.elasticsearch.search.aggregations.bucket.sampler.Sampler;
 import org.elasticsearch.search.aggregations.bucket.sampler.SamplerAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -84,26 +84,6 @@ public class SearchAggregationService {
                 .subAggregation(yearAgg);
     }
 
-    public FilterAggregationBuilder generateIfAggregation(Query query) {
-        RangeAggregationBuilder ifAgg = AggregationBuilders.range(IF_AGG_NAME)
-                .field("journal.impact_factor")
-                .addRange(0, 10)
-                .subAggregation(AggregationBuilders.histogram(IF_AGG_NAME)
-                        .field("journal.impact_factor")
-                        .interval(1)
-                        .minDocCount(0)
-                        .extendedBounds(0, 9));
-        RangeAggregationBuilder if10Agg = AggregationBuilders.range(IF_10_AGG_NAME)
-                .field("journal.impact_factor")
-                .addRange(new RangeAggregator.Range(IF_10_AGG_NAME, 10d, null));
-
-        // apply filters except if filter
-        return AggregationBuilders
-                .filter(IF_AGG_NAME, query.getFilter().toImpactFactorAggFilter())
-                .subAggregation(ifAgg)
-                .subAggregation(if10Agg);
-    }
-
     public SamplerAggregationBuilder generateSampleAggregation() {
         TermsAggregationBuilder journalAgg = AggregationBuilders.terms(JOURNAL_AGG_NAME).field("journal.id").size(10);
         TermsAggregationBuilder fosAgg = AggregationBuilders.terms(FOS_AGG_NAME).field("fos.id").size(30);
@@ -157,7 +137,6 @@ public class SearchAggregationService {
         List<AggregationDto.Year> yearFiltered = getYearFiltered(aggregationMap);
 
         List<AggregationDto.Year> years = getYears(aggregationMap);
-        List<AggregationDto.ImpactFactor> impactFactors = getImpactFactors(aggregationMap);
 
         // sampler aggregation for top 100 results
         Sampler sample = (Sampler) aggregationMap.get(SAMPLE_AGG_NAME);
@@ -171,7 +150,6 @@ public class SearchAggregationService {
         dto.yearFiltered = yearFiltered;
 
         dto.years = years;
-        dto.impactFactors = impactFactors;
 
         dto.journals = journals;
         dto.fosList = fosList;
@@ -265,46 +243,12 @@ public class SearchAggregationService {
         return years;
     }
 
-    private List<AggregationDto.ImpactFactor> getImpactFactors(Map<String, Aggregation> aggregationMap) {
-        Filter ifFiltered = (Filter) aggregationMap.get(IF_AGG_NAME);
-
-        Range impactFactor = ifFiltered.getAggregations().get(IF_AGG_NAME);
-        List<? extends Range.Bucket> buckets = impactFactor.getBuckets();
-        Histogram ifHistogram = buckets.get(0).getAggregations().get(IF_AGG_NAME);
-        List<AggregationDto.ImpactFactor> impactFactors = ifHistogram.getBuckets()
-                .stream()
-                .map(y -> {
-                    AggregationDto.ImpactFactor ifDto = new AggregationDto.ImpactFactor();
-                    int from = ((Double) y.getKey()).intValue();
-                    ifDto.from = from;
-                    ifDto.to = from + 1;
-                    ifDto.docCount = y.getDocCount();
-                    return ifDto;
-                })
-                .collect(Collectors.toList());
-
-        Range impactFactor10 = ifFiltered.getAggregations().get(IF_10_AGG_NAME);
-        List<? extends Range.Bucket> if10Buckets = impactFactor10.getBuckets();
-        Range.Bucket if10 = if10Buckets.get(0);
-        AggregationDto.ImpactFactor if10Dto = new AggregationDto.ImpactFactor();
-        if10Dto.from = 10;
-        if10Dto.docCount = if10.getDocCount();
-        impactFactors.add(if10Dto);
-
-        AggregationDto.ImpactFactor allIf = new AggregationDto.ImpactFactor();
-        allIf.from = AggregationDto.ALL;
-        allIf.to = AggregationDto.ALL;
-        allIf.docCount = ifFiltered.getDocCount();
-        impactFactors.add(allIf);
-
-        return impactFactors;
-    }
-
     private List<AggregationDto.Journal> getJournals(Map<String, Aggregation> aggregationMap) {
         Terms journal = (Terms) aggregationMap.get(JOURNAL_AGG_NAME);
         List<Long> journalIds = journal.getBuckets()
                 .stream()
-                .map(j -> (long) j.getKey())
+                .map(MultiBucketsAggregation.Bucket::getKeyAsString)
+                .map(Long::parseLong)
                 .collect(Collectors.toList());
 
         return journalRepository.findByIdIn(journalIds)
@@ -323,7 +267,8 @@ public class SearchAggregationService {
         Terms fos = (Terms) aggregationMap.get(FOS_AGG_NAME);
         List<Long> fosIds = fos.getBuckets()
                 .stream()
-                .map(f -> (long) f.getKey())
+                .map(MultiBucketsAggregation.Bucket::getKeyAsString)
+                .map(Long::parseLong)
                 .collect(Collectors.toList());
 
         return fieldsOfStudyRepository.findByIdIn(fosIds)

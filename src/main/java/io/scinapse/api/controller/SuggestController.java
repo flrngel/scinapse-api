@@ -37,7 +37,7 @@ public class SuggestController {
         if (doi != null) {
             result.put("data", new ArrayList<>());
         } else {
-            List<CompletionDto> dtos = searchService.completeByScholar(keyword);
+            List<CompletionDto> dtos = searchService.complete(keyword);
             result.put("data", dtos);
         }
 
@@ -52,26 +52,6 @@ public class SuggestController {
         }
 
         return Response.success(searchService.completeAffiliation(keyword));
-    }
-
-    @RequestMapping(value = "/complete", method = RequestMethod.GET, params = "old")
-    public Map<String, Object> completeOld(@RequestParam("q") String keyword) {
-        keyword = StringUtils.normalizeSpace(keyword);
-        if (StringUtils.isBlank(keyword) || keyword.length() < 2) {
-            throw new BadRequestException("Keyword is too short. Only keywords with two or more characters are allowed.");
-        }
-
-        Map<String, Object> result = new HashMap<>();
-
-        String doi = TextUtils.parseDoi(keyword);
-        if (doi != null) {
-            result.put("data", new ArrayList<>());
-        } else {
-            List<CompletionDto> dtos = searchService.complete(keyword);
-            result.put("data", dtos);
-        }
-
-        return result;
     }
 
 }

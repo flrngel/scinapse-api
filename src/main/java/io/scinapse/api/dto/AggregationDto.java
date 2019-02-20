@@ -17,7 +17,6 @@ public class AggregationDto {
     public List<Year> yearFiltered = null;
 
     public List<Year> years = new ArrayList<>();
-    public List<ImpactFactor> impactFactors = new ArrayList<>();
 
     public List<Journal> journals = new ArrayList<>();
     public List<Fos> fosList = new ArrayList<>();
@@ -25,13 +24,6 @@ public class AggregationDto {
     @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
     public static class Year {
         public Integer year = ALL;
-        public long docCount;
-    }
-
-    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-    public static class ImpactFactor {
-        public Integer from = ALL;
-        public Integer to = ALL;
         public long docCount;
     }
 

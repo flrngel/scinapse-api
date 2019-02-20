@@ -21,8 +21,6 @@ public class QueryFilter {
     private String raw;
     private Integer yearStart;
     private Integer yearEnd;
-    private Integer ifStart;
-    private Integer ifEnd;
     private List<Long> journals = new ArrayList<>();
     private List<Long> fosList = new ArrayList<>();
 
@@ -56,23 +54,6 @@ public class QueryFilter {
                     }
                     if (StringUtils.hasText(years.get(1))) {
                         queryFilter.setYearEnd(Integer.parseInt(years.get(1)));
-                    }
-                }
-            } catch (NumberFormatException ignore) {
-                // ignore
-            }
-        }
-
-        String impactFactor = filterMap.get("if");
-        if (StringUtils.hasText(impactFactor)) {
-            List<String> ifs = Splitter.on(":").trimResults().splitToList(impactFactor);
-            try {
-                if (ifs.size() == 2) {
-                    if (StringUtils.hasText(ifs.get(0))) {
-                        queryFilter.setIfStart(Integer.parseInt(ifs.get(0)));
-                    }
-                    if (StringUtils.hasText(ifs.get(1))) {
-                        queryFilter.setIfEnd(Integer.parseInt(ifs.get(1)));
                     }
                 }
             } catch (NumberFormatException ignore) {
@@ -119,7 +100,6 @@ public class QueryFilter {
         BoolQueryBuilder filterQuery = QueryBuilders.boolQuery();
 
         applyYearFilter(filterQuery);
-        applyImpactFactorFilter(filterQuery);
         applyJournalFilter(filterQuery);
         applyFosFilter(filterQuery);
 
@@ -129,37 +109,27 @@ public class QueryFilter {
     public boolean hasFilter() {
         return yearStart != null
                 || yearEnd != null
-                || ifStart != null
-                || ifEnd != null
                 || !CollectionUtils.isEmpty(journals)
                 || !CollectionUtils.isEmpty(fosList);
     }
 
     public BoolQueryBuilder toYearAggFilter() {
-        return toAggregationFilter(true, false, false, false);
-    }
-
-    public BoolQueryBuilder toImpactFactorAggFilter() {
-        return toAggregationFilter(false, true, false, false);
+        return toAggregationFilter(true, false, false);
     }
 
     public BoolQueryBuilder toJournalAggFilter() {
-        return toAggregationFilter(false, false, true, false);
+        return toAggregationFilter(false, true, false);
     }
 
     public BoolQueryBuilder toFosAggFilter() {
-        return toAggregationFilter(false, false, false, true);
+        return toAggregationFilter(false, false, true);
     }
 
-    private BoolQueryBuilder toAggregationFilter(boolean year, boolean impactFactor, boolean journal, boolean fos) {
+    private BoolQueryBuilder toAggregationFilter(boolean year, boolean journal, boolean fos) {
         BoolQueryBuilder filterQuery = QueryBuilders.boolQuery();
 
         if (!year) {
             applyYearFilter(filterQuery);
-        }
-
-        if (!impactFactor) {
-            applyImpactFactorFilter(filterQuery);
         }
 
         if (!journal) {
@@ -180,16 +150,6 @@ public class QueryFilter {
 
         if (yearEnd != null) {
             filterQuery.must(QueryBuilders.rangeQuery("year").lte(yearEnd));
-        }
-    }
-
-    private void applyImpactFactorFilter(BoolQueryBuilder filterQuery) {
-        if (ifStart != null) {
-            filterQuery.must(QueryBuilders.rangeQuery("journal.impact_factor").gte(ifStart));
-        }
-
-        if (ifEnd != null) {
-            filterQuery.must(QueryBuilders.rangeQuery("journal.impact_factor").lte(ifEnd));
         }
     }
 
