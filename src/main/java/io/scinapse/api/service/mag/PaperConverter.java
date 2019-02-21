@@ -4,7 +4,6 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.academic.dto.AcConferenceInstanceDto;
 import io.scinapse.api.data.academic.Paper;
 import io.scinapse.api.dto.mag.*;
-import io.scinapse.api.service.CommentService;
 import io.scinapse.api.service.author.AuthorLayerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,12 +21,10 @@ import java.util.stream.Collectors;
 public class PaperConverter {
 
     private final AuthorLayerService authorLayerService;
-    private final CommentService commentService;
 
     public PaperDto convertSingle(Paper paper, Converter converter) {
         PaperDto paperDto = converter.convert(paper);
         authorLayerService.decoratePaperAuthors(paperDto.getAuthors());
-        commentService.setDefaultComments(paperDto);
         return paperDto;
     }
 

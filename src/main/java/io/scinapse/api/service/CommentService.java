@@ -3,7 +3,6 @@ package io.scinapse.api.service;
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.data.scinapse.model.Comment;
-import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.data.scinapse.repository.CommentRepository;
 import io.scinapse.api.dto.CommentDto;
 import io.scinapse.api.dto.CommentWrapper;
@@ -70,10 +69,6 @@ public class CommentService {
     @Transactional
     public void deleteComment(Comment comment) {
         commentRepository.delete(comment);
-    }
-
-    public long getCount(Member createdBy) {
-        return commentRepository.countByCreatedBy(createdBy);
     }
 
 }
