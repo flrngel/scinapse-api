@@ -64,6 +64,9 @@ public class Paper {
     private String lastPage;
 
     @Column
+    private Integer authorCount;
+
+    @Column
     private Long referenceCount;
 
     @Column
@@ -91,6 +94,10 @@ public class Paper {
             return null;
         }
         return paperAbstractHolder.get(0);
+    }
+
+    public Integer getAuthorCount() {
+        return Optional.ofNullable(this.authorCount).orElse(0);
     }
 
     public long getReferenceCount() {

@@ -36,6 +36,7 @@ public class AcPaperDto {
     private String volume;
     private String issue;
 
+    private int authorCount;
     private long referenceCount;
     private long citedCount;
 
@@ -56,6 +57,7 @@ public class AcPaperDto {
         this.volume = paper.getVolume();
         this.issue = paper.getIssue();
 
+        this.authorCount = paper.getAuthorCount();
         this.referenceCount = paper.getReferenceCount();
         this.citedCount = paper.getCitationCount();
 

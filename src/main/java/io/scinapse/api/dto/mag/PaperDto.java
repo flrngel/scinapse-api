@@ -43,6 +43,9 @@ public class PaperDto {
 
     private String pageEnd;
 
+    @JsonProperty("author_count")
+    private int authorCount = 0;
+
     private long referenceCount = 0;
 
     private long citedCount = 0;
@@ -76,6 +79,7 @@ public class PaperDto {
         this.doi = paper.getDoi();
         this.volume = paper.getVolume();
         this.issue = paper.getIssue();
+        this.authorCount = paper.getAuthorCount();
         this.referenceCount = paper.getReferenceCount();
         this.citedCount = paper.getCitationCount();
     }
