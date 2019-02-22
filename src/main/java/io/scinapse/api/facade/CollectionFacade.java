@@ -25,7 +25,10 @@ import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -50,11 +53,6 @@ public class CollectionFacade {
         long count = collectionService.collectionCount(member);
         if (count >= 50) {
             throw new BadRequestException("Each member can create up to 50 collections");
-        }
-
-        if (count == 0) {
-            // Member does not have default collection. Creating default one.
-            return CollectionDto.of(collectionService.createDefault(member));
         }
 
         Collection entity = dto.toEntity();
@@ -89,11 +87,6 @@ public class CollectionFacade {
         }
 
         Page<Collection> collections = collectionService.findByCreator(member, pageRequest.toPageable());
-        if (collections.getTotalElements() == 0) {
-            // Member doesn't have any collections. Create default collection.
-            Collection collection = collectionService.createDefault(member);
-            collections = new PageImpl<>(Collections.singletonList(collection), PageRequest.defaultPageable(), 1);
-        }
 
         if (paperId == null) {
             return collections.map(MyCollectionDto::of);
@@ -123,10 +116,6 @@ public class CollectionFacade {
             throw new AuthorizationServiceException("Updating collection is only possible by its creator");
         }
 
-        if (one.isDefault()) {
-            throw new ResourceNotFoundException("Cannot update default collection : " + collectionId);
-        }
-
         Collection updated = collectionService.update(one, dto.toEntity());
         return CollectionDto.of(updated);
     }
@@ -140,10 +129,6 @@ public class CollectionFacade {
 
         if (one.getCreatedBy().getId() != user.getId()) {
             throw new AuthorizationServiceException("Deleting collection is only possible by its creator");
-        }
-
-        if (one.isDefault()) {
-            throw new ResourceNotFoundException("Cannot delete default collection : " + collectionId);
         }
 
         collectionService.delete(one);

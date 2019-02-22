@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -28,15 +27,6 @@ public class CollectionService {
     @Transactional
     public Collection create(Collection dto) {
         return collectionRepository.save(dto);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Collection createDefault(Member member) {
-        Collection collection = new Collection();
-        collection.setCreatedBy(member);
-        collection.setTitle(member.getFullName() + "'s Collection");
-        collection.setDefault(true);
-        return collectionRepository.save(collection);
     }
 
     public Collection find(long collectionId) {
