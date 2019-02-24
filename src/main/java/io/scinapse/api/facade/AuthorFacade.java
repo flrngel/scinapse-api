@@ -7,7 +7,7 @@ import io.scinapse.api.data.academic.Paper;
 import io.scinapse.api.data.scinapse.model.author.AuthorLayerPaper;
 import io.scinapse.api.dto.mag.AuthorDto;
 import io.scinapse.api.dto.mag.AuthorPaperDto;
-import io.scinapse.api.error.BadRequestException;
+import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.service.mag.AuthorService;
 import io.scinapse.api.service.mag.PaperConverter;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class AuthorFacade {
     public AuthorDto find(long authorId, boolean loadFos) {
         return authorService.find(authorId)
                 .map(author -> new AuthorDto(author, loadFos))
-                .orElseThrow(() -> new BadRequestException("Author[" + authorId + "] does not exist."));
+                .orElseThrow(() -> new ResourceNotFoundException("Author[" + authorId + "] does not exist."));
     }
 
 }

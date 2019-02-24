@@ -46,7 +46,7 @@ public class AuthorLayerFacade {
 
     public Page<AuthorPaperDto> findPapers(long authorId, String[] keywords, PageRequest pageRequest) {
         if (!authorService.exists(authorId)) {
-            throw new BadRequestException("Author[" + authorId + "] dose not exist.");
+            throw new ResourceNotFoundException("Author[" + authorId + "] dose not exist.");
         }
 
         Optional<AuthorLayer> layer = layerService.find(authorId);
@@ -81,7 +81,7 @@ public class AuthorLayerFacade {
 
     public List<AuthorDto> findCoAuthors(long authorId) {
         if (!authorService.exists(authorId)) {
-            throw new BadRequestException("Author[" + authorId + "] dose not exist.");
+            throw new ResourceNotFoundException("Author[" + authorId + "] dose not exist.");
         }
 
         Optional<AuthorLayer> layer = layerService.find(authorId);
