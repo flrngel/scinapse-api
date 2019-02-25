@@ -7,6 +7,7 @@ import io.scinapse.api.academic.service.AcAuthorService;
 import io.scinapse.api.academic.service.AcPaperService;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.v2.*;
+import io.scinapse.api.service.CollectionService;
 import io.scinapse.api.service.SearchV2Service;
 import io.scinapse.api.service.author.AuthorLayerService;
 import io.scinapse.api.util.Query;
@@ -29,6 +30,7 @@ public class SearchFacade {
     private final AcAuthorService authorService;
     private final AcPaperService paperService;
     private final AuthorLayerService layerService;
+    private final CollectionService collectionService;
 
     public EsPaperSearchResponse search(Query query, PageRequest pageRequest) {
         if (query.isDoi()) {
@@ -110,6 +112,8 @@ public class SearchFacade {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
         layerService.decoratePaperAuthorItems(paperAuthors);
+
+        collectionService.decoratePaperItems(dtos);
 
         Page<PaperItemDto> page = new PageImpl<>(dtos, pageRequest.toPageable(), response.getPaperTotalHits());
         response.setPaperItemPage(page);

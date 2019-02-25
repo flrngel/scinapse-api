@@ -1,20 +1,31 @@
 package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.academic.dto.AcPaperDto;
 import io.scinapse.api.data.scinapse.model.Collection;
 import io.scinapse.api.data.scinapse.model.CollectionPaper;
 import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.data.scinapse.repository.CollectionPaperRepository;
 import io.scinapse.api.data.scinapse.repository.CollectionRepository;
+import io.scinapse.api.dto.v2.PaperItemDto;
 import io.scinapse.api.enums.PaperSort;
+import io.scinapse.api.security.jwt.JwtUser;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@Slf4j
 @XRayEnabled
 @Transactional(readOnly = true)
 @Service
@@ -101,6 +112,39 @@ public class CollectionService {
         Collection collection = collectionRepository.findOne(collectionId);
         int paperCount = collectionPaperRepository.countByIdCollectionId(collectionId);
         collection.setPaperCount(paperCount);
+    }
+
+    public void decoratePaperItems(List<PaperItemDto> dtos) {
+        if (CollectionUtils.isEmpty(dtos)) {
+            return;
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return;
+        }
+
+        if (!(authentication instanceof JwtUser)) {
+            // FIXME: maybe anonymous user
+            return;
+        }
+
+        JwtUser user = (JwtUser) authentication;
+        Set<Long> paperIds = dtos.stream().map(PaperItemDto::getOrigin).map(AcPaperDto::getId).collect(Collectors.toSet());
+
+        Map<Long, List<PaperItemDto.SavedInCollection>> collectionMap = collectionRepository.findBySavedPapers(user.getId(), paperIds);
+        dtos.forEach(dto -> {
+            long id = dto.getOrigin().getId();
+            List<PaperItemDto.SavedInCollection> collections = collectionMap.get(id);
+            if (CollectionUtils.isEmpty(collections)) {
+                return;
+            }
+
+            PaperItemDto.Relation relation = new PaperItemDto.Relation();
+            relation.setSavedInCollections(collections);
+
+            dto.setRelation(relation);
+        });
     }
 
 }

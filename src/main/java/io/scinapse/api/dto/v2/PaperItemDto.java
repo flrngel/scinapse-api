@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +33,8 @@ public class PaperItemDto {
 
     private List<PaperAuthorDto> authors;
 
+    private Relation relation;
+
     @JsonUnwrapped
     private Object additional;
 
@@ -47,6 +50,20 @@ public class PaperItemDto {
                 .stream()
                 .map(PaperAuthorDto::new)
                 .collect(Collectors.toList());
+    }
+
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+    @Getter
+    @Setter
+    public static class Relation {
+        private List<SavedInCollection> savedInCollections = new ArrayList<>();
+    }
+
+    @Getter
+    @Setter
+    public static class SavedInCollection {
+        private long id;
+        private String title;
     }
 
     @RequiredArgsConstructor
