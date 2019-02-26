@@ -12,6 +12,7 @@ import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,8 @@ import java.util.Map;
 public class Query {
 
     private String text;
-    private List<String> phraseQueries;
+    private int tokenLength = 0;
+    private List<String> phraseQueries = new ArrayList<>();
     private String doi;
     private QueryFilter filter = new QueryFilter();
     private boolean journalSearch = false;
@@ -29,6 +31,11 @@ public class Query {
 
     private Query(String text) {
         this.text = StringUtils.normalizeSpace(text);
+        if (StringUtils.isBlank(this.text)) {
+            return;
+        }
+
+        this.tokenLength = StringUtils.split(this.text).length;
         this.phraseQueries = TextUtils.parsePhrase(this.text);
         this.doi = TextUtils.parseDoi(this.text);
     }
@@ -124,14 +131,12 @@ public class Query {
         return QueryBuilders.constantScoreQuery(query);
     }
 
-    public QueryRescorerBuilder getPhraseRescoreQuery() {
+    public QueryRescorerBuilder getTitlePhraseRescoreQuery() {
         MatchPhraseQueryBuilder titleQuery = QueryBuilders.matchPhraseQuery("title", text).slop(5).boost(7);
-        MatchPhraseQueryBuilder abstractQuery = QueryBuilders.matchPhraseQuery("abstract", text).slop(5).boost(5);
 
         // phrase match booster for re-scoring
         BoolQueryBuilder phraseMatchQuery = QueryBuilders.boolQuery()
-                .should(titleQuery)
-                .should(abstractQuery);
+                .should(titleQuery);
 
         // title boosting for phrase matching
         phraseQueries.forEach(q -> {
@@ -139,10 +144,10 @@ public class Query {
             phraseMatchQuery.should(phrase);
         });
 
-        // re-scoring top 100 documents only for each shard
+        // re-scoring top 50 documents only for each shard
         return new QueryRescorerBuilder(phraseMatchQuery)
                 .windowSize(50)
-                .setRescoreQueryWeight(2);
+                .setRescoreQueryWeight(7);
     }
 
     public QueryRescorerBuilder getCitationRescoreQuery() {
@@ -156,7 +161,7 @@ public class Query {
                 .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { citationBooster })
                 .maxBoost(2); // limit boosting
 
-        // re-scoring top 100 documents only for each shard
+        // re-scoring top 50 documents only for each shard
         return new QueryRescorerBuilder(functionQuery)
                 .windowSize(50)
                 .setScoreMode(QueryRescoreMode.Multiply);
@@ -172,7 +177,7 @@ public class Query {
                 .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { ifBooster })
                 .maxBoost(1.3f); // limit boosting
 
-        // re-scoring top 100 documents only for each shard
+        // re-scoring top 50 documents only for each shard
         return new QueryRescorerBuilder(functionQuery)
                 .windowSize(50)
                 .setScoreMode(QueryRescoreMode.Multiply);
@@ -195,7 +200,7 @@ public class Query {
                 .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { yearBooster })
                 .maxBoost(3); // limit boosting
 
-        // re-scoring top 100 documents only for each shard
+        // re-scoring top 50 documents only for each shard
         return new QueryRescorerBuilder(functionQuery)
                 .windowSize(50)
                 .setScoreMode(QueryRescoreMode.Multiply);

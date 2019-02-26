@@ -214,7 +214,10 @@ public class SearchV2Service {
             source.sort(sortBuilder);
         } else {
             // add rescorer to boost relevance score.
-            source.addRescorer(query.getPhraseRescoreQuery());
+            if (query.getTokenLength() >= 5) {
+                source.addRescorer(query.getTitlePhraseRescoreQuery());
+            }
+
             source.addRescorer(query.getCitationRescoreQuery());
             source.addRescorer(query.getImpactFactorRescoreQuery());
             source.addRescorer(query.getYearRescoreQuery());
@@ -284,7 +287,10 @@ public class SearchV2Service {
                 .highlighter(generateHighlighter());
 
         if (sort == PaperSort.RELEVANCE) {
-            source.addRescorer(query.getPhraseRescoreQuery());
+            if (query.getTokenLength() >= 5) {
+                source.addRescorer(query.getTitlePhraseRescoreQuery());
+            }
+
             source.addRescorer(query.getCitationRescoreQuery());
             source.addRescorer(query.getYearRescoreQuery());
             source.addRescorer(query.getAbsenceRescoreQuery());
