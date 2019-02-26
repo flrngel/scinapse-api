@@ -205,7 +205,7 @@ public class SearchV2Service {
                 .size(pageRequest.getSize());
 
         // add filter
-        if (query.getFilter().hasFilter()) {
+        if (query.getFilter().hasFilter(true)) {
             source.postFilter(query.getFilter().toFilerQuery());
         }
 
@@ -233,7 +233,7 @@ public class SearchV2Service {
         source.aggregation(aggregationService.generateYearAllAggregation());
         source.aggregation(aggregationService.generateSampleAggregation());
 
-        if (query.getFilter().hasFilter()) {
+        if (query.getFilter().hasFilter(false)) {
             source.aggregation(aggregationService.generateYearFilteredAggregation(query));
         }
 

@@ -54,15 +54,17 @@ public class SearchAggregationService {
     public HistogramAggregationBuilder generateYearAllAggregation() {
         return AggregationBuilders.histogram(YEAR_ALL_AGG_NAME)
                 .field("year")
-                .interval(1);
+                .interval(1)
+                .minDocCount(1);
     }
 
     public FilterAggregationBuilder generateYearFilteredAggregation(Query query) {
         HistogramAggregationBuilder yearAggs = AggregationBuilders.histogram(YEAR_FILTERED_AGG_NAME)
                 .field("year")
-                .interval(1);
+                .interval(1)
+                .minDocCount(1);
 
-        return AggregationBuilders.filter(YEAR_FILTERED_AGG_NAME, query.getFilter().toFilerQuery())
+        return AggregationBuilders.filter(YEAR_FILTERED_AGG_NAME, query.getFilter().toYearAggFilter())
                 .subAggregation(yearAggs);
     }
 

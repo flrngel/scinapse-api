@@ -106,11 +106,16 @@ public class QueryFilter {
         return filterQuery;
     }
 
-    public boolean hasFilter() {
-        return yearStart != null
-                || yearEnd != null
-                || !CollectionUtils.isEmpty(journals)
-                || !CollectionUtils.isEmpty(fosList);
+    public boolean hasFilter(boolean includeYear) {
+        boolean hasFilter = !CollectionUtils.isEmpty(journals) || !CollectionUtils.isEmpty(fosList);
+
+        if (!includeYear) {
+            return hasFilter;
+        }
+
+        return hasFilter
+                || yearStart != null
+                || yearEnd != null;
     }
 
     public BoolQueryBuilder toYearAggFilter() {
