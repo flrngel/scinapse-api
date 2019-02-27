@@ -1,6 +1,7 @@
 package io.scinapse.api.configuration;
 
 import com.amazonaws.xray.javax.servlet.AWSXRayServletFilter;
+import com.sendgrid.SendGrid;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.utils.DateUtils;
@@ -87,6 +88,11 @@ public class CommonConfig {
         return CookieSpecRegistries.createDefaultBuilder()
                 .register(CookieSpecs.DEFAULT, defaultProvider)
                 .build();
+    }
+
+    @Bean
+    public SendGrid sendGrid(@Value("${pluto.server.email.sg.api-key}") String apiKey) {
+        return new SendGrid(apiKey);
     }
 
     @Bean

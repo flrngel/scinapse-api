@@ -66,6 +66,7 @@ dependencies {
     compile('commons-validator:commons-validator:1.6')
 
     compile('net.coobird:thumbnailator:0.4.8')
+    compile('com.sendgrid:sendgrid-java:4.3.0')
 
     compileOnly('org.springframework.boot:spring-boot-devtools')
 

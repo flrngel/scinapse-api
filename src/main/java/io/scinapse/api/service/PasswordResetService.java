@@ -1,22 +1,20 @@
 package io.scinapse.api.service;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceAsync;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceAsyncClientBuilder;
-import com.amazonaws.services.simpleemail.model.Destination;
-import com.amazonaws.services.simpleemail.model.SendTemplatedEmailRequest;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.sendgrid.*;
 import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.data.scinapse.model.PasswordResetToken;
 import io.scinapse.api.data.scinapse.repository.PasswordResetTokenRepository;
 import io.scinapse.api.error.BadRequestException;
+import io.scinapse.api.error.ExternalApiCallException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -27,12 +25,14 @@ public class PasswordResetService {
 
     private final PasswordResetTokenRepository repository;
     private final MemberService memberService;
-    private final ObjectMapper objectMapper;
+
+    private final SendGrid sendGrid;
 
     @Value("${pluto.server.web.url.reset-password}")
     private String webResetPasswordUrl;
 
-    private AmazonSimpleEmailServiceAsync client = AmazonSimpleEmailServiceAsyncClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
+    @Value("${pluto.server.email.sg.template.reset-password}")
+    private String resetPasswordTemplate;
 
     @Transactional
     public void generateToken(Member member) {
@@ -64,29 +64,43 @@ public class PasswordResetService {
     }
 
     private void sendEmail(PasswordResetToken token) {
-        String templateData;
+        Mail mail = new Mail();
+        mail.addCategory("reset_password");
+        mail.setTemplateId(resetPasswordTemplate);
+        mail.setFrom(getNoReplyFrom());
+
+        Personalization personalization = new Personalization();
+        personalization.addTo(new Email(token.getMember().getEmail()));
+
+        PasswordResetData data = new PasswordResetData(token.getMember().getFullName(), webResetPasswordUrl + "?token=" + token.getToken());
+        personalization.addDynamicTemplateData("data", data);
+
+        mail.addPersonalization(personalization);
+
         try {
-            PasswordResetData data = new PasswordResetData(token.getMember().getFullName(), webResetPasswordUrl + "?token=" + token.getToken());
-            templateData = objectMapper.writeValueAsString(data);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Json Processing Exception", e);
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            sendGrid.api(request);
+        } catch (IOException e) {
+            throw new ExternalApiCallException("Unable to send email : " + e.getMessage());
         }
-
-        SendTemplatedEmailRequest request = new SendTemplatedEmailRequest()
-                .withConfigurationSetName("pluto-ses-failure")
-                .withDestination(new Destination().withToAddresses(token.getMember().getEmail()))
-                .withSource("no-reply@pluto.network")
-                .withTemplate("reset-password")
-                .withTemplateData(templateData);
-
-        client.sendTemplatedEmailAsync(request);
     }
 
+    private Email getNoReplyFrom() {
+        Email from = new Email();
+        from.setEmail("noreply@scinapse.io");
+        from.setName("Scinapse");
+        return from;
+    }
+
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
     public static class PasswordResetData {
         @JsonProperty
         String username;
 
-        @JsonProperty("reset-password-url")
+        @JsonProperty
         String resetPasswordUrl;
 
         PasswordResetData(String username, String resetPasswordUrl) {
