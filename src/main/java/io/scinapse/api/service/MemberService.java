@@ -4,8 +4,10 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.data.academic.Affiliation;
 import io.scinapse.api.data.academic.repository.AffiliationRepository;
 import io.scinapse.api.data.scinapse.model.Authority;
+import io.scinapse.api.data.scinapse.model.Collection;
 import io.scinapse.api.data.scinapse.model.Member;
 import io.scinapse.api.data.scinapse.repository.AuthorityRepository;
+import io.scinapse.api.data.scinapse.repository.CollectionRepository;
 import io.scinapse.api.data.scinapse.repository.MemberRepository;
 import io.scinapse.api.enums.AuthorityName;
 import io.scinapse.api.error.BadRequestException;
@@ -29,6 +31,7 @@ public class MemberService {
     private final AuthorityRepository authorityRepository;
     private final PasswordEncoder passwordEncoder;
     private final AffiliationRepository affiliationRepository;
+    private final CollectionRepository collectionRepository;
 
     @Transactional
     public Member saveMember(@NonNull Member member) {
@@ -41,7 +44,14 @@ public class MemberService {
         Authority authority = authorityRepository.findByName(AuthorityName.ROLE_UNVERIFIED);
         member.setAuthorities(Collections.singletonList(authority));
 
-        return memberRepository.save(member);
+        Member save = memberRepository.save(member);
+
+        Collection collection = new Collection();
+        collection.setTitle("Read Later");
+        collection.setCreatedBy(save);
+        collectionRepository.save(collection);
+
+        return save;
     }
 
     @Transactional
