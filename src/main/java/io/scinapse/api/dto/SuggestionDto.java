@@ -23,11 +23,13 @@ public class SuggestionDto {
         this.highlighted = highlighted;
     }
 
+    @Deprecated
     @JsonGetter
     public String getKeyword() {
         return this.originalQuery;
     }
 
+    @Deprecated
     @JsonGetter
     public String getSuggestion() {
         return this.suggestQuery;

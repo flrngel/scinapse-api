@@ -240,9 +240,6 @@ public class SearchV2Service {
             source.aggregation(aggregationService.generateYearFilteredAggregation(query));
         }
 
-        // deprecated
-        source.aggregation(aggregationService.generateYearAggregation(query));
-
         return new SearchRequest(paperIndex).source(source);
     }
 
