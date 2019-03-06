@@ -1,0 +1,14 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+springBoot {
+    executable = true
+}
+
+dependencies {
+    compile project(':scinapse-domain')
+
+    compile 'org.springframework.boot:spring-boot-starter-batch'
+    compile 'com.h2database:h2'
+}

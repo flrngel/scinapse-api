@@ -1,1 +1,5 @@
 rootProject.name = 'scinapse-api'
+
+include 'scinapse-domain'
+include 'scinapse-core'
+include 'scinapse-batch'

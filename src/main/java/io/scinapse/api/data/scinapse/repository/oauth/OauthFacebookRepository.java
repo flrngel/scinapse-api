@@ -1,8 +1,0 @@
-package io.scinapse.api.data.scinapse.repository.oauth;
-
-import io.scinapse.api.data.scinapse.model.oauth.OauthFacebook;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface OauthFacebookRepository extends JpaRepository<OauthFacebook, Long> {
-    OauthFacebook findByFacebookId(String facebookId);
-}

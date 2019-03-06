@@ -1,0 +1,39 @@
+plugins {
+    id 'com.ewerk.gradle.plugins.querydsl' version '1.0.9'
+}
+
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter-data-jpa')
+    compile('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
+
+    compile('com.microsoft.sqlserver:mssql-jdbc')
+    runtime('org.postgresql:postgresql')
+
+    compile('com.querydsl:querydsl-core')
+    compile('com.querydsl:querydsl-apt')
+    compile('com.querydsl:querydsl-jpa')
+
+    compile('com.amazonaws:aws-xray-recorder-sdk-core')
+    compile('com.amazonaws:aws-xray-recorder-sdk-aws-sdk')
+    compile('com.amazonaws:aws-xray-recorder-sdk-spring')
+
+    compile('org.apache.commons:commons-lang3:3.7')
+    compile('org.apache.commons:commons-text:1.4')
+    compile('commons-validator:commons-validator:1.6')
+
+    testCompile('com.h2database:h2')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+            srcDir 'src/querydsl/java'
+        }
+    }
+}
+
+querydsl {
+    jpa = true
+}

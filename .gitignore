@@ -1,6 +1,9 @@
 .gradle
-/build/
 !gradle/wrapper/gradle-wrapper.jar
+
+build/
+out/
+querydsl/
 
 ### STS ###
 .apt_generated
@@ -24,8 +27,6 @@ dist/
 nbdist/
 .nb-gradle/
 
-out/
 .ideaDataSources/
 dataSources/
 
-src/queryDsl/
