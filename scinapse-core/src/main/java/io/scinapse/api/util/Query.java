@@ -73,11 +73,12 @@ public class Query {
         MatchQueryBuilder titleQuery = QueryBuilders.matchQuery("title", text).boost(4);
         MatchQueryBuilder titleShingleQuery = QueryBuilders.matchQuery("title.shingles", text).boost(5);
         MatchQueryBuilder abstractQuery = QueryBuilders.matchQuery("abstract", text).boost(3);
-        MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(3);
+        MatchQueryBuilder abstractShingleQuery = QueryBuilders.matchQuery("abstract.shingles", text).boost(2.5f);
         MatchQueryBuilder authorNameQuery = QueryBuilders.matchQuery("authors.name", text).boost(4);
         MatchQueryBuilder authorAffiliationQuery = QueryBuilders.matchQuery("authors.affiliation.name", text).boost(1);
         MatchQueryBuilder fosQuery = QueryBuilders.matchQuery("fos.name", text).boost(2);
         MatchQueryBuilder journalQuery = QueryBuilders.matchQuery("journal.title", text).boost(4);
+        MatchQueryBuilder conferenceQuery = QueryBuilders.matchQuery("conference.title", text).boost(4);
 
         return QueryBuilders.boolQuery()
                 .must(mainQuery)
@@ -88,7 +89,8 @@ public class Query {
                 .should(authorNameQuery)
                 .should(authorAffiliationQuery)
                 .should(fosQuery)
-                .should(journalQuery);
+                .should(journalQuery)
+                .should(conferenceQuery);
     }
 
     public QueryBuilder toTitleQuery() {
@@ -113,7 +115,7 @@ public class Query {
 
     public QueryBuilder getMainQueryClause() {
         BoolQueryBuilder query = QueryBuilders.boolQuery()
-                .must(QueryBuilders.matchQuery("base", text).minimumShouldMatch("-25%"));
+                .must(QueryBuilders.matchQuery("base", text).minimumShouldMatch("3<-25% 7<-20%"));
 
         phraseQueries.forEach(q -> {
             MultiMatchQueryBuilder phrase = QueryBuilders.multiMatchQuery(
@@ -150,21 +152,51 @@ public class Query {
                 .setRescoreQueryWeight(7);
     }
 
+    public QueryRescorerBuilder getAllTermRescoreQuery() {
+        MultiMatchQueryBuilder rescoreQuery = QueryBuilders.multiMatchQuery(text, "journal.title")
+                .field("title", 5)
+                .field("abstract", 3)
+                .field("authors.name", 1)
+                .type(MultiMatchQueryBuilder.Type.CROSS_FIELDS)
+                .operator(Operator.AND);
+
+        return new QueryRescorerBuilder(rescoreQuery)
+                .windowSize(50)
+                .setRescoreQueryWeight(5)
+                .setScoreMode(QueryRescoreMode.Multiply);
+    }
+
     public QueryRescorerBuilder getCitationRescoreQuery() {
         // citation count booster for re-scoring
-        Script script = new Script("Math.log10(doc['citation_count'].value + 10)");
+        Script script = new Script("Math.log10(doc['citation_count'].value + 10)*1.285");
         ScriptScoreFunctionBuilder citationFunction = new ScriptScoreFunctionBuilder(script);
         FunctionScoreQueryBuilder.FilterFunctionBuilder citationBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(citationFunction);
 
 
         FunctionScoreQueryBuilder functionQuery = QueryBuilders
                 .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { citationBooster })
-                .maxBoost(2); // limit boosting
+                .maxBoost(4); // limit boosting
 
         // re-scoring top 50 documents only for each shard
         return new QueryRescorerBuilder(functionQuery)
                 .windowSize(50)
                 .setScoreMode(QueryRescoreMode.Multiply);
+    }
+
+    public QueryRescorerBuilder getHindexRescoreQuery() {
+        Script script = new Script("Math.log10(doc['hindex.max'].value + 2.718)");
+        ScriptScoreFunctionBuilder hindexFunction = new ScriptScoreFunctionBuilder(script);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder hindexBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(hindexFunction);
+
+        FunctionScoreQueryBuilder functionQuery = QueryBuilders
+                .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { hindexBooster })
+                .maxBoost(4); // limit boosting
+
+        // re-scoring top 50 documents only for each shard
+        return new QueryRescorerBuilder(functionQuery)
+                .windowSize(50)
+                .setScoreMode(QueryRescoreMode.Multiply);
+
     }
 
     public QueryRescorerBuilder getImpactFactorRescoreQuery() {
@@ -175,7 +207,23 @@ public class Query {
 
         FunctionScoreQueryBuilder functionQuery = QueryBuilders
                 .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { ifBooster })
-                .maxBoost(1.3f); // limit boosting
+                .maxBoost(3); // limit boosting
+
+        // re-scoring top 50 documents only for each shard
+        return new QueryRescorerBuilder(functionQuery)
+                .windowSize(50)
+                .setScoreMode(QueryRescoreMode.Multiply);
+    }
+
+    public QueryRescorerBuilder getConferenceTierRescoreQuery() {
+        Script script = new Script("long tier = doc['conference.tier'].value; if (tier == 0) return 1; else return (5 - tier)*1.5;");
+        ScriptScoreFunctionBuilder tierFunction = new ScriptScoreFunctionBuilder(script);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder tierBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(tierFunction);
+
+
+        FunctionScoreQueryBuilder functionQuery = QueryBuilders
+                .functionScoreQuery(new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { tierBooster })
+                .maxBoost(6); // limit boosting
 
         // re-scoring top 50 documents only for each shard
         return new QueryRescorerBuilder(functionQuery)

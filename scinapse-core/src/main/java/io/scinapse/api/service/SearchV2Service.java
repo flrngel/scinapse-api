@@ -218,8 +218,11 @@ public class SearchV2Service {
                 source.addRescorer(query.getTitlePhraseRescoreQuery());
             }
 
+            source.addRescorer(query.getAllTermRescoreQuery());
             source.addRescorer(query.getCitationRescoreQuery());
+            source.addRescorer(query.getHindexRescoreQuery());
             source.addRescorer(query.getImpactFactorRescoreQuery());
+            source.addRescorer(query.getConferenceTierRescoreQuery());
             source.addRescorer(query.getYearRescoreQuery());
             source.addRescorer(query.getAbsenceRescoreQuery());
         }
@@ -288,7 +291,9 @@ public class SearchV2Service {
                 source.addRescorer(query.getTitlePhraseRescoreQuery());
             }
 
+            source.addRescorer(query.getAllTermRescoreQuery());
             source.addRescorer(query.getCitationRescoreQuery());
+            source.addRescorer(query.getHindexRescoreQuery());
             source.addRescorer(query.getYearRescoreQuery());
             source.addRescorer(query.getAbsenceRescoreQuery());
         } else {
