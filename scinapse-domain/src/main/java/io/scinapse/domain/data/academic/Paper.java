@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Nationalized;
+import org.hibernate.annotations.Where;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.*;
@@ -82,6 +83,7 @@ public class Paper {
 
     @BatchSize(size = 10)
     @OneToMany(mappedBy = "paper")
+    @Where(clause = "is_valid = 1")
     private List<PaperUrl> paperUrls = new ArrayList<>();
 
     @Getter(AccessLevel.PRIVATE)

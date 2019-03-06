@@ -24,4 +24,7 @@ public class PaperUrl {
     @Column
     private String sourceUrl;
 
+    @Column
+    private boolean isPdf;
+
 }

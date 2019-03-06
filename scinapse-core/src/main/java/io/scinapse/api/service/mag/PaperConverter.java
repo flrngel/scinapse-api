@@ -112,7 +112,7 @@ public class PaperConverter {
             if (detailLoaders.get("url") != null) return this;
             detailLoaders.put("url", () -> {
                 if (!CollectionUtils.isEmpty(paper.getPaperUrls())) {
-                    List<PaperUrlDto> urls = paper.getPaperUrls().stream().map(PaperUrlDto::new).collect(Collectors.toList());
+                    List<PaperUrlDto> urls = paper.getPaperUrls().stream().map(PaperUrlDto::new).sorted(Comparator.comparing(PaperUrlDto::isPdf).reversed()).collect(Collectors.toList());
                     dto.setUrls(urls);
                     dto.setUrlCount(urls.size());
                 }

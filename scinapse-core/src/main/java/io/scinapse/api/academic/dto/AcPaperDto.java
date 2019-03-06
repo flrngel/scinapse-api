@@ -98,6 +98,7 @@ public class AcPaperDto {
             this.urls = paper.getPaperUrls()
                     .stream()
                     .map(AcPaperUrlDto::new)
+                    .sorted(Comparator.comparing(AcPaperUrlDto::isPdf).reversed())
                     .collect(Collectors.toList());
         }
     }
