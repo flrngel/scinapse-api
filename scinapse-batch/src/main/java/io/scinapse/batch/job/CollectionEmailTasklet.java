@@ -3,6 +3,8 @@ package io.scinapse.batch.job;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.google.common.base.Joiner;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import com.sendgrid.*;
 import io.scinapse.domain.data.academic.Author;
 import io.scinapse.domain.data.academic.Paper;
@@ -19,6 +21,7 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -35,6 +38,8 @@ public class CollectionEmailTasklet implements Tasklet {
     private final CollectionRepository collectionRepository;
     private final PaperRepository paperRepository;
 
+    private final Environment environment;
+
     private final SendGrid sendGrid;
 
     @Value("${pluto.server.email.sg.template.retention-collection}")
@@ -43,23 +48,40 @@ public class CollectionEmailTasklet implements Tasklet {
     @Value("${pluto.server.web.url}")
     private String webUrl;
 
+    @Value("${pluto.server.slack.batch.email.url}")
+    private String slackUrl;
+
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
+        String[] profiles = environment.getActiveProfiles();
+
         List<CollectionRepositoryImpl.CollectionEmailDataWrapper> data = collectionRepository.getCollectionEmailData();
         List<CollectionEmailData> emailDataList = convertData(data);
 
-        log.info("------------------------------------------------");
-        log.info("Sending mail to {} people...", emailDataList.size());
-        log.info("------------------------------------------------");
+        sendSlackAlarm("`" + Arrays.toString(profiles) + "` Sending mails to " + emailDataList.size() + " users...");
 
         // send email
         emailDataList.forEach(this::sendEmail);
 
-        log.info("------------------------------------------------");
-        log.info("Sent {} mails successfully!!!", emailDataList);
-        log.info("------------------------------------------------");
+        sendSlackAlarm("`" + Arrays.toString(profiles) + "` Sent " + emailDataList.size() + " mails successfully!!!");
 
         return RepeatStatus.FINISHED;
+    }
+
+    private void sendSlackAlarm(String message) {
+        log.info("------------------------------------------------");
+        log.info(message);
+        log.info("------------------------------------------------");
+
+        Map<String, Object> slackMessage = new HashMap<>();
+        slackMessage.put("text", message);
+        try {
+            Unirest.post(slackUrl)
+                    .body(slackMessage)
+                    .asString();
+        } catch (UnirestException e) {
+            log.error("Cannot send slack alarm.", e);
+        }
     }
 
     private List<CollectionEmailData> convertData(List<CollectionRepositoryImpl.CollectionEmailDataWrapper> data) {
@@ -107,6 +129,11 @@ public class CollectionEmailTasklet implements Tasklet {
         mail.addCategory("retention_collection");
         mail.setTemplateId(collectionEmailTemplate);
         mail.setFrom(getNoReplyFrom());
+
+        ASM asm = new ASM();
+        asm.setGroupId(9250);
+        asm.setGroupsToDisplay(new int[] { 9250 });
+        mail.setASM(asm);
 
         Personalization personalization = new Personalization();
         personalization.addTo(new Email(data.getEmail()));

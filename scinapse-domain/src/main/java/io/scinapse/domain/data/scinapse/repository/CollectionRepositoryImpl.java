@@ -4,15 +4,12 @@ import io.scinapse.domain.data.scinapse.model.Collection;
 import io.scinapse.domain.dto.CollectionWrapper;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.time.DateUtils;
-import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.data.jpa.repository.support.QueryDslRepositorySupport;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.math.BigInteger;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,7 +69,7 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
                 "         c.member_id,\n" +
                 "         row_number()\n" +
                 "         over (\n" +
-                "           partition by member_id\n" +
+                "           partition by member_id, collection_id\n" +
                 "           order by rp.created_at desc ) as row,\n" +
                 "         count(1)\n" +
                 "         over (\n" +
@@ -83,7 +80,6 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
                 "     ) t\n" +
                 "  join member m on t.member_id = m.id\n" +
                 "where t.row < 4 and (m.email_verified = true or m.password is null)";
-
 
         Query query = getEntityManager()
                 .createNativeQuery(sql);
