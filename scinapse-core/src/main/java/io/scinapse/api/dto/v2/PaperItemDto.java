@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,11 +60,13 @@ public class PaperItemDto {
         private List<SavedInCollection> savedInCollections = new ArrayList<>();
     }
 
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
     @Getter
     @Setter
     public static class SavedInCollection {
         private long id;
         private String title;
+        private OffsetDateTime updatedAt;
     }
 
     @RequiredArgsConstructor

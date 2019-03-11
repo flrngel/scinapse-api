@@ -147,6 +147,7 @@ public class CollectionService {
                         PaperItemDto.SavedInCollection saved = new PaperItemDto.SavedInCollection();
                         saved.setId(c.getId());
                         saved.setTitle(c.getTitle());
+                        saved.setUpdatedAt(c.getUpdatedAt());
                         return saved;
                     })
                     .collect(Collectors.toList());

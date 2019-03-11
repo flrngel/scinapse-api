@@ -10,6 +10,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,15 +33,14 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
 
     @Override
     public Map<Long, List<CollectionWrapper>> findBySavedPapers(long memberId, Set<Long> paperIds) {
-        String sql = "select t.paper_id, t.id, t.title\n" +
-                "from (\n" +
-                "       select cp.paper_id, c.id, c.title,\n" +
-                "         ROW_NUMBER() over (partition by cp.paper_id order by cp.created_at desc ) as row\n" +
-                "       from collection c\n" +
-                "         join rel_collection_paper cp on c.id = cp.collection_id\n" +
-                "       where member_id = :memberId and cp.paper_id in (:paperIds)\n" +
-                "     ) t\n" +
-                "where t.row < 3";
+        String sql = "select\n" +
+                "  cp.paper_id,\n" +
+                "  c.id,\n" +
+                "  c.title,\n" +
+                "  c.updated_at\n" +
+                "from collection c\n" +
+                "  join rel_collection_paper cp on c.id = cp.collection_id\n" +
+                "where member_id = :memberId and cp.paper_id in :paperIds";
 
         Query query = getEntityManager()
                 .createNativeQuery(sql)
@@ -45,15 +48,21 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
                 .setParameter("paperIds", paperIds);
 
         List<Object[]> list = query.getResultList();
-        return list.stream()
+
+        Map<Long, List<CollectionWrapper>> collectionMap = list
+                .stream()
                 .collect(Collectors.groupingBy(obj -> ((BigInteger) obj[0]).longValue(),
                         Collectors.mapping(obj -> {
                             CollectionWrapper wrapper = new CollectionWrapper();
                             wrapper.setId(((BigInteger) obj[1]).longValue());
                             wrapper.setTitle((String) obj[2]);
+                            wrapper.setUpdatedAt(OffsetDateTime.ofInstant(((Timestamp) obj[3]).toInstant(), ZoneOffset.systemDefault()));
                             return wrapper;
                         }, Collectors.toList())
                 ));
+        collectionMap.values().forEach(v -> v.sort(Comparator.comparing(CollectionWrapper::getUpdatedAt).reversed()));
+
+        return collectionMap;
     }
 
     @Override
