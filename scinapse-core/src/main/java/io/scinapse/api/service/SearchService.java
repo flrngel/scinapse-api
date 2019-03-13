@@ -19,6 +19,8 @@ import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
+import org.elasticsearch.index.query.functionscore.ScriptScoreFunctionBuilder;
+import org.elasticsearch.script.Script;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,6 +52,12 @@ public class SearchService {
 
     @Value("${pluto.server.es.index.suggestion.affiliation}")
     private String affiliationSuggestionIndex;
+
+    @Value("${pluto.server.es.index.suggestion.journal}")
+    private String journalSuggestionIndex;
+
+    @Value("${pluto.server.es.index.suggestion.fos}")
+    private String fosSuggestionIndex;
 
     public List<CompletionDto> complete(String keyword) {
         URI uri = UriComponentsBuilder
@@ -117,7 +125,87 @@ public class SearchService {
         } catch (IOException e) {
             throw new RuntimeException("Elasticsearch exception", e);
         }
+    }
 
+    public List<CompletionDto> completeJournal(String keyword) {
+        MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("title", keyword).operator(Operator.AND);
+        ConstantScoreQueryBuilder constantQuery = QueryBuilders.constantScoreQuery(matchQuery);
+
+        Script script = new Script("Math.log10(doc['paper_count'].value + doc['citation_count'].value + 10)");
+        ScriptScoreFunctionBuilder scriptFunction = new ScriptScoreFunctionBuilder(script);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder scriptBoost = new FunctionScoreQueryBuilder.FilterFunctionBuilder(scriptFunction);
+
+        Script ifScript = new Script("Math.log10(doc['impact_factor'].value + 10)");
+        ScriptScoreFunctionBuilder ifFunction = new ScriptScoreFunctionBuilder(ifScript);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder ifBooster = new FunctionScoreQueryBuilder.FilterFunctionBuilder(ifFunction);
+
+        FunctionScoreQueryBuilder functionQuery = QueryBuilders.functionScoreQuery(
+                constantQuery,
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { scriptBoost, ifBooster })
+                .boostMode(CombineFunction.REPLACE);
+
+        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
+                .query(functionQuery)
+                .fetchSource(new String[] { "title", "impact_factor" }, null);
+
+        try {
+            SearchRequest request = new SearchRequest(journalSuggestionIndex).source(source);
+            SearchResponse response = restHighLevelClient.search(request);
+
+            List<CompletionDto> dtos = new ArrayList<>();
+            for (SearchHit hit : response.getHits()) {
+                Object name = hit.getSourceAsMap().get("title");
+                if (name == null) {
+                    continue;
+                }
+                CompletionDto dto = new CompletionDto((String) name, CompletionType.JOURNAL);
+                dto.additionalInfo.put("journal_id", Long.parseLong(hit.getId()));
+                dto.additionalInfo.put("impact_factor", hit.getSourceAsMap().get("impact_factor"));
+                dtos.add(dto);
+            }
+
+            return dtos.stream().distinct().collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException("Elasticsearch exception", e);
+        }
+    }
+
+    public List<CompletionDto> completeFos(String keyword) {
+        MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("name", keyword).operator(Operator.AND);
+        ConstantScoreQueryBuilder constantQuery = QueryBuilders.constantScoreQuery(matchQuery);
+
+        Script script = new Script("Math.log10(doc['paper_count'].value + doc['citation_count'].value + 10)");
+        ScriptScoreFunctionBuilder scriptFunction = new ScriptScoreFunctionBuilder(script);
+        FunctionScoreQueryBuilder.FilterFunctionBuilder scriptBoost = new FunctionScoreQueryBuilder.FilterFunctionBuilder(scriptFunction);
+
+        FunctionScoreQueryBuilder functionQuery = QueryBuilders.functionScoreQuery(
+                constantQuery,
+                new FunctionScoreQueryBuilder.FilterFunctionBuilder[] { scriptBoost })
+                .boostMode(CombineFunction.REPLACE);
+
+        SearchSourceBuilder source = SearchSourceBuilder.searchSource()
+                .query(functionQuery)
+                .fetchSource("name", null);
+
+        try {
+            SearchRequest request = new SearchRequest(fosSuggestionIndex).source(source);
+            SearchResponse response = restHighLevelClient.search(request);
+
+            List<CompletionDto> dtos = new ArrayList<>();
+            for (SearchHit hit : response.getHits()) {
+                Object name = hit.getSourceAsMap().get("name");
+                if (name == null) {
+                    continue;
+                }
+                CompletionDto dto = new CompletionDto((String) name, CompletionType.FOS);
+                dto.additionalInfo.put("fos_id", Long.parseLong(hit.getId()));
+                dtos.add(dto);
+            }
+
+            return dtos.stream().distinct().collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException("Elasticsearch exception", e);
+        }
     }
 
 }

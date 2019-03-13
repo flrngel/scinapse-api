@@ -129,6 +129,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/comments",
                         "/complete",
                         "/complete/affiliation",
+                        "/complete/journal",
+                        "/complete/fos",
                         "/suggest",
                         "/authors/*/disconnect",
                         "/search",

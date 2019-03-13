@@ -54,4 +54,24 @@ public class SuggestController {
         return Response.success(searchService.completeAffiliation(keyword));
     }
 
+    @RequestMapping(value = "/complete/journal", method = RequestMethod.GET)
+    public Response<List<CompletionDto>> completeJournal(@RequestParam("q") String keyword) {
+        keyword = StringUtils.normalizeSpace(keyword);
+        if (StringUtils.isBlank(keyword) || keyword.length() < 2) {
+            throw new BadRequestException("Keyword is too short. Only keywords with two or more characters are allowed.");
+        }
+
+        return Response.success(searchService.completeJournal(keyword));
+    }
+
+    @RequestMapping(value = "/complete/fos", method = RequestMethod.GET)
+    public Response<List<CompletionDto>> completeFos(@RequestParam("q") String keyword) {
+        keyword = StringUtils.normalizeSpace(keyword);
+        if (StringUtils.isBlank(keyword) || keyword.length() < 2) {
+            throw new BadRequestException("Keyword is too short. Only keywords with two or more characters are allowed.");
+        }
+
+        return Response.success(searchService.completeFos(keyword));
+    }
+
 }

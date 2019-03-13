@@ -5,5 +5,6 @@ public enum CompletionType {
     TITLE,
     FOS,
     AUTHOR,
-    AFFILIATION
+    AFFILIATION,
+    JOURNAL
 }
