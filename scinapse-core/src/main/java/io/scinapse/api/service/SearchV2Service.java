@@ -163,9 +163,7 @@ public class SearchV2Service {
     }
 
     private void convertAggregation(EsPaperSearchResponse response) {
-        AggregationDto dto = aggregationService.convertAggregation(response.getPaperResponse().getAggregations());
-        response.getAdditional().setAggregation(dto);
-
+        aggregationService.convertAggregation(response);
         enhanceAggregation(response);
     }
 

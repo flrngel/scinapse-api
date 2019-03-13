@@ -1,10 +1,12 @@
 package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.dto.AggregationDto;
+import io.scinapse.api.dto.v2.EsPaperSearchResponse;
+import io.scinapse.api.util.Query;
+import io.scinapse.api.util.QueryFilter;
 import io.scinapse.domain.data.academic.repository.FieldsOfStudyRepository;
 import io.scinapse.domain.data.academic.repository.JournalRepository;
-import io.scinapse.api.dto.AggregationDto;
-import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -23,9 +25,7 @@ import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilde
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @XRayEnabled
@@ -74,6 +74,7 @@ public class SearchAggregationService {
 
     // for calculate doc count for each buckets
     public SearchSourceBuilder enhanceAggregationQuery(AggregationDto dto, Query query) {
+        // journal aggs
         FiltersAggregator.KeyedFilter[] journalFilters = dto.journals
                 .stream()
                 .map(j -> {
@@ -86,6 +87,7 @@ public class SearchAggregationService {
                 .filter(JOURNAL_AGG_NAME, query.getFilter().toJournalAggFilter())
                 .subAggregation(journalAgg);
 
+        //fos aggs
         FiltersAggregator.KeyedFilter[] fosFilters = dto.fosList
                 .stream()
                 .map(f -> {
@@ -108,7 +110,9 @@ public class SearchAggregationService {
                 .aggregation(fosAggFiltered);
     }
 
-    public AggregationDto convertAggregation(Aggregations aggregations) {
+    public void convertAggregation(EsPaperSearchResponse response) {
+        Aggregations aggregations = response.getPaperResponse().getAggregations();
+
         Map<String, Aggregation> aggregationMap = aggregations.getAsMap();
         List<AggregationDto.Year> yearAll = getYearAll(aggregationMap);
         List<AggregationDto.Year> yearFiltered = getYearFiltered(aggregationMap);
@@ -117,8 +121,8 @@ public class SearchAggregationService {
         Sampler sample = (Sampler) aggregationMap.get(SAMPLE_AGG_NAME);
         Map<String, Aggregation> samplerMap = sample.getAggregations().getAsMap();
 
-        List<AggregationDto.Journal> journals = getJournals(samplerMap);
-        List<AggregationDto.Fos> fosList = getFosList(samplerMap);
+        List<AggregationDto.Journal> journals = getJournals(response, samplerMap);
+        List<AggregationDto.Fos> fosList = getFosList(response, samplerMap);
 
         AggregationDto dto = new AggregationDto();
         dto.yearAll = yearAll;
@@ -127,7 +131,7 @@ public class SearchAggregationService {
         dto.journals = journals;
         dto.fosList = fosList;
 
-        return dto;
+        response.getAdditional().setAggregation(dto);
     }
 
     public void enhanceAggregation(AggregationDto dto, Aggregations aggregations) {
@@ -192,13 +196,20 @@ public class SearchAggregationService {
                 .collect(Collectors.toList());
     }
 
-    private List<AggregationDto.Journal> getJournals(Map<String, Aggregation> aggregationMap) {
+    private List<AggregationDto.Journal> getJournals(EsPaperSearchResponse response, Map<String, Aggregation> aggregationMap) {
+        Set<Long> fromFilter = Optional.ofNullable(response.getQuery())
+                .map(Query::getFilter)
+                .map(QueryFilter::getJournals)
+                .map(HashSet::new)
+                .orElseGet(HashSet::new);
+
         Terms journal = (Terms) aggregationMap.get(JOURNAL_AGG_NAME);
-        List<Long> journalIds = journal.getBuckets()
+        Set<Long> journalIds = journal.getBuckets()
                 .stream()
                 .map(MultiBucketsAggregation.Bucket::getKeyAsString)
                 .map(Long::parseLong)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
+        journalIds.addAll(fromFilter);
 
         return journalRepository.findByIdIn(journalIds)
                 .stream()
@@ -212,13 +223,20 @@ public class SearchAggregationService {
                 .collect(Collectors.toList());
     }
 
-    private List<AggregationDto.Fos> getFosList(Map<String, Aggregation> aggregationMap) {
+    private List<AggregationDto.Fos> getFosList(EsPaperSearchResponse response, Map<String, Aggregation> aggregationMap) {
+        Set<Long> fromFilter = Optional.ofNullable(response.getQuery())
+                .map(Query::getFilter)
+                .map(QueryFilter::getFosList)
+                .map(HashSet::new)
+                .orElseGet(HashSet::new);
+
         Terms fos = (Terms) aggregationMap.get(FOS_AGG_NAME);
-        List<Long> fosIds = fos.getBuckets()
+        Set<Long> fosIds = fos.getBuckets()
                 .stream()
                 .map(MultiBucketsAggregation.Bucket::getKeyAsString)
                 .map(Long::parseLong)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
+        fosIds.addAll(fromFilter);
 
         return fieldsOfStudyRepository.findByIdIn(fosIds)
                 .stream()

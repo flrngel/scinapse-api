@@ -4,7 +4,7 @@ import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.dto.CompletionDto;
 import io.scinapse.api.dto.CompletionResponseDto;
 import io.scinapse.domain.enums.CompletionType;
-import io.scinapse.api.util.JsonUtils;
+import io.scinapse.domain.util.JsonUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

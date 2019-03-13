@@ -1,16 +1,18 @@
 package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.error.BadRequestException;
 import io.scinapse.domain.data.academic.Affiliation;
 import io.scinapse.domain.data.academic.repository.AffiliationRepository;
 import io.scinapse.domain.data.scinapse.model.Authority;
 import io.scinapse.domain.data.scinapse.model.Collection;
 import io.scinapse.domain.data.scinapse.model.Member;
+import io.scinapse.domain.data.scinapse.model.MemberSavedFilter;
 import io.scinapse.domain.data.scinapse.repository.AuthorityRepository;
 import io.scinapse.domain.data.scinapse.repository.CollectionRepository;
 import io.scinapse.domain.data.scinapse.repository.MemberRepository;
+import io.scinapse.domain.data.scinapse.repository.MemberSavedFilterRepository;
 import io.scinapse.domain.enums.AuthorityName;
-import io.scinapse.api.error.BadRequestException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @XRayEnabled
@@ -32,6 +36,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final AffiliationRepository affiliationRepository;
     private final CollectionRepository collectionRepository;
+    private final MemberSavedFilterRepository savedFilterRepository;
 
     @Transactional
     public Member saveMember(@NonNull Member member) {
@@ -63,6 +68,20 @@ public class MemberService {
         old.setAffiliationId(updated.getAffiliationId());
         old.setAffiliationName(updated.getAffiliationName());
         return old;
+    }
+
+    public List<MemberSavedFilter.SavedFilter> getSavedFilters(Member member) {
+        return Optional.ofNullable(savedFilterRepository.findByMemberId(member.getId()))
+                .map(MemberSavedFilter::getFilter)
+                .orElseGet(ArrayList::new);
+    }
+
+    @Transactional
+    public List<MemberSavedFilter.SavedFilter> updateSavedFilters(Member member, List<MemberSavedFilter.SavedFilter> savedFilters) {
+        MemberSavedFilter filter = new MemberSavedFilter();
+        filter.setMemberId(member.getId());
+        filter.setFilter(savedFilters);
+        return savedFilterRepository.save(filter).getFilter();
     }
 
     @Transactional

@@ -5,8 +5,9 @@ import io.scinapse.domain.data.academic.Journal;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Set;
 
 @XRayEnabled
 public interface JournalRepository extends JpaRepository<Journal, Long> {
-    List<Journal> findByIdIn(List<Long> journalIds);
+    List<Journal> findByIdIn(Set<Long> journalIds);
 }

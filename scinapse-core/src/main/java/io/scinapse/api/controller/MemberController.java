@@ -1,7 +1,8 @@
 package io.scinapse.api.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.scinapse.domain.data.scinapse.model.Member;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.scinapse.api.dto.MemberDto;
 import io.scinapse.api.dto.MemberDuplicationCheckDto;
 import io.scinapse.api.dto.response.Response;
@@ -10,6 +11,9 @@ import io.scinapse.api.facade.MemberFacade;
 import io.scinapse.api.security.jwt.JwtUser;
 import io.scinapse.api.service.MemberService;
 import io.scinapse.api.validator.Update;
+import io.scinapse.domain.data.scinapse.model.Member;
+import io.scinapse.domain.data.scinapse.model.MemberSavedFilter;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -20,6 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -73,6 +79,18 @@ public class MemberController {
         return Result.success();
     }
 
+    @RequestMapping(value = "/members/me/saved-filters", method = RequestMethod.GET)
+    public Response<List<MemberSavedFilter.SavedFilter>> getSavedFilters(JwtUser user) {
+        Member member = memberFacade.loadMember(user);
+        return Response.success(memberService.getSavedFilters(member));
+    }
+
+    @RequestMapping(value = "/members/me/saved-filters", method = RequestMethod.PUT)
+    public Response<List<MemberSavedFilter.SavedFilter>> updateSavedFilters(JwtUser user, @RequestBody @Valid SavedFilterWrapper wrapper) {
+        Member member = memberFacade.loadMember(user);
+        return Response.success(memberService.updateSavedFilters(member, wrapper.getSavedFilters()));
+    }
+
     @RequestMapping(value = "/members/checkDuplication", method = RequestMethod.GET)
     public MemberDuplicationCheckDto checkDuplication(@RequestParam String email) {
         MemberDuplicationCheckDto dto = new MemberDuplicationCheckDto();
@@ -119,7 +137,6 @@ public class MemberController {
     }
 
     private static class TokenWrapper {
-
         @JsonProperty
         @NotNull
         private String token;
@@ -128,7 +145,17 @@ public class MemberController {
         @Size(min = 8, message = "password must be greater than or equal to 8")
         @NotNull
         private String password;
+    }
 
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+    @Getter
+    private static class SavedFilterWrapper {
+        @Valid
+        private List<MemberSavedFilter.SavedFilter> savedFilters;
+
+        public void setSavedFilters(List<MemberSavedFilter.SavedFilter> savedFilters) {
+            this.savedFilters = savedFilters == null ? new ArrayList<>() : savedFilters;
+        }
     }
 
 }

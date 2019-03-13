@@ -1,15 +1,18 @@
-package io.scinapse.api.util;
+package io.scinapse.domain.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JsonUtils {
@@ -36,6 +39,11 @@ public class JsonUtils {
 
     public static <T> T fromJson(String json, Class<T> clazz) throws IOException {
         return MAPPER.readValue(json, clazz);
+    }
+
+    public static <T> List<T> fromJson(String json, Class<? extends Collection> collection, Class<T> clazz) throws IOException {
+        CollectionType collectionType = JsonUtils.getMapper().getTypeFactory().constructCollectionType(collection, clazz);
+        return MAPPER.readValue(json, collectionType);
     }
 
     public static <T> T convert(Object fromValue, Class<T> toValueType) {

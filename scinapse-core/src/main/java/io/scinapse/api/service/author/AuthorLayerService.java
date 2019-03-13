@@ -7,6 +7,13 @@ import io.scinapse.api.academic.dto.AcPaperAuthorDto;
 import io.scinapse.api.academic.dto.AcPaperDto;
 import io.scinapse.api.configuration.ScinapseConstant;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.dto.PaperTitleDto;
+import io.scinapse.api.dto.mag.*;
+import io.scinapse.api.dto.v2.AuthorItemDto;
+import io.scinapse.api.dto.v2.PaperItemDto;
+import io.scinapse.api.error.BadRequestException;
+import io.scinapse.api.service.mag.PaperService;
+import io.scinapse.api.util.IdUtils;
 import io.scinapse.domain.data.academic.Affiliation;
 import io.scinapse.domain.data.academic.FieldsOfStudy;
 import io.scinapse.domain.data.academic.Paper;
@@ -14,15 +21,8 @@ import io.scinapse.domain.data.academic.repository.*;
 import io.scinapse.domain.data.scinapse.model.Member;
 import io.scinapse.domain.data.scinapse.model.author.*;
 import io.scinapse.domain.data.scinapse.repository.MemberRepository;
-import io.scinapse.api.dto.PaperTitleDto;
-import io.scinapse.api.dto.mag.*;
-import io.scinapse.api.dto.v2.AuthorItemDto;
-import io.scinapse.api.dto.v2.PaperItemDto;
-import io.scinapse.domain.enums.PaperSort;
-import io.scinapse.api.error.BadRequestException;
-import io.scinapse.api.service.mag.PaperService;
-import io.scinapse.api.util.IdUtils;
 import io.scinapse.domain.data.scinapse.repository.author.*;
+import io.scinapse.domain.enums.PaperSort;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -639,7 +639,7 @@ public class AuthorLayerService {
                 .map(AuthorLayerFos.AuthorLayerFosId::getFosId)
                 .collect(Collectors.toSet());
 
-        Map<Long, FieldsOfStudy> fosMap = fieldsOfStudyRepository.findByIdIn(new ArrayList<>(fosIds))
+        Map<Long, FieldsOfStudy> fosMap = fieldsOfStudyRepository.findByIdIn(fosIds)
                 .stream()
                 .collect(Collectors.toMap(
                         FieldsOfStudy::getId,
@@ -713,12 +713,12 @@ public class AuthorLayerService {
         dto.setLastKnownAffiliation(getLayeredAffiliation(layer));
 
         if (!CollectionUtils.isEmpty(layer.getFosList())) {
-            List<Long> fosIds = layer.getFosList()
+            Set<Long> fosIds = layer.getFosList()
                     .stream()
                     .sorted(Comparator.comparing(AuthorLayerFos::getRank))
                     .map(AuthorLayerFos::getId)
                     .map(AuthorLayerFos.AuthorLayerFosId::getFosId)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
 
             Map<Long, FosDto> fosMap = fieldsOfStudyRepository.findByIdIn(fosIds)
                     .stream()
