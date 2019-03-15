@@ -112,7 +112,6 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
 
                     wrapper.setCount(((BigInteger) obj[9]).intValue());
                     return wrapper;
-
                 })
                 .collect(Collectors.toList());
     }

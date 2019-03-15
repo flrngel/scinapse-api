@@ -53,6 +53,9 @@ public class Paper {
     private ConferenceInstance conferenceInstance;
 
     @Column
+    private String docType;
+
+    @Column
     private String volume;
 
     @Column

@@ -34,6 +34,8 @@ public class EsPaperSearchResponse {
     private List<EsPaper> esPapers;
     private long paperTotalHits;
     private Page<PaperItemDto> paperItemPage;
+    private List<Long> topHits;
+    private List<Long> topRefPaperIds;
 
     private List<Long> authorIds;
     private long authorTotalHits;
@@ -93,7 +95,7 @@ public class EsPaperSearchResponse {
 
     @Getter
     @Setter
-    public class EsPaper {
+    public static class EsPaper {
         private long paperId;
         private String titleHighlighted;
         private String abstractHighlighted;

@@ -5,11 +5,12 @@ import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.SuggestionDto;
 import io.scinapse.api.dto.v2.EsPaperSearchResponse;
-import io.scinapse.domain.enums.PaperSort;
 import io.scinapse.api.util.Query;
+import io.scinapse.domain.enums.PaperSort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.util.CollectionUtil;
 import org.elasticsearch.action.search.MultiSearchRequest;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -239,6 +240,11 @@ public class SearchV2Service {
 
         if (query.getFilter().hasFilter(false)) {
             source.aggregation(aggregationService.generateYearFilteredAggregation(query));
+        }
+
+        // if no filters applied && first page
+        if (!query.getFilter().hasFilter(true) && pageRequest.getPage() == 0) {
+            source.aggregation(aggregationService.generateTopHitsAggregation());
         }
 
         return new SearchRequest(paperIndex).source(source);

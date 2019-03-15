@@ -68,6 +68,7 @@ public class PasswordResetService {
         mail.addCategory("reset_password");
         mail.setTemplateId(resetPasswordTemplate);
         mail.setFrom(getNoReplyFrom());
+        mail.setReplyTo(getReplyTo());
 
         Personalization personalization = new Personalization();
         personalization.addTo(new Email(token.getMember().getEmail()));
@@ -92,6 +93,12 @@ public class PasswordResetService {
         Email from = new Email();
         from.setEmail("no-reply@scinapse.io");
         from.setName("Scinapse");
+        return from;
+    }
+
+    private Email getReplyTo() {
+        Email from = new Email();
+        from.setEmail("team@pluto.network");
         return from;
     }
 

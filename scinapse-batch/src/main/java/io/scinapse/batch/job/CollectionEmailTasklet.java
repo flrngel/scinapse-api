@@ -129,6 +129,7 @@ public class CollectionEmailTasklet implements Tasklet {
         mail.addCategory("retention_collection");
         mail.setTemplateId(collectionEmailTemplate);
         mail.setFrom(getNoReplyFrom());
+        mail.setReplyTo(getReplyTo());
 
         ASM asm = new ASM();
         asm.setGroupId(9250);
@@ -156,6 +157,12 @@ public class CollectionEmailTasklet implements Tasklet {
         Email from = new Email();
         from.setEmail("no-reply@scinapse.io");
         from.setName("Scinapse");
+        return from;
+    }
+
+    private Email getReplyTo() {
+        Email from = new Email();
+        from.setEmail("team@pluto.network");
         return from;
     }
 

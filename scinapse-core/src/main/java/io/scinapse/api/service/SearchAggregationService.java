@@ -1,16 +1,19 @@
 package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
+import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.AggregationDto;
 import io.scinapse.api.dto.v2.EsPaperSearchResponse;
 import io.scinapse.api.util.Query;
 import io.scinapse.api.util.QueryFilter;
 import io.scinapse.domain.data.academic.repository.FieldsOfStudyRepository;
 import io.scinapse.domain.data.academic.repository.JournalRepository;
+import io.scinapse.domain.data.academic.repository.PaperRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
@@ -22,8 +25,11 @@ import org.elasticsearch.search.aggregations.bucket.sampler.Sampler;
 import org.elasticsearch.search.aggregations.bucket.sampler.SamplerAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,10 +42,12 @@ public class SearchAggregationService {
 
     private final JournalRepository journalRepository;
     private final FieldsOfStudyRepository fieldsOfStudyRepository;
+    private final PaperRepository paperRepository;
 
     private static final String SAMPLE_AGG_NAME = "sample";
     private static final String JOURNAL_AGG_NAME = "journal";
     private static final String FOS_AGG_NAME = "fos";
+    private static final String TOP_HITS_AGG_NAME = "top_hits";
 
     private static final String YEAR_ALL_AGG_NAME = "year_all";
     private static final String YEAR_FILTERED_AGG_NAME = "year_filtered";
@@ -70,6 +78,14 @@ public class SearchAggregationService {
                 .shardSize(10)
                 .subAggregation(journalAgg)
                 .subAggregation(fosAgg);
+    }
+
+    public SamplerAggregationBuilder generateTopHitsAggregation() {
+        TopHitsAggregationBuilder classicAgg = AggregationBuilders.topHits(TOP_HITS_AGG_NAME).fetchSource(false).size(30);
+
+        return AggregationBuilders.sampler(TOP_HITS_AGG_NAME)
+                .shardSize(30)
+                .subAggregation(classicAgg);
     }
 
     // for calculate doc count for each buckets
@@ -112,8 +128,8 @@ public class SearchAggregationService {
 
     public void convertAggregation(EsPaperSearchResponse response) {
         Aggregations aggregations = response.getPaperResponse().getAggregations();
-
         Map<String, Aggregation> aggregationMap = aggregations.getAsMap();
+
         List<AggregationDto.Year> yearAll = getYearAll(aggregationMap);
         List<AggregationDto.Year> yearFiltered = getYearFiltered(aggregationMap);
 
@@ -132,6 +148,36 @@ public class SearchAggregationService {
         dto.fosList = fosList;
 
         response.getAdditional().setAggregation(dto);
+        setTopRefPapers(response, aggregationMap);
+    }
+
+    private void setTopRefPapers(EsPaperSearchResponse response, Map<String, Aggregation> aggregationMap) {
+        Aggregation aggregation = aggregationMap.get(TOP_HITS_AGG_NAME);
+        if (aggregation == null) {
+            return;
+        }
+
+        Sampler sampler = (Sampler) aggregation;
+        Map<String, Aggregation> samplerMap = sampler.getAggregations().getAsMap();
+
+        // get top hits to extract classic papers
+        List<Long> topHits = getTopHits(samplerMap);
+        if (CollectionUtils.isEmpty(topHits)) {
+            return;
+        }
+        response.setTopHits(topHits);
+
+        // do not set classic papers if total result less than 50
+        if (response.getPaperTotalHits() < 50) {
+            return;
+        }
+
+        // extract top 20% hits, max 30
+        int baseCount = Math.min((int) (response.getPaperTotalHits() * 0.2), 30);
+        List<Long> baseIds = topHits.subList(0, Math.min(baseCount, topHits.size()));
+
+        List<Long> classicPaperIds = paperRepository.extractTopRefPapers(new HashSet<>(baseIds), PageRequest.defaultPageable(5));
+        response.setTopRefPaperIds(classicPaperIds);
     }
 
     public void enhanceAggregation(AggregationDto dto, Aggregations aggregations) {
@@ -247,6 +293,14 @@ public class SearchAggregationService {
                     fosDto.level = f.getLevel();
                     return fosDto;
                 })
+                .collect(Collectors.toList());
+    }
+
+    private List<Long> getTopHits(Map<String, Aggregation> aggregationMap) {
+        TopHits topHits = (TopHits) aggregationMap.get(TOP_HITS_AGG_NAME);
+        return Arrays.stream(topHits.getHits().getHits())
+                .map(SearchHit::getId)
+                .map(Long::parseLong)
                 .collect(Collectors.toList());
     }
 

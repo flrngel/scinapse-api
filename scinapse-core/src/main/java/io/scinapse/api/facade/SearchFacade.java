@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ public class SearchFacade {
 
         convertPaperItemPage(response, pageRequest);
         convertAuthorItems(response);
+        convertClassicPapers(response);
 
         return response;
     }
@@ -142,6 +144,24 @@ public class SearchFacade {
                 .collect(Collectors.toList());
         layerService.decorateAuthorItems(dtos);
         return dtos;
+    }
+
+    private void convertClassicPapers(EsPaperSearchResponse response) {
+        if (CollectionUtils.isEmpty(response.getTopRefPaperIds())) {
+            return;
+        }
+
+        List<TopRefPaper> dtos = paperService.findPapers(response.getTopRefPaperIds(), AcPaperDto.DetailSelector.none())
+                .stream()
+                .map(dto -> {
+                    TopRefPaper topRefPaper = new TopRefPaper();
+                    topRefPaper.setId(dto.getId());
+                    topRefPaper.setTitle(dto.getTitle());
+                    return topRefPaper;
+                })
+                .collect(Collectors.toList());
+
+        response.getAdditional().getTopRefPapers().addAll(dtos);
     }
 
 }

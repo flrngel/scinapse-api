@@ -20,5 +20,6 @@ public class PaperSearchAdditional {
     private SuggestionDto suggestion;
     private AggregationDto aggregation;
     private MatchedAuthor matchedAuthor;
+    private List<TopRefPaper> topRefPapers = new ArrayList<>();
     private List<MatchedEntity> matchedEntities = new ArrayList<>();
 }

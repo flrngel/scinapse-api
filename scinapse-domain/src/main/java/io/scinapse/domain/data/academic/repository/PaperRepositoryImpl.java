@@ -3,12 +3,16 @@ package io.scinapse.domain.data.academic.repository;
 import io.scinapse.domain.data.academic.Paper;
 import io.scinapse.domain.data.academic.QPaperFieldsOfStudy;
 import io.scinapse.domain.data.academic.QPaperTopAuthor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.QueryDslRepositorySupport;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PaperRepositoryImpl extends QueryDslRepositorySupport implements PaperRepositoryCustom {
 
@@ -47,6 +51,32 @@ public class PaperRepositoryImpl extends QueryDslRepositorySupport implements Pa
                 .limit(5)
                 .select(topAuthor.id.authorId)
                 .fetch();
+    }
+
+    @Override
+    public List<Long> extractTopRefPapers(Set<Long> paperIds, Pageable pageable) {
+        String sql = "select pr.paper_reference_id\n" +
+                "from paper_reference pr\n" +
+                "  join paper p on pr.paper_reference_id = p.id\n" +
+                "where pr.paper_id in :paperIds and pr.paper_reference_id not in :paperIds\n" +
+                "      and (p.doc_type is null\n" +
+                "           or p.doc_type not in ('Patent', 'Book', 'BookChapter'))\n" +
+                "group by pr.paper_reference_id\n" +
+                "having count(*) > 2\n" +
+                "order by count(*) desc, max(p.year) desc";
+
+        Query query = getEntityManager()
+                .createNativeQuery(sql)
+                .setParameter("paperIds", paperIds);
+
+        List<Object> list = query
+                .setFirstResult(pageable.getOffset())
+                .setMaxResults(pageable.getPageSize())
+                .getResultList();
+
+        return list.stream()
+                .map(obj -> ((BigInteger) obj).longValue())
+                .collect(Collectors.toList());
     }
 
 }
