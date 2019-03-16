@@ -37,8 +37,16 @@ public class JsonUtils {
         return MAPPER.writeValueAsString(object);
     }
 
+    public static byte[] toBytes(Object object) throws JsonProcessingException {
+        return MAPPER.writeValueAsBytes(object);
+    }
+
     public static <T> T fromJson(String json, Class<T> clazz) throws IOException {
         return MAPPER.readValue(json, clazz);
+    }
+
+    public static <T> T fromBytes(byte[] bytes, Class<T> clazz) throws IOException {
+        return MAPPER.readValue(bytes, clazz);
     }
 
     public static <T> List<T> fromJson(String json, Class<? extends Collection> collection, Class<T> clazz) throws IOException {

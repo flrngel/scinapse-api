@@ -10,7 +10,6 @@ import io.scinapse.domain.enums.PaperSort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.util.CollectionUtil;
 import org.elasticsearch.action.search.MultiSearchRequest;
 import org.elasticsearch.action.search.MultiSearchResponse;
 import org.elasticsearch.action.search.SearchRequest;
@@ -52,6 +51,7 @@ public class SearchV2Service {
 
     private final RestHighLevelClient restHighLevelClient;
     private final SearchAggregationService aggregationService;
+    private final ExtractTitleService extractTitleService;
 
     private static final String HIGHLIGHT_PRE_TAG = "<b>";
     private static final String HIGHLIGHT_POST_TAG = "</b>";
@@ -95,11 +95,37 @@ public class SearchV2Service {
     }
 
     private boolean shouldSearchAgain(boolean searchAgain, EsPaperSearchResponse response) {
+        if (searchAgain) {
+            return false;
+        }
+
+        if (!CollectionUtils.isEmpty(response.getEsPapers())) {
+            return false;
+        }
+
         SuggestionDto suggestion = response.getAdditional().getSuggestion();
-        return !searchAgain
-                && CollectionUtils.isEmpty(response.getEsPapers())
-                && suggestion != null
-                && StringUtils.isNotBlank(suggestion.getSuggestion());
+        boolean searchAgainWithSuggestion = suggestion != null && StringUtils.isNotBlank(suggestion.getSuggestion());
+        if (searchAgainWithSuggestion) {
+            return true;
+        }
+
+        // check minimum length for citation text
+        String originQuery = response.getQuery().getText();
+        if (originQuery.length() < 20) {
+            return false;
+        }
+
+        // extracting title from citation text
+        String title = extractTitleService.extractCitationTitle(originQuery);
+        if (StringUtils.isBlank(title)) {
+            // no title recognized
+            return false;
+        }
+
+        // found title from citation text
+        SuggestionDto titleSuggestionDto = new SuggestionDto(originQuery, title, HIGHLIGHT_PRE_TAG + title + HIGHLIGHT_POST_TAG);
+        response.getAdditional().setSuggestion(titleSuggestionDto);
+        return true;
     }
 
     public EsPaperSearchResponse searchByDoi(Query query, PageRequest pageRequest) {

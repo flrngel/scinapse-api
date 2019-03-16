@@ -8,6 +8,7 @@ import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.facade.SearchFacade;
 import io.scinapse.api.util.Query;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,7 +29,7 @@ public class SearchController {
                                                PageRequest pageRequest) {
         Query query = Query.parse(queryStr, filterStr);
         if (!query.isValid()) {
-            throw new BadRequestException("Invalid query: too short or long query text. Query text length: " + query.getText());
+            throw new BadRequestException("Invalid query: too short or long query text. Query text length: " + StringUtils.length(query.getText()));
         }
 
         EsPaperSearchResponse response = searchFacade.search(query, pageRequest);
@@ -41,7 +42,7 @@ public class SearchController {
                                                     PageRequest pageRequest) {
         Query query = Query.parse(queryStr);
         if (!query.isValid()) {
-            throw new BadRequestException("Invalid query: too short or long query text. Query text length: " + query.getText());
+            throw new BadRequestException("Invalid query: too short or long query text. Query text length: " + StringUtils.length(query.getText()));
         }
 
         EsPaperSearchResponse response = searchFacade.searchToAdd(query, authorId, pageRequest);
@@ -61,7 +62,7 @@ public class SearchController {
     public Response<List<AuthorItemDto>> searchAuthors(@RequestParam("q") @Valid String queryStr, PageRequest pageRequest) {
         Query query = Query.parse(queryStr);
         if (!query.isValid()) {
-            throw new BadRequestException("Invalid query: too short or long query text. Query text length: " + query.getText());
+            throw new BadRequestException("Invalid query: too short or long query text. Query text length: " + StringUtils.length(query.getText()));
         }
 
         return Response.success(searchFacade.searchAuthors(query, pageRequest));
