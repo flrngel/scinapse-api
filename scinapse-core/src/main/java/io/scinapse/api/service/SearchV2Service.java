@@ -122,6 +122,11 @@ public class SearchV2Service {
             return false;
         }
 
+        if (StringUtils.equalsIgnoreCase(StringUtils.deleteWhitespace(originQuery), StringUtils.deleteWhitespace(title))) {
+            // extracted title contains same contents
+            return false;
+        }
+
         // found title from citation text
         SuggestionDto titleSuggestionDto = new SuggestionDto(originQuery, title, HIGHLIGHT_PRE_TAG + title + HIGHLIGHT_POST_TAG);
         response.getAdditional().setSuggestion(titleSuggestionDto);
