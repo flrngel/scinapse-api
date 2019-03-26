@@ -2,7 +2,7 @@ package io.scinapse.api.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.academic.dto.AcConferenceInstanceDto;
-import io.scinapse.domain.data.academic.Paper;
+import io.scinapse.domain.data.academic.model.Paper;
 import io.scinapse.api.dto.mag.*;
 import io.scinapse.api.service.author.AuthorLayerService;
 import lombok.RequiredArgsConstructor;

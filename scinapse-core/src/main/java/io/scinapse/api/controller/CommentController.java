@@ -1,6 +1,6 @@
 package io.scinapse.api.controller;
 
-import io.scinapse.domain.data.academic.Paper;
+import io.scinapse.domain.data.academic.model.Paper;
 import io.scinapse.domain.data.scinapse.model.Comment;
 import io.scinapse.domain.data.scinapse.model.Member;
 import io.scinapse.api.dto.CommentDto;

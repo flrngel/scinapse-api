@@ -1,4 +1,4 @@
-package io.scinapse.domain.data.academic;
+package io.scinapse.domain.data.academic.model;
 
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Nationalized;

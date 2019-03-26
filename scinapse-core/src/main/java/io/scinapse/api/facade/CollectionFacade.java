@@ -2,7 +2,7 @@ package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
-import io.scinapse.domain.data.academic.Paper;
+import io.scinapse.domain.data.academic.model.Paper;
 import io.scinapse.domain.data.scinapse.model.Collection;
 import io.scinapse.domain.data.scinapse.model.CollectionPaper;
 import io.scinapse.domain.data.scinapse.model.Member;

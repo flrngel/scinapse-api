@@ -1,4 +1,4 @@
-package io.scinapse.domain.data.academic;
+package io.scinapse.domain.data.academic.model;
 
 import lombok.Getter;
 import org.hibernate.annotations.BatchSize;
@@ -7,41 +7,31 @@ import org.hibernate.annotations.Nationalized;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Getter
-@BatchSize(size = 10)
+@BatchSize(size = 50)
 @Entity
-public class Journal {
+public class Affiliation {
 
     @Id
     private long id;
 
     @Nationalized
     @Column
-    private String title;
+    private String name;
 
     @Column
-    private String issn;
+    private String officialPage;
 
     @Column
-    private String webPage;
+    private String wikiPage;
 
     @Column
     private Long paperCount;
 
     @Column
     private Long citationCount;
-
-    @Column
-    private Double impactFactor;
-
-    @BatchSize(size = 50)
-    @OneToMany(mappedBy = "journal")
-    private List<JournalFos> fosList = new ArrayList<>();
 
     public long getPaperCount() {
         return Optional.ofNullable(this.paperCount).orElse(0L);

@@ -1,4 +1,4 @@
-package io.scinapse.domain.data.academic;
+package io.scinapse.domain.data.academic.model;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -9,30 +9,33 @@ import java.io.Serializable;
 
 @Getter
 @Entity
-public class AuthorTopPaper {
+public class AuthorTopFos {
 
     @EmbeddedId
-    private AuthorTopPaperId id;
+    private AuthorTopFosId id;
 
     @MapsId("authorId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private Author author;
 
-    @MapsId("paperId")
+    @MapsId("fosId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "paper_id")
-    private Paper paper;
+    @JoinColumn(name = "fos_id")
+    private FieldsOfStudy fos;
 
-    @EqualsAndHashCode
+    @Column
+    private Integer rank;
+
+    @Embeddable
     @Getter
     @Setter
-    @Embeddable
-    public static class AuthorTopPaperId implements Serializable {
+    @EqualsAndHashCode
+    public static class AuthorTopFosId implements Serializable {
         @Column
-        private long authorId;
+        public long authorId;
         @Column
-        private long paperId;
+        public long fosId;
     }
 
 }

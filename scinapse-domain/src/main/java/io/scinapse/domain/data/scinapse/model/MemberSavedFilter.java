@@ -7,10 +7,12 @@ import io.scinapse.domain.util.JsonUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.IOException;
@@ -20,12 +22,14 @@ import java.util.List;
 @Slf4j
 @Getter
 @Setter
+@Table(schema = "scinapse")
 @Entity
 public class MemberSavedFilter extends BaseEntity {
 
     @Id
     private long memberId;
 
+    @Nationalized
     @Column(nullable = false)
     private String filterJson;
 

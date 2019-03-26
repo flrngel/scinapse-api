@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 
 @Getter
 @Setter
+@Table(schema = "scinapse")
 @Entity
 public class PasswordResetToken {
 

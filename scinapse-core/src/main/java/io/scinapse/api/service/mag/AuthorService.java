@@ -1,12 +1,11 @@
 package io.scinapse.api.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
-import io.scinapse.domain.configuration.AcademicJpaConfig;
 import io.scinapse.api.controller.PageRequest;
-import io.scinapse.domain.data.academic.Author;
-import io.scinapse.domain.data.academic.AuthorCoauthor;
-import io.scinapse.domain.data.academic.AuthorTopPaper;
-import io.scinapse.domain.data.academic.Paper;
+import io.scinapse.domain.data.academic.model.Author;
+import io.scinapse.domain.data.academic.model.AuthorCoauthor;
+import io.scinapse.domain.data.academic.model.AuthorTopPaper;
+import io.scinapse.domain.data.academic.model.Paper;
 import io.scinapse.domain.data.academic.repository.AuthorCoauthorRepository;
 import io.scinapse.domain.data.academic.repository.AuthorRepository;
 import io.scinapse.domain.data.academic.repository.AuthorTopPaperRepository;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -27,7 +25,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @XRayEnabled
-@Transactional(readOnly = true, transactionManager = AcademicJpaConfig.ACADEMIC_TX_MANAGER)
 @Service
 @RequiredArgsConstructor
 public class AuthorService {

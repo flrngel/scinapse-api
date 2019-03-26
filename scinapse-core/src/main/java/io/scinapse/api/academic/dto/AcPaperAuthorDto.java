@@ -2,9 +2,9 @@ package io.scinapse.api.academic.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import io.scinapse.domain.data.academic.AuthorHIndex;
-import io.scinapse.domain.data.academic.PaperAuthor;
-import io.scinapse.domain.data.academic.PaperTopAuthor;
+import io.scinapse.domain.data.academic.model.AuthorHIndex;
+import io.scinapse.domain.data.academic.model.PaperAuthor;
+import io.scinapse.domain.data.academic.model.PaperTopAuthor;
 import io.scinapse.api.dto.mag.AffiliationDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

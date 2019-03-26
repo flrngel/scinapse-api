@@ -3,6 +3,7 @@ package io.scinapse.domain.data.scinapse.model.author;
 import io.scinapse.domain.data.scinapse.model.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -10,18 +11,21 @@ import java.util.List;
 
 @Getter
 @Setter
+@Table(schema = "scinapse")
 @Entity
 public class AuthorLayer extends BaseEntity {
 
     @Id
     private long authorId;
 
+    @Nationalized
     @Column(nullable = false, length = 200)
     private String name;
 
     @Column
     private Long lastKnownAffiliationId;
 
+    @Nationalized
     @Column
     private String lastKnownAffiliationName;
 
@@ -31,6 +35,7 @@ public class AuthorLayer extends BaseEntity {
     @Column(nullable = false)
     private boolean emailHidden = false;
 
+    @Nationalized
     @Column
     private String bio;
 

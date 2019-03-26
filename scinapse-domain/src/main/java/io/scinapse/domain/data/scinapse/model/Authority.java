@@ -9,6 +9,7 @@ import javax.persistence.*;
 
 @Getter
 @Setter
+@Table(schema = "scinapse")
 @Entity
 public class Authority extends BaseEntity {
 

@@ -12,11 +12,12 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@Table(schema = "scinapse")
 @Entity
 public class OauthOrcid extends BaseEntity {
 
+    @SequenceGenerator(name = "oauthSequence", sequenceName = "scinapse.oauth_sequence", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "oauthSequence")
-    @SequenceGenerator(name = "oauthSequence", sequenceName = "oauth_sequence", allocationSize = 1)
     @Id
     private long id;
 
@@ -36,7 +37,7 @@ public class OauthOrcid extends BaseEntity {
     private Map<String, Object> userData;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "MEMBER_ID", unique = true)
+    @JoinColumn(name = "member_id", unique = true)
     private Member member;
 
 }

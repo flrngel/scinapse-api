@@ -2,7 +2,7 @@ package io.scinapse.api.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.error.BadRequestException;
-import io.scinapse.domain.data.academic.Affiliation;
+import io.scinapse.domain.data.academic.model.Affiliation;
 import io.scinapse.domain.data.academic.repository.AffiliationRepository;
 import io.scinapse.domain.data.scinapse.model.Authority;
 import io.scinapse.domain.data.scinapse.model.Collection;

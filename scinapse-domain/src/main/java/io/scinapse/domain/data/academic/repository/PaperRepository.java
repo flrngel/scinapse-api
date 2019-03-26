@@ -1,7 +1,7 @@
 package io.scinapse.domain.data.academic.repository;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
-import io.scinapse.domain.data.academic.Paper;
+import io.scinapse.domain.data.academic.model.Paper;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

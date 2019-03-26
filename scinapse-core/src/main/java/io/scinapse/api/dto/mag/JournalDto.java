@@ -1,6 +1,6 @@
 package io.scinapse.api.dto.mag;
 
-import io.scinapse.domain.data.academic.Journal;
+import io.scinapse.domain.data.academic.model.Journal;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

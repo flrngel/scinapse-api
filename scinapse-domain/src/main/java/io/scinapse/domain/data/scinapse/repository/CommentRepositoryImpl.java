@@ -17,12 +17,6 @@ public class CommentRepositoryImpl extends QueryDslRepositorySupport implements 
         super(Comment.class);
     }
 
-    @PersistenceContext(unitName = "scinapse")
-    @Override
-    public void setEntityManager(EntityManager entityManager) {
-        super.setEntityManager(entityManager);
-    }
-
     @Override
     public Map<Long, CommentWrapper> getDefaultComments(List<Long> paperIds) {
         Map<Long, CommentWrapper> commentMap = new HashMap<>();
@@ -37,7 +31,7 @@ public class CommentRepositoryImpl extends QueryDslRepositorySupport implements 
                 "         c.id, c.comment, c.member_id, c.paper_id, c.created_at, c.updated_at,\n" +
                 "         row_number() over (partition by c.paper_id order by c.created_at desc) as row,\n" +
                 "         count(c.paper_id) over (partition by c.paper_id) as total_count\n" +
-                "       from comment c\n" +
+                "       from scinapse.comment c\n" +
                 "       where c.paper_id in (:paperIds)\n" +
                 "     ) t\n" +
                 "where t.row < 11";
@@ -49,7 +43,7 @@ public class CommentRepositoryImpl extends QueryDslRepositorySupport implements 
 
         results.forEach(r -> {
             Comment comment = (Comment) r[0];
-            long totalCount = ((BigInteger) r[1]).longValue();
+            int totalCount = (int) r[1];
 
             CommentWrapper wrapper = commentMap.get(comment.getPaperId());
             if (wrapper != null) {

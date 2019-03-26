@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -13,11 +14,12 @@ import java.util.List;
 @BatchSize(size = 50)
 @Getter
 @Setter
+@Table(schema = "scinapse")
 @Entity
 public class Member extends BaseEntity {
 
+    @SequenceGenerator(name = "memberSequence", sequenceName = "scinapse.member_sequence", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "memberSequence")
-    @SequenceGenerator(name = "memberSequence", sequenceName = "member_sequence", allocationSize = 1)
     @Id
     private long id;
 
@@ -31,14 +33,17 @@ public class Member extends BaseEntity {
     @JsonIgnore
     @BatchSize(size = 10)
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "REL_MEMBER_AUTHORITY",
-            joinColumns = @JoinColumn(name = "MEMBER_ID"),
-            inverseJoinColumns = @JoinColumn(name = "AUTHORITY_ID"))
+    @JoinTable(schema = "scinapse",
+            name = "rel_member_authority",
+            joinColumns = @JoinColumn(name = "member_id"),
+            inverseJoinColumns = @JoinColumn(name = "authority_id"))
     private List<Authority> authorities = new ArrayList<>();
 
+    @Nationalized
     @Column(nullable = false)
     private String firstName;
 
+    @Nationalized
     @Column(nullable = false)
     private String lastName;
 
@@ -48,6 +53,7 @@ public class Member extends BaseEntity {
     @Column
     private Long affiliationId;
 
+    @Nationalized
     @Column(nullable = false)
     private String affiliationName;
 

@@ -8,13 +8,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.QueryDslRepositorySupport;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.math.BigInteger;
 import java.util.List;
-
-import static io.scinapse.domain.enums.PaperSort.*;
 
 public class AuthorLayerPaperRepositoryImpl extends QueryDslRepositorySupport implements AuthorLayerPaperRepositoryCustom {
 
@@ -22,18 +18,12 @@ public class AuthorLayerPaperRepositoryImpl extends QueryDslRepositorySupport im
         super(AuthorLayerPaper.class);
     }
 
-    @PersistenceContext(unitName = "scinapse")
-    @Override
-    public void setEntityManager(EntityManager entityManager) {
-        super.setEntityManager(entityManager);
-    }
-
     @Override
     public Page<AuthorLayerPaper> findPapers(long authorId, boolean showAll, String[] keywords, PaperSort sort, Pageable pageable) {
         String sql = "select lp.*\n" +
-                "from author_layer_paper lp\n" +
+                "from scinapse.author_layer_paper lp\n" +
                 "where lp.author_id = :authorId";
-        String count = "select count(1) from author_layer_paper lp where lp.author_id = :authorId";
+        String count = "select count(1) from scinapse.author_layer_paper lp where lp.author_id = :authorId";
 
         if (!showAll) {
             sql += "\nand lp.status <> 'PENDING_REMOVE'";
@@ -41,8 +31,8 @@ public class AuthorLayerPaperRepositoryImpl extends QueryDslRepositorySupport im
         }
 
         if (keywords != null && keywords.length > 0) {
-            sql += "\nand to_tsvector(lp.title) @@ to_tsquery(:keywords)";
-            count += "\nand to_tsvector(lp.title) @@ to_tsquery(:keywords)";
+            sql += "\nand contains(lp.title, :keywords)";
+            count += "\nand contains(lp.title, :keywords)";
         }
 
         if (sort == null) {
@@ -50,16 +40,18 @@ public class AuthorLayerPaperRepositoryImpl extends QueryDslRepositorySupport im
         }
         switch (sort) {
             case RECENTLY_ADDED:
-                sql += "\norder by lp.updated_at desc nulls last";
+                // desc defaults to nulls last
+                sql += "\norder by lp.updated_at desc";
                 break;
             case MOST_CITATIONS:
-                sql += "\norder by lp.citation_count desc nulls last";
+                sql += "\norder by lp.citation_count desc";
                 break;
             case OLDEST_FIRST:
-                sql += "\norder by lp.year asc nulls last";
+                // SQL Server asc nulls last workaround
+                sql += "\norder by case when lp.year is null then 2 else 1 end, lp.year asc";
                 break;
             default:
-                sql += "\norder by lp.year desc nulls last";
+                sql += "\norder by lp.year desc";
                 break;
         }
 
@@ -72,12 +64,12 @@ public class AuthorLayerPaperRepositoryImpl extends QueryDslRepositorySupport im
                 .setParameter("authorId", authorId);
 
         if (keywords != null && keywords.length > 0) {
-            String keywordStr = StringUtils.join(keywords, " & ");
+            String keywordStr = StringUtils.join(keywords, " AND ");
             query.setParameter("keywords", keywordStr);
             countQuery.setParameter("keywords", keywordStr);
         }
 
-        long totalCount = ((BigInteger) countQuery.getSingleResult()).longValue();
+        int totalCount = (int) countQuery.getSingleResult();
 
         List results = query
                 .setFirstResult(pageable.getOffset())

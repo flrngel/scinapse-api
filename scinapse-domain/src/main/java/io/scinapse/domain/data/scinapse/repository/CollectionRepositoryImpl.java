@@ -25,12 +25,6 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
         super(Collection.class);
     }
 
-    @PersistenceContext(unitName = "scinapse")
-    @Override
-    public void setEntityManager(EntityManager entityManager) {
-        super.setEntityManager(entityManager);
-    }
-
     @Override
     public Map<Long, List<CollectionWrapper>> findBySavedPapers(long memberId, Set<Long> paperIds) {
         String sql = "select\n" +
@@ -38,8 +32,8 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
                 "  c.id,\n" +
                 "  c.title,\n" +
                 "  c.updated_at\n" +
-                "from collection c\n" +
-                "  join rel_collection_paper cp on c.id = cp.collection_id\n" +
+                "from scinapse.collection c\n" +
+                "  join scinapse.rel_collection_paper cp on c.id = cp.collection_id\n" +
                 "where member_id = :memberId and cp.paper_id in :paperIds";
 
         Query query = getEntityManager()
@@ -83,12 +77,12 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
                 "         count(1)\n" +
                 "         over (\n" +
                 "           partition by member_id )      as count\n" +
-                "       from rel_collection_paper rp\n" +
-                "         join collection c on rp.collection_id = c.id\n" +
-                "       where cast(rp.created_at as date) = date 'yesterday'\n" +
+                "       from scinapse.rel_collection_paper rp\n" +
+                "         join scinapse.collection c on rp.collection_id = c.id\n" +
+                "       where cast(rp.created_at as date) = cast(getdate() -1 as date)\n" +
                 "     ) t\n" +
-                "  join member m on t.member_id = m.id\n" +
-                "where t.row < 4 and (m.email_verified = true or m.password is null)";
+                "  join scinapse.member m on t.member_id = m.id\n" +
+                "where t.row < 4 and (m.email_verified = 1 or m.password is null)";
 
         Query query = getEntityManager()
                 .createNativeQuery(sql);
@@ -110,7 +104,7 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
                     wrapper.setPaperTitle((String) obj[7]);
                     wrapper.setPaperYear((Integer) obj[8]);
 
-                    wrapper.setCount(((BigInteger) obj[9]).intValue());
+                    wrapper.setCount((int) obj[9]);
                     return wrapper;
                 })
                 .collect(Collectors.toList());

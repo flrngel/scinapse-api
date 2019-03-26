@@ -1,6 +1,6 @@
 package io.scinapse.api.dto.mag;
 
-import io.scinapse.domain.data.academic.Affiliation;
+import io.scinapse.domain.data.academic.model.Affiliation;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

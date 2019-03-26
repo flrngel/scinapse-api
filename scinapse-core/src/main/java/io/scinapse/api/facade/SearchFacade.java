@@ -42,7 +42,7 @@ public class SearchFacade {
 
         convertPaperItemPage(response, pageRequest);
         convertAuthorItems(response);
-        convertClassicPapers(response);
+//        convertClassicPapers(response);
 
         return response;
     }

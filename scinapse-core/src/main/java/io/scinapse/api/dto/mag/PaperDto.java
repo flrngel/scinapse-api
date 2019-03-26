@@ -2,7 +2,7 @@ package io.scinapse.api.dto.mag;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.academic.dto.AcConferenceInstanceDto;
-import io.scinapse.domain.data.academic.Paper;
+import io.scinapse.domain.data.academic.model.Paper;
 import io.scinapse.api.dto.CommentDto;
 import io.scinapse.api.dto.PaperImageDto;
 import lombok.AccessLevel;

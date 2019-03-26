@@ -148,7 +148,7 @@ public class SearchAggregationService {
         dto.fosList = fosList;
 
         response.getAdditional().setAggregation(dto);
-        setTopRefPapers(response, aggregationMap);
+//        setTopRefPapers(response, aggregationMap);
     }
 
     private void setTopRefPapers(EsPaperSearchResponse response, Map<String, Aggregation> aggregationMap) {

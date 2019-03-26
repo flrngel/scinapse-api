@@ -1,13 +1,11 @@
 package io.scinapse.domain.data.academic.repository;
 
-import io.scinapse.domain.data.academic.Paper;
-import io.scinapse.domain.data.academic.QPaperFieldsOfStudy;
-import io.scinapse.domain.data.academic.QPaperTopAuthor;
+import io.scinapse.domain.data.academic.model.Paper;
+import io.scinapse.domain.data.academic.model.QPaperFieldsOfStudy;
+import io.scinapse.domain.data.academic.model.QPaperTopAuthor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.QueryDslRepositorySupport;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.math.BigInteger;
 import java.util.List;
@@ -18,12 +16,6 @@ public class PaperRepositoryImpl extends QueryDslRepositorySupport implements Pa
 
     public PaperRepositoryImpl() {
         super(Paper.class);
-    }
-
-    @PersistenceContext(unitName = "academic")
-    @Override
-    public void setEntityManager(EntityManager entityManager) {
-        super.setEntityManager(entityManager);
     }
 
     @Override

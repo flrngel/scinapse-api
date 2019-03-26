@@ -1,21 +1,19 @@
 package io.scinapse.api.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
-import io.scinapse.domain.configuration.AcademicJpaConfig;
 import io.scinapse.api.controller.PageRequest;
 import io.scinapse.api.dto.CitationTextDto;
 import io.scinapse.api.dto.PaperTitleDto;
+import io.scinapse.domain.data.academic.model.*;
 import io.scinapse.domain.enums.CitationFormat;
 import io.scinapse.api.error.ExternalApiCallException;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.util.TextUtils;
-import io.scinapse.domain.data.academic.*;
 import io.scinapse.domain.data.academic.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
@@ -30,7 +28,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @XRayEnabled
-@Transactional(readOnly = true, transactionManager = AcademicJpaConfig.ACADEMIC_TX_MANAGER)
 @Service
 @RequiredArgsConstructor
 public class PaperService {

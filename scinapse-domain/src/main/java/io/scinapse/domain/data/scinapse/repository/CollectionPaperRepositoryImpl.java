@@ -8,13 +8,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.QueryDslRepositorySupport;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import java.math.BigInteger;
 import java.util.List;
-
-import static io.scinapse.domain.enums.PaperSort.*;
 
 public class CollectionPaperRepositoryImpl extends QueryDslRepositorySupport implements CollectionPaperRepositoryCustom {
 
@@ -22,22 +17,16 @@ public class CollectionPaperRepositoryImpl extends QueryDslRepositorySupport imp
         super(CollectionPaper.class);
     }
 
-    @PersistenceContext(unitName = "scinapse")
-    @Override
-    public void setEntityManager(EntityManager entityManager) {
-        super.setEntityManager(entityManager);
-    }
-
     @Override
     public Page<CollectionPaper> findPapers(long collectionId, String[] keywords, PaperSort sort, Pageable pageable) {
         String sql = "select cp.*\n" +
-                "from rel_collection_paper cp\n" +
+                "from scinapse.rel_collection_paper cp\n" +
                 "where cp.collection_id = :collectionId";
-        String count = "select count(1) from rel_collection_paper cp where cp.collection_id = :collectionId";
+        String count = "select count(1) from scinapse.rel_collection_paper cp where cp.collection_id = :collectionId";
 
         if (keywords != null && keywords.length > 0) {
-            sql += "\nand to_tsvector(cp.title) @@ to_tsquery(:keywords)";
-            count += "\nand to_tsvector(cp.title) @@ to_tsquery(:keywords)";
+            sql += "\nand contains(cp.title, :keywords)";
+            count += "\nand contains(cp.title, :keywords)";
         }
 
         if (sort == null) {
@@ -45,16 +34,18 @@ public class CollectionPaperRepositoryImpl extends QueryDslRepositorySupport imp
         }
         switch (sort) {
             case MOST_CITATIONS:
-                sql += "\norder by cp.citation_count desc nulls last";
+                // desc defaults to nulls last
+                sql += "\norder by cp.citation_count desc";
                 break;
             case NEWEST_FIRST:
-                sql += "\norder by cp.year desc nulls last";
+                sql += "\norder by cp.year desc";
                 break;
             case OLDEST_FIRST:
-                sql += "\norder by cp.year asc nulls last";
+                // SQL Server asc nulls last workaround
+                sql += "\norder by case when cp.year is null then 2 else 1 end, cp.year asc";
                 break;
             default:
-                sql += "\norder by cp.updated_at desc nulls last";
+                sql += "\norder by cp.updated_at desc";
                 break;
         }
 
@@ -67,12 +58,12 @@ public class CollectionPaperRepositoryImpl extends QueryDslRepositorySupport imp
                 .setParameter("collectionId", collectionId);
 
         if (keywords != null && keywords.length > 0) {
-            String keywordStr = StringUtils.join(keywords, " & ");
+            String keywordStr = StringUtils.join(keywords, " AND ");
             query.setParameter("keywords", keywordStr);
             countQuery.setParameter("keywords", keywordStr);
         }
 
-        long totalCount = ((BigInteger) countQuery.getSingleResult()).longValue();
+        int totalCount = ((int) countQuery.getSingleResult());
 
         List results = query
                 .setFirstResult(pageable.getOffset())

@@ -2,7 +2,7 @@ package io.scinapse.api.academic.dto;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import io.scinapse.domain.data.academic.Journal;
+import io.scinapse.domain.data.academic.model.Journal;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package io.scinapse.domain.data.academic;
+package io.scinapse.domain.data.academic.model;
 
 import lombok.Getter;
 import org.hibernate.annotations.BatchSize;
@@ -9,10 +9,10 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.util.Optional;
 
-@Getter
 @BatchSize(size = 50)
+@Getter
 @Entity
-public class Affiliation {
+public class FieldsOfStudy {
 
     @Id
     private long id;
@@ -22,10 +22,7 @@ public class Affiliation {
     private String name;
 
     @Column
-    private String officialPage;
-
-    @Column
-    private String wikiPage;
+    private Integer level;
 
     @Column
     private Long paperCount;

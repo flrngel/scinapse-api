@@ -11,10 +11,11 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@Table(schema = "scinapse")
 @Entity
 public class OauthFacebook extends BaseEntity {
 
-    @SequenceGenerator(name = "oauthSequence", sequenceName = "oauth_sequence", allocationSize = 1)
+    @SequenceGenerator(name = "oauthSequence", sequenceName = "scinapse.oauth_sequence", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "oauthSequence")
     @Id
     private long id;
@@ -35,7 +36,7 @@ public class OauthFacebook extends BaseEntity {
     private Map<String, Object> userData;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "MEMBER_ID", unique = true)
+    @JoinColumn(name = "member_id", unique = true)
     private Member member;
 
 }

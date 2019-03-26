@@ -1,4 +1,4 @@
-package io.scinapse.domain.data.academic;
+package io.scinapse.domain.data.academic.model;
 
 import lombok.AccessLevel;
 import lombok.Getter;

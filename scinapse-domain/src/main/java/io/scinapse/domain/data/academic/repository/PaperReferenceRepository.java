@@ -1,7 +1,7 @@
 package io.scinapse.domain.data.academic.repository;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
-import io.scinapse.domain.data.academic.PaperReference;
+import io.scinapse.domain.data.academic.model.PaperReference;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 

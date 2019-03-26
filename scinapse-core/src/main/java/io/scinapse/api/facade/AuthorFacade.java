@@ -1,9 +1,8 @@
 package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
-import io.scinapse.domain.configuration.AcademicJpaConfig;
 import io.scinapse.api.controller.PageRequest;
-import io.scinapse.domain.data.academic.Paper;
+import io.scinapse.domain.data.academic.model.Paper;
 import io.scinapse.domain.data.scinapse.model.author.AuthorLayerPaper;
 import io.scinapse.api.dto.mag.AuthorDto;
 import io.scinapse.api.dto.mag.AuthorPaperDto;
@@ -14,13 +13,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @XRayEnabled
-@Transactional(readOnly = true, transactionManager = AcademicJpaConfig.ACADEMIC_TX_MANAGER)
 @Component
 @RequiredArgsConstructor
 public class AuthorFacade {

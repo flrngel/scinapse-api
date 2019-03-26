@@ -12,10 +12,4 @@ public class AuthorLayerFosRepositoryImpl extends QueryDslRepositorySupport impl
         super(AuthorLayerFos.class);
     }
 
-    @PersistenceContext(unitName = "scinapse")
-    @Override
-    public void setEntityManager(EntityManager entityManager) {
-        super.setEntityManager(entityManager);
-    }
-
 }

@@ -1,6 +1,6 @@
 package io.scinapse.api.validator;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.validation.ConstraintValidator;

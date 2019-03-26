@@ -14,7 +14,6 @@ import javax.annotation.PostConstruct;
 import java.time.ZoneOffset;
 import java.util.TimeZone;
 
-@EnableConfigurationProperties(JpaProperties.class)
 @EnableCaching
 @SpringBootApplication(scanBasePackageClasses = { ScinapseDomain.class, ScinapseApi.class })
 public class ScinapseApiApplication {

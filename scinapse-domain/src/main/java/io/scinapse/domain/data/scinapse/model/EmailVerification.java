@@ -8,16 +8,17 @@ import javax.persistence.*;
 
 @Getter
 @Setter
+@Table(schema = "scinapse")
 @Entity
 public class EmailVerification extends BaseEntity {
 
+    @SequenceGenerator(name = "verificationSequence", sequenceName = "scinapse.verification_sequence", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "verificationSequence")
-    @SequenceGenerator(name = "verificationSequence", sequenceName = "verification_sequence", allocationSize = 1)
     @Id
     private long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "MEMBER_ID")
+    @JoinColumn(name = "member_id")
     private Member member;
 
     @Column(nullable = false, unique = true)

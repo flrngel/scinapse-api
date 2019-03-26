@@ -2,18 +2,15 @@ package io.scinapse.api.academic.service;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.academic.dto.AcPaperDto;
-import io.scinapse.domain.configuration.AcademicJpaConfig;
 import io.scinapse.domain.data.academic.repository.PaperRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @XRayEnabled
-@Transactional(readOnly = true, transactionManager = AcademicJpaConfig.ACADEMIC_TX_MANAGER)
 @Service
 @RequiredArgsConstructor
 public class AcPaperService {

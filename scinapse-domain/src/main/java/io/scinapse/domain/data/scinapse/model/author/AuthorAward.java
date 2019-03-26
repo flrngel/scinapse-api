@@ -3,12 +3,14 @@ package io.scinapse.domain.data.scinapse.model.author;
 import io.scinapse.domain.data.scinapse.model.BaseEntity;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Nationalized;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Getter
 @Setter
+@Table(schema = "scinapse")
 @Entity
 public class AuthorAward extends BaseEntity {
 
@@ -23,9 +25,11 @@ public class AuthorAward extends BaseEntity {
     @Column
     private Date receivedDate;
 
+    @Nationalized
     @Column(nullable = false)
     private String title;
 
+    @Nationalized
     @Column
     private String description;
 

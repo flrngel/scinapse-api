@@ -9,6 +9,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @NoArgsConstructor
+@Table(schema = "scinapse")
 @Entity
 public class AuthorLayerCoauthor extends BaseEntity {
 

@@ -2,6 +2,7 @@ package io.scinapse.domain.data.scinapse.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Nationalized;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -11,23 +12,25 @@ import javax.persistence.*;
         columns = { @ColumnResult(name = "total_count") })
 @Getter
 @Setter
+@Table(schema = "scinapse")
 @Entity
 public class Comment extends BaseEntity {
 
     public static final String WITH_TOTAL_COUNT = "Comment.withTotalCount";
 
+    @SequenceGenerator(name = "commentSequence", sequenceName = "scinapse.comment_sequence", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "commentSequence")
-    @SequenceGenerator(name = "commentSequence", sequenceName = "comment_sequence", allocationSize = 1)
     @Id
     private long id;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "MEMBER_ID")
+    @JoinColumn(name = "member_id")
     private Member createdBy;
 
     @Column
     private Long paperId;
 
+    @Nationalized
     @Type(type = "text")
     @Lob
     @Column(nullable = false)

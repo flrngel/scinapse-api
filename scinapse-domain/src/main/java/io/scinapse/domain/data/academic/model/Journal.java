@@ -1,4 +1,4 @@
-package io.scinapse.domain.data.academic;
+package io.scinapse.domain.data.academic.model;
 
 import lombok.Getter;
 import org.hibernate.annotations.BatchSize;
@@ -12,17 +12,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@BatchSize(size = 50)
 @Getter
+@BatchSize(size = 10)
 @Entity
-public class ConferenceSeries {
+public class Journal {
 
     @Id
     private long id;
 
     @Nationalized
     @Column
-    private String name;
+    private String title;
+
+    @Column
+    private String issn;
+
+    @Column
+    private String webPage;
 
     @Column
     private Long paperCount;
@@ -30,9 +36,12 @@ public class ConferenceSeries {
     @Column
     private Long citationCount;
 
-    @BatchSize(size = 10)
-    @OneToMany(mappedBy = "conferenceSeries")
-    private List<ConferenceInstance> conferenceInstanceList = new ArrayList<>();
+    @Column
+    private Double impactFactor;
+
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "journal")
+    private List<JournalFos> fosList = new ArrayList<>();
 
     public long getPaperCount() {
         return Optional.ofNullable(this.paperCount).orElse(0L);

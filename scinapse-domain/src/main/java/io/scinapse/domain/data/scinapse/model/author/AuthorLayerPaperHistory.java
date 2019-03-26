@@ -10,6 +10,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @NoArgsConstructor
+@Table(schema = "scinapse")
 @Entity
 public class AuthorLayerPaperHistory extends BaseEntity {
 

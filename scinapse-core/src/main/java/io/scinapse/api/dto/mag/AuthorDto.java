@@ -1,8 +1,8 @@
 package io.scinapse.api.dto.mag;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.scinapse.domain.data.academic.Author;
-import io.scinapse.domain.data.academic.AuthorTopFos;
+import io.scinapse.domain.data.academic.model.Author;
+import io.scinapse.domain.data.academic.model.AuthorTopFos;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
