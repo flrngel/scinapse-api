@@ -2,6 +2,7 @@ package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.controller.PaperController;
 import io.scinapse.domain.data.academic.model.Paper;
 import io.scinapse.api.dto.CitationTextDto;
 import io.scinapse.api.dto.mag.PaperAuthorDto;
@@ -139,4 +140,7 @@ public class PaperFacade {
         return convert(relatedPapers, PaperConverter.simple());
     }
 
+    public void requestPaper(long paperId, PaperController.PaperRequestWrapper request, Long memberId) {
+        paperService.requestPaper(paperId, request, memberId);
+    }
 }

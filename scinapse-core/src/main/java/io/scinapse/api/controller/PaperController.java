@@ -1,25 +1,36 @@
 package io.scinapse.api.controller;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.scinapse.api.dto.CitationTextDto;
 import io.scinapse.api.dto.mag.PaperAuthorDto;
 import io.scinapse.api.dto.mag.PaperDto;
 import io.scinapse.api.dto.response.Error;
 import io.scinapse.api.dto.response.Response;
-import io.scinapse.domain.enums.CitationFormat;
 import io.scinapse.api.facade.PaperFacade;
+import io.scinapse.api.security.jwt.JwtUser;
 import io.scinapse.api.util.ErrorUtils;
 import io.scinapse.api.util.HttpUtils;
+import io.scinapse.api.validator.NoSpecialChars;
+import io.scinapse.domain.enums.CitationFormat;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.hibernate.validator.constraints.Email;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -96,6 +107,32 @@ public class PaperController {
     @RequestMapping(value = "/papers/{paperId}/authors", method = RequestMethod.GET)
     public Response<List<PaperAuthorDto>> getPaperAuthor(@PathVariable long paperId, PageRequest pageRequest) {
         return Response.success(paperFacade.getPaperAuthors(paperId, pageRequest));
+    }
+
+    @RequestMapping(value = "/papers/{paperId}/request", method = RequestMethod.POST)
+    public Response requestPaper(@PathVariable long paperId, @ApiIgnore JwtUser user, @RequestBody PaperRequestWrapper request) {
+        Long memberId = Optional.ofNullable(user)
+                .map(JwtUser::getId)
+                .orElse(null);
+
+        paperFacade.requestPaper(paperId, request, memberId);
+        return Response.success();
+    }
+
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+    @Setter
+    @Getter
+    public static class PaperRequestWrapper {
+        @Email
+        @Size(min = 1)
+        @NotNull
+        private String email;
+
+        @NoSpecialChars
+        @Size(min = 1)
+        private String name;
+
+        private String message;
     }
 
 }

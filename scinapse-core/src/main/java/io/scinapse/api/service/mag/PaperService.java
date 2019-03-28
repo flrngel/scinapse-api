@@ -2,14 +2,17 @@ package io.scinapse.api.service.mag;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.controller.PageRequest;
+import io.scinapse.api.controller.PaperController;
 import io.scinapse.api.dto.CitationTextDto;
 import io.scinapse.api.dto.PaperTitleDto;
-import io.scinapse.domain.data.academic.model.*;
-import io.scinapse.domain.enums.CitationFormat;
 import io.scinapse.api.error.ExternalApiCallException;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.util.TextUtils;
+import io.scinapse.domain.data.academic.model.*;
 import io.scinapse.domain.data.academic.repository.*;
+import io.scinapse.domain.data.scinapse.model.PaperRequest;
+import io.scinapse.domain.data.scinapse.repository.PaperRequestRepository;
+import io.scinapse.domain.enums.CitationFormat;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.*;
@@ -39,6 +42,8 @@ public class PaperService {
     private final PaperRecommendationRepository paperRecommendationRepository;
     private final AuthorTopPaperRepository authorTopPaperRepository;
     private final PaperAuthorRepository paperAuthorRepository;
+    private final PaperRequestRepository paperRequestRepository;
+
     private final RestTemplate restTemplate;
 
     public Paper find(long paperId) {
@@ -141,4 +146,13 @@ public class PaperService {
                 .collect(Collectors.toList());
     }
 
+    public void requestPaper(long paperId, PaperController.PaperRequestWrapper request, Long memberId) {
+        PaperRequest paperRequest = new PaperRequest();
+        paperRequest.setPaperId(paperId);
+        paperRequest.setEmail(request.getEmail());
+        paperRequest.setName(request.getName());
+        paperRequest.setMessage(request.getMessage());
+        paperRequest.setMemberId(memberId);
+        paperRequestRepository.save(paperRequest);
+    }
 }
