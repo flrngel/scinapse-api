@@ -21,5 +21,4 @@ public class PaperSearchAdditional {
     private AggregationDto aggregation;
     private MatchedAuthor matchedAuthor;
     private List<TopRefPaper> topRefPapers = new ArrayList<>();
-    private List<MatchedEntity> matchedEntities = new ArrayList<>();
 }

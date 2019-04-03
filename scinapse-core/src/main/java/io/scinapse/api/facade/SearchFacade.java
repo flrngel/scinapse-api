@@ -124,16 +124,9 @@ public class SearchFacade {
     private void convertAuthorItems(EsPaperSearchResponse response) {
         List<AuthorItemDto> authorItemDtos = getAuthorItems(response.getAuthorIds());
 
-        List<MatchedEntity> matchedAuthors = authorItemDtos
-                .stream()
-                .map(author -> new MatchedEntity(MatchedEntity.MatchedType.AUTHOR, author))
-                .collect(Collectors.toList());
-
         MatchedAuthor matchedAuthor = new MatchedAuthor(response.getAuthorTotalHits(), authorItemDtos);
 
         PaperSearchAdditional additional = response.getAdditional();
-
-        additional.getMatchedEntities().addAll(matchedAuthors);
         additional.setMatchedAuthor(matchedAuthor);
     }
 

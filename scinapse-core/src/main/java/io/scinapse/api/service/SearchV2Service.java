@@ -76,7 +76,7 @@ public class SearchV2Service {
             if (shouldSearchAgain(searchAgain, response)) {
                 SuggestionDto suggestion = response.getAdditional().getSuggestion();
 
-                Query modifiedQuery = Query.parse(suggestion.getSuggestion());
+                Query modifiedQuery = Query.parse(suggestion.getSuggestQuery());
                 modifiedQuery.setFilter(query.getFilter());
 
                 // search again
@@ -104,7 +104,7 @@ public class SearchV2Service {
         }
 
         SuggestionDto suggestion = response.getAdditional().getSuggestion();
-        boolean searchAgainWithSuggestion = suggestion != null && StringUtils.isNotBlank(suggestion.getSuggestion());
+        boolean searchAgainWithSuggestion = suggestion != null && StringUtils.isNotBlank(suggestion.getSuggestQuery());
         if (searchAgainWithSuggestion) {
             return true;
         }
