@@ -148,7 +148,7 @@ public class SearchAggregationService {
         dto.fosList = fosList;
 
         response.getAdditional().setAggregation(dto);
-//        setTopRefPapers(response, aggregationMap);
+        setTopRefPapers(response, aggregationMap);
     }
 
     private void setTopRefPapers(EsPaperSearchResponse response, Map<String, Aggregation> aggregationMap) {
@@ -167,7 +167,7 @@ public class SearchAggregationService {
         }
         response.setTopHits(topHits);
 
-        // do not set classic papers if total result less than 50
+        // do not set top cited papers if total result less than 50
         if (response.getPaperTotalHits() < 50) {
             return;
         }
@@ -176,8 +176,8 @@ public class SearchAggregationService {
         int baseCount = Math.min((int) (response.getPaperTotalHits() * 0.2), 30);
         List<Long> baseIds = topHits.subList(0, Math.min(baseCount, topHits.size()));
 
-        List<Long> classicPaperIds = paperRepository.extractTopRefPapers(new HashSet<>(baseIds), PageRequest.defaultPageable(5));
-        response.setTopRefPaperIds(classicPaperIds);
+        List<Long> topRefPaperIds = paperRepository.extractTopRefPapers(new HashSet<>(baseIds), PageRequest.defaultPageable(5));
+        response.setTopRefPaperIds(topRefPaperIds);
     }
 
     public void enhanceAggregation(AggregationDto dto, Aggregations aggregations) {

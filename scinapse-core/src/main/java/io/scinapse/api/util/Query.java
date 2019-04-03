@@ -58,7 +58,7 @@ public class Query {
     }
 
     public boolean isValid() {
-        return StringUtils.isNotBlank(text) && text.length() >= 2 && text.length() < 400;
+        return StringUtils.isNotBlank(text) && text.length() >= 2 && text.length() < 500;
     }
 
     public BoolQueryBuilder toRelevanceQuery() {

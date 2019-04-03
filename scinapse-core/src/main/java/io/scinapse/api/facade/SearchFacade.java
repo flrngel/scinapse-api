@@ -42,7 +42,7 @@ public class SearchFacade {
 
         convertPaperItemPage(response, pageRequest);
         convertAuthorItems(response);
-//        convertClassicPapers(response);
+        convertTopRefPapers(response);
 
         return response;
     }
@@ -139,7 +139,7 @@ public class SearchFacade {
         return dtos;
     }
 
-    private void convertClassicPapers(EsPaperSearchResponse response) {
+    private void convertTopRefPapers(EsPaperSearchResponse response) {
         if (CollectionUtils.isEmpty(response.getTopRefPaperIds())) {
             return;
         }
@@ -150,6 +150,8 @@ public class SearchFacade {
                     TopRefPaper topRefPaper = new TopRefPaper();
                     topRefPaper.setId(dto.getId());
                     topRefPaper.setTitle(dto.getTitle());
+                    topRefPaper.setYear(dto.getYear());
+                    topRefPaper.setCitedCount(dto.getCitedCount());
                     return topRefPaper;
                 })
                 .collect(Collectors.toList());

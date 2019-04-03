@@ -13,4 +13,6 @@ import lombok.Setter;
 public class TopRefPaper {
     private long id;
     private String title;
+    private Integer year;
+    private long citedCount;
 }

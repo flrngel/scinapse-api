@@ -50,9 +50,9 @@ public class PaperRepositoryImpl extends QueryDslRepositorySupport implements Pa
         String sql = "select pr.paper_reference_id\n" +
                 "from paper_reference pr\n" +
                 "  join paper p on pr.paper_reference_id = p.id\n" +
-                "where pr.paper_id in :paperIds and pr.paper_reference_id not in :paperIds\n" +
+                "where pr.paper_id in :paperIds\n" +
                 "      and (p.doc_type is null\n" +
-                "           or p.doc_type not in ('Patent', 'Book', 'BookChapter'))\n" +
+                "           or p.doc_type in ('Conference', 'Dataset', 'Journal'))\n" +
                 "group by pr.paper_reference_id\n" +
                 "having count(*) > 2\n" +
                 "order by count(*) desc, max(p.year) desc";
