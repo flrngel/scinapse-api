@@ -1,24 +1,16 @@
 package io.scinapse.api.service;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.sagemakerruntime.AmazonSageMakerRuntime;
-import com.amazonaws.services.sagemakerruntime.AmazonSageMakerRuntimeClientBuilder;
-import com.amazonaws.services.sagemakerruntime.model.InvokeEndpointRequest;
-import com.amazonaws.services.sagemakerruntime.model.InvokeEndpointResult;
 import com.amazonaws.xray.spring.aop.XRayEnabled;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.scinapse.domain.util.JsonUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,40 +20,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExtractTitleService {
 
-    @Value("${pluto.server.sagemaker.citation-ner.endpoint}")
+    private final RestTemplate restTemplate;
+
+    @Value("${pluto.server.fargate.citation-ner.endpoint}")
     private String citationNerEndpoint;
-    private AmazonSageMakerRuntime client = AmazonSageMakerRuntimeClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
 
     public String extractCitationTitle(String citationText) {
         RequestData requestData = new RequestData(citationText);
 
-        byte[] bytes;
-        try {
-            bytes = JsonUtils.toBytes(requestData);
-        } catch (JsonProcessingException e) {
-            log.error("JSON serialization error occurs.", e);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<RequestData> httpEntity = new HttpEntity<>(requestData, headers);
+        ResponseEntity<ResponseData> responseEntity = restTemplate.exchange(citationNerEndpoint, HttpMethod.POST, httpEntity, ResponseData.class);
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
             return null;
         }
 
-        InvokeEndpointRequest request = new InvokeEndpointRequest()
-                .withEndpointName(citationNerEndpoint)
-                .withContentType(MediaType.APPLICATION_JSON_VALUE)
-                .withBody(ByteBuffer.wrap(bytes));
-
-        InvokeEndpointResult result = client.invokeEndpoint(request);
-        ByteBuffer body = result.getBody();
-        if (body == null) {
-            return null;
-        }
-
-        ResponseData responseData;
-       try {
-            responseData = JsonUtils.fromBytes(body.array(), ResponseData.class);
-        } catch (IOException e) {
-            log.error("JSON deserialization error occurs.", e);
-            return null;
-        }
-
+        ResponseData responseData = responseEntity.getBody();
         if (CollectionUtils.isEmpty(responseData.getOutputs())) {
             // cannot find title from citation text
             return null;
