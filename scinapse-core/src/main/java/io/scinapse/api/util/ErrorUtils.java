@@ -50,7 +50,10 @@ public class ErrorUtils {
         return error;
     }
 
-    public static String extractErrorMessage(HttpServletRequest request) {
+    public static String extractErrorMessage(HttpStatus status, HttpServletRequest request) {
+        if (status == HttpStatus.NOT_FOUND) {
+            return "Page Not Found.";
+        }
         String message = getAttribute(request, RequestDispatcher.ERROR_MESSAGE, String.class);
         return StringUtils.defaultIfBlank(message, DEFAULT_ERROR_MESSAGE);
     }

@@ -48,7 +48,7 @@ public class GlobalErrorController extends ResponseEntityExceptionHandler implem
             return new ResponseEntity<>(Response.error(error), status);
 
         } else {
-            String message = ErrorUtils.extractErrorMessage(request);
+            String message = ErrorUtils.extractErrorMessage(status, request);
             logFallbackError(status, message, path, null);
 
             Error error = Error.of(path, status, message);
@@ -107,6 +107,5 @@ public class GlobalErrorController extends ResponseEntityExceptionHandler implem
         }
         log.error("Resolved fallback exception:[ {} ] | Request URI:[ {} ]", message, path, error);
     }
-
 
 }

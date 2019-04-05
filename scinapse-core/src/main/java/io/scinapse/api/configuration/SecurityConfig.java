@@ -1,9 +1,9 @@
 package io.scinapse.api.configuration;
 
-import io.scinapse.domain.enums.AuthorityName;
 import io.scinapse.api.security.jwt.JwtAuthenticationFilter;
 import io.scinapse.api.security.rest.RestAccessDeniedHandler;
 import io.scinapse.api.security.rest.RestAuthExceptionHandler;
+import io.scinapse.domain.enums.AuthorityName;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
@@ -100,6 +100,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 )
                 .hasAnyAuthority(AuthorityName.ROLE_ADMIN.name(), AuthorityName.ROLE_USER.name(), AuthorityName.ROLE_UNVERIFIED.name())
 
+                .antMatchers(HttpMethod.POST,
+                        "/collections",
+                        "/collections/*/papers"
+                )
+                .hasAnyAuthority(AuthorityName.ROLE_ADMIN.name(), AuthorityName.ROLE_USER.name(), AuthorityName.ROLE_UNVERIFIED.name())
+
                 // permit get
                 .antMatchers(
                         HttpMethod.GET,
@@ -146,8 +152,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/members/oauth",
                         "/members/password-token",
                         "/members/reset-password",
-                        "/collections",
-                        "/collections/*/papers",
                         "/papers/*/request"
                 ).permitAll()
 
