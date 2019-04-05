@@ -49,6 +49,8 @@ public class SearchFacade {
 
     public EsPaperSearchResponse searchByDoi(Query query, PageRequest pageRequest) {
         EsPaperSearchResponse response = searchV2Service.searchByDoi(query, pageRequest);
+        response.getAdditional().setDoiPatternMatched(true);
+        response.getAdditional().setDoi(query.getDoi());
 
         convertPaperItemPage(response, pageRequest);
         return response;

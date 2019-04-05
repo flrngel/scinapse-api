@@ -16,6 +16,10 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class PaperSearchAdditional {
+
+    private boolean doiPatternMatched = false;
+    private String doi;
+
     private boolean resultModified = false;
     private SuggestionDto suggestion;
     private AggregationDto aggregation;
