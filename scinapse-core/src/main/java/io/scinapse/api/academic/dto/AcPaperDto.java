@@ -124,21 +124,11 @@ public class AcPaperDto {
                     .build();
         }
 
-        public static DetailSelector compact() {
-            return builder()
-                    .loadJournal(true)
-                    .loadConferenceInstance(true)
-                    .loadAuthor(true)
-                    .loadUrl(true)
-                    .build();
-        }
-
         public static DetailSelector detail() {
             return builder()
                     .loadJournal(true)
                     .loadConferenceInstance(true)
                     .loadAuthor(true)
-                    .loadUrl(true)
                     .loadAbstract(true)
                     .build();
         }

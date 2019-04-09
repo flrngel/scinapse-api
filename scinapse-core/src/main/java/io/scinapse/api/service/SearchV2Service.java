@@ -274,9 +274,9 @@ public class SearchV2Service {
         }
 
         // if no filters applied && first page
-        if (!query.getFilter().hasFilter(true) && pageRequest.getPage() == 0) {
-            source.aggregation(aggregationService.generateTopHitsAggregation());
-        }
+//        if (!query.getFilter().hasFilter(true) && pageRequest.getPage() == 0) {
+//            source.aggregation(aggregationService.generateTopHitsAggregation());
+//        }
 
         return new SearchRequest(paperIndex).source(source);
     }
