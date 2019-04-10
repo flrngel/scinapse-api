@@ -118,29 +118,29 @@ public class AcPaperDto {
 
         public static DetailSelector simple() {
             return builder()
+                    .loadAuthor(true)
                     .loadJournal(true)
                     .loadConferenceInstance(true)
-                    .loadAuthor(true)
                     .build();
         }
 
         public static DetailSelector detail() {
             return builder()
+                    .loadAuthor(true)
                     .loadJournal(true)
                     .loadConferenceInstance(true)
-                    .loadAuthor(true)
                     .loadAbstract(true)
                     .build();
         }
 
         public static DetailSelector full() {
             return builder()
+                    .loadAuthor(true)
                     .loadJournal(true)
                     .loadConferenceInstance(true)
-                    .loadAuthor(true)
-                    .loadUrl(true)
                     .loadAbstract(true)
                     .loadFos(true)
+                    .loadUrl(true)
                     .build();
         }
     }

@@ -152,7 +152,7 @@ public class CollectionFacade {
                 .map(CollectionPaper::getId)
                 .map(CollectionPaper.CollectionPaperId::getPaperId)
                 .collect(Collectors.toList());
-        Map<Long, PaperDto> map = paperFacade.findMap(paperIds, PaperConverter.compact());
+        Map<Long, PaperDto> map = paperFacade.findMap(paperIds, PaperConverter.simple());
 
         return collectionPaperDtos
                 .stream()
@@ -189,7 +189,7 @@ public class CollectionFacade {
                 .map(CollectionPaper::getId)
                 .map(CollectionPaper.CollectionPaperId::getPaperId)
                 .collect(Collectors.toList());
-        Map<Long, PaperDto> map = paperFacade.findMap(paperIds, PaperConverter.compact());
+        Map<Long, PaperDto> map = paperFacade.findMap(paperIds, PaperConverter.simple());
 
         List<CollectionPaperDto> dtos = collectionPaperDtos
                 .stream()

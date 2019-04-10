@@ -34,20 +34,15 @@ public class PaperConverter {
                 .withJournal()
                 .withConferenceInstance();
     }
-
-    public static Converter compact() {
-        return simple()
-                .withUrl();
-    }
-
     public static Converter detail() {
-        return compact()
+        return simple()
                 .withAbstract();
     }
 
     public static Converter full() {
         return detail()
-                .withFos();
+                .withFos()
+                .withUrl();
     }
 
     public List<PaperDto> convert(List<Paper> papers, Converter converter) {
