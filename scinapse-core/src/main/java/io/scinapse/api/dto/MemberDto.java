@@ -4,9 +4,10 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.scinapse.api.configuration.ScinapseConstant;
-import io.scinapse.domain.data.scinapse.model.Member;
 import io.scinapse.api.dto.oauth.OauthUserDto;
+import io.scinapse.api.dto.v2.OAuthToken;
 import io.scinapse.api.validator.NoSpecialChars;
+import io.scinapse.domain.data.scinapse.model.Member;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -63,6 +64,7 @@ public class MemberDto {
     private String affiliationName;
 
     private OauthUserDto oauth;
+    private OAuthToken token;
 
     public MemberDto(Member member) {
         this.id = member.getId();

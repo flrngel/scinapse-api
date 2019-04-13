@@ -176,7 +176,7 @@ public class OauthControllerTest {
         request.setCode("test");
         request.setRedirectUri("redirect");
 
-        when(oauthFacade.findMember(request.getVendor(), request.getCode(), request.getRedirectUri())).thenReturn(member);
+        when(oauthFacade.findMember(request)).thenReturn(member);
         when(tokenHelper.generateToken(member, true)).thenReturn("token");
 
         mvc
@@ -190,7 +190,7 @@ public class OauthControllerTest {
                 .andExpect(jsonPath("$.token", String.class).value("token"))
                 .andExpect(jsonPath("$.member.email", String.class).value(email));
 
-        verify(oauthFacade, only()).findMember(request.getVendor(), request.getCode(), request.getRedirectUri());
+        verify(oauthFacade, only()).findMember(request);
         verify(tokenHelper).generateToken(member, true);
         verify(tokenHelper).addCookie(any(), eq("token"));
     }
@@ -205,7 +205,7 @@ public class OauthControllerTest {
         request.setCode("test");
         request.setRedirectUri("redirect");
 
-        when(oauthFacade.findMember(request.getVendor(), request.getCode(), request.getRedirectUri())).thenReturn(null);
+        when(oauthFacade.findMember(request)).thenReturn(null);
 
         mvc
                 .perform(post("/auth/oauth/login")

@@ -1,16 +1,19 @@
 package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
-import io.scinapse.domain.data.scinapse.model.Member;
-import io.scinapse.domain.data.scinapse.model.oauth.OauthFacebook;
-import io.scinapse.domain.data.scinapse.model.oauth.OauthGoogle;
-import io.scinapse.domain.data.scinapse.model.oauth.OauthOrcid;
+import io.scinapse.api.dto.oauth.OAuthRequest;
 import io.scinapse.api.dto.oauth.OauthUserDto;
-import io.scinapse.domain.enums.OauthVendor;
+import io.scinapse.api.dto.v2.OAuthConnection;
+import io.scinapse.api.dto.v2.OAuthToken;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.service.oauth.OauthFacebookService;
 import io.scinapse.api.service.oauth.OauthGoogleService;
 import io.scinapse.api.service.oauth.OauthOrcidService;
+import io.scinapse.domain.data.scinapse.model.Member;
+import io.scinapse.domain.data.scinapse.model.oauth.OauthFacebook;
+import io.scinapse.domain.data.scinapse.model.oauth.OauthGoogle;
+import io.scinapse.domain.data.scinapse.model.oauth.OauthOrcid;
+import io.scinapse.domain.enums.OauthVendor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,23 +99,32 @@ public class OauthFacade {
     }
 
     @Transactional
-    public Member findMember(OauthVendor vendor, String code, String redirectUri) {
-        if (vendor == null) {
-            throw new BadRequestException("Invalid Oauth: vendor not exist");
-        }
-
-        switch (vendor) {
+    public Member findMember(OAuthRequest request) {
+        switch (request.getVendor()) {
             case ORCID:
-                OauthOrcid oauthOrcid = orcidService.exchange(code, redirectUri);
-                return oauthOrcid.getMember();
+                return orcidService.exchange(request.getCode(), request.getRedirectUri()).getMember();
 
             case FACEBOOK:
-                OauthFacebook facebook = facebookService.exchange(code, redirectUri);
-                return facebook.getMember();
+                return facebookService.exchange(request.getCode(), request.getRedirectUri()).getMember();
 
             case GOOGLE:
-                OauthGoogle google = googleService.exchange(code, redirectUri);
-                return google.getMember();
+                return googleService.exchange(request.getCode(), request.getRedirectUri()).getMember();
+
+            default:
+                return null;
+        }
+    }
+
+    public Member findMember2(OAuthToken token) {
+        switch (token.getVendor()) {
+            case ORCID:
+                return orcidService.findByToken(token.getToken()).getMember();
+
+            case FACEBOOK:
+                return facebookService.findByToken(token.getToken()).getMember();
+
+            case GOOGLE:
+                return googleService.findByToken(token.getToken()).getMember();
 
             default:
                 return null;
@@ -178,7 +190,26 @@ public class OauthFacade {
         }
     }
 
-    public boolean isConnected(OauthUserDto oauth) {
+    @Transactional
+    public void connect2(OAuthToken token, Member member) {
+        switch (token.getVendor()) {
+            case ORCID:
+                orcidService.connect(token.getToken(), member);
+                return;
+
+            case FACEBOOK:
+                facebookService.connect(token.getToken(), member);
+                return;
+
+            case GOOGLE:
+                googleService.connect(token.getToken(), member);
+                return;
+
+            default:
+        }
+    }
+
+    public boolean getConnection(OauthUserDto oauth) {
         if (oauth.getVendor() == null) {
             throw new BadRequestException("Invalid Oauth: vendor not exist");
         }
@@ -207,6 +238,22 @@ public class OauthFacade {
 
             default:
                 return false;
+        }
+    }
+
+    public OAuthConnection getConnection(OAuthToken token) {
+        switch (token.getVendor()) {
+            case ORCID:
+                return orcidService.getConnection(token.getToken());
+
+            case FACEBOOK:
+                return facebookService.getConnection(token.getToken());
+
+            case GOOGLE:
+                return googleService.getConnection(token.getToken());
+
+            default:
+                return null;
         }
     }
 

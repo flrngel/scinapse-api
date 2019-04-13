@@ -1,17 +1,20 @@
 package io.scinapse.api.controller;
 
-import io.scinapse.domain.data.scinapse.model.Member;
 import io.scinapse.api.dto.LoginDto;
 import io.scinapse.api.dto.MemberDto;
 import io.scinapse.api.dto.oauth.OAuthAuthorizeUriDto;
 import io.scinapse.api.dto.oauth.OAuthRequest;
 import io.scinapse.api.dto.oauth.OauthUserDto;
-import io.scinapse.domain.enums.OauthVendor;
+import io.scinapse.api.dto.response.Response;
+import io.scinapse.api.dto.v2.OAuthConnection;
+import io.scinapse.api.dto.v2.OAuthToken;
 import io.scinapse.api.facade.OauthFacade;
 import io.scinapse.api.security.LoginRequest;
 import io.scinapse.api.security.TokenHelper;
 import io.scinapse.api.security.jwt.JwtUser;
 import io.scinapse.api.service.MemberService;
+import io.scinapse.domain.data.scinapse.model.Member;
+import io.scinapse.domain.enums.OauthVendor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -120,10 +123,25 @@ public class AuthController {
         return oauthFacade.exchange(request.getVendor(), request.getCode(), request.getRedirectUri());
     }
 
+    @RequestMapping(value = "/auth/oauth/check", method = RequestMethod.POST)
+    public Response<OAuthConnection> check(@RequestBody @Valid OAuthToken token) {
+        OAuthConnection connection = oauthFacade.getConnection(token);
+        return Response.success(connection);
+    }
+
     @RequestMapping(value = "/auth/oauth/login", method = RequestMethod.POST)
     public LoginDto login(HttpServletResponse response,
                           @RequestBody @Valid OAuthRequest request) {
-        Member member = oauthFacade.findMember(request.getVendor(), request.getCode(), request.getRedirectUri());
+        Member member;
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(request.getToken())) {
+            OAuthToken token = new OAuthToken();
+            token.setVendor(request.getVendor());
+            token.setToken(request.getToken());
+            member = oauthFacade.findMember2(token);
+        } else {
+            member = oauthFacade.findMember(request);
+        }
+
         if (member == null) {
             throw new BadCredentialsException("Authentication Failed. Member not exists.");
         }

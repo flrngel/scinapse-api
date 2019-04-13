@@ -42,7 +42,12 @@ public class MemberController {
 
     @RequestMapping(value = "/members/oauth", method = RequestMethod.POST)
     public MemberDto createOauthMember(HttpServletResponse response, @RequestBody @Valid MemberDto memberDto) {
-        Member member = memberFacade.createOauthMember(response, memberDto);
+        Member member;
+        if (memberDto.getToken() != null) {
+            member = memberFacade.createOauthMember2(response, memberDto);
+        } else {
+            member = memberFacade.createOauthMember(response, memberDto);
+        }
         return new MemberDto(member);
     }
 

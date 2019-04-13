@@ -1,9 +1,18 @@
 package io.scinapse.api.service.oauth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import io.scinapse.api.dto.v2.OAuthConnection;
+import io.scinapse.api.error.BadRequestException;
+import io.scinapse.domain.data.scinapse.model.Member;
 import io.scinapse.domain.data.scinapse.model.oauth.OauthOrcid;
 import io.scinapse.domain.data.scinapse.repository.oauth.OauthOrcidRepository;
+import io.scinapse.domain.enums.OauthVendor;
+import io.scinapse.domain.util.JsonUtils;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -15,10 +24,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Transactional(readOnly = true)
 @Service
@@ -34,14 +42,9 @@ public class OauthOrcidService {
     @Value("${pluto.oauth.orcid.redirect.uri}")
     private String redirectUri;
 
-    @Value("${pluto.oauth.orcid.endpoint.token}")
-    private String tokenEndpoint;
-
-    @Value("${pluto.oauth.orcid.endpoint.authorize}")
-    private String authorizeEndpoint;
-
-    @Value("${pluto.oauth.orcid.endpoint.api}")
-    private String apiEndpoint;
+    private final String authorizeEndpoint = "https://orcid.org/oauth/authorize";
+    private final String tokenEndpoint = "https://orcid.org/oauth/token";
+    private final String apiEndpoint = "https://pub.orcid.org/v2.0";
 
     private final OauthOrcidRepository oauthOrcidRepository;
     private final RestTemplate restTemplate;
@@ -96,6 +99,66 @@ public class OauthOrcidService {
         return one;
     }
 
+    @Transactional
+    public void connect(String token, Member member) {
+        TokenInfoResponse data = getTokenInfoResponse(token);
+        String orcid = data.getSub();
+
+        OauthOrcid oauthOrcid = find(orcid);
+        if (oauthOrcid == null) {
+            oauthOrcid = new OauthOrcid();
+        }
+
+        if (oauthOrcid.isConnected()) {
+            throw new BadRequestException("Invalid OAuth Connection: already connected");
+        }
+
+        oauthOrcid.setOrcid(orcid);
+        oauthOrcid.setAccessToken(token);
+        oauthOrcid.setMember(member);
+        oauthOrcid.setConnected(true);
+        oauthOrcidRepository.save(oauthOrcid);
+    }
+
+    public OauthOrcid findByToken(String token) {
+        TokenInfoResponse data = getTokenInfoResponse(token);
+        String orcid = data.getSub();
+        return Optional.ofNullable(find(orcid))
+                .orElseThrow(() -> new BadRequestException("Authentication failed. OAuth information not found."));
+    }
+
+    public OAuthConnection getConnection(String token) {
+        TokenInfoResponse data = getTokenInfoResponse(token);
+
+        OAuthConnection connection = new OAuthConnection();
+        connection.setVendor(OauthVendor.ORCID);
+        connection.setOAuthId(data.getSub());
+
+        connection.setFirstName(data.getGivenName());
+        connection.setLastName(data.getFamilyName());
+
+        String orcid = data.getSub();
+        boolean connected = Optional.ofNullable(find(orcid))
+                .map(OauthOrcid::isConnected)
+                .orElse(false);
+        connection.setConnected(connected);
+
+        return connection;
+    }
+
+    private TokenInfoResponse getTokenInfoResponse(String token) {
+        String[] split = org.apache.commons.lang3.StringUtils.split(token, ".");
+        if (split.length != 3) {
+            throw new BadRequestException("Authentication failed. Invalid token provided.");
+        }
+
+        try {
+            return JsonUtils.fromBytes(Base64.getDecoder().decode(split[1]), TokenInfoResponse.class);
+        } catch (IOException e) {
+            throw new BadRequestException("Authentication failed. Invalid token provided.");
+        }
+    }
+
     private static class Response {
         @JsonProperty("access_token")
         private String accessToken;
@@ -105,6 +168,15 @@ public class OauthOrcidService {
 
         @JsonProperty
         private String name;
+    }
+
+    @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+    @Getter
+    @Setter
+    private static class TokenInfoResponse {
+        private String sub;
+        private String givenName;
+        private String familyName;
     }
 
 }

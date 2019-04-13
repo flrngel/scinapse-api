@@ -13,15 +13,13 @@ import javax.validation.constraints.NotNull;
 @Setter
 public class OAuthRequest {
 
-    @ApiModelProperty(required = true)
     @NotNull
     private OauthVendor vendor;
 
-    @ApiModelProperty(required = true)
-    @NotNull
     private String code;
 
-    @ApiModelProperty
     private String redirectUri;
+
+    private String token;
 
 }

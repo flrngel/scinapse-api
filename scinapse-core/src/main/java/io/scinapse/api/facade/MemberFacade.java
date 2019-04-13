@@ -2,9 +2,7 @@ package io.scinapse.api.facade;
 
 import com.amazonaws.xray.spring.aop.XRayEnabled;
 import io.scinapse.api.configuration.CacheName;
-import io.scinapse.domain.data.scinapse.model.Member;
 import io.scinapse.api.dto.MemberDto;
-import io.scinapse.domain.enums.AuthorityName;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
 import io.scinapse.api.security.TokenHelper;
@@ -13,6 +11,8 @@ import io.scinapse.api.service.EmailVerificationService;
 import io.scinapse.api.service.MemberDeleteService;
 import io.scinapse.api.service.MemberService;
 import io.scinapse.api.service.PasswordResetService;
+import io.scinapse.domain.data.scinapse.model.Member;
+import io.scinapse.domain.enums.AuthorityName;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -80,7 +80,7 @@ public class MemberFacade {
             throw new BadRequestException("Invalid Oauth Information: not exist");
         }
 
-        if (oauthFacade.isConnected(memberDto.getOauth())) {
+        if (oauthFacade.getConnection(memberDto.getOauth())) {
             throw new BadRequestException("Invalid Connection: already connected");
         }
 
@@ -88,6 +88,32 @@ public class MemberFacade {
         memberService.updateAuthority(saved, AuthorityName.ROLE_USER);
 
         oauthFacade.connect(memberDto.getOauth(), saved);
+
+        // send welcome email
+        emailVerificationService.sendSignUpWelcomeEmail(saved);
+
+        // auto login
+        String jwt = tokenHelper.generateToken(saved, true);
+        tokenHelper.addCookie(response, jwt);
+
+        return saved;
+    }
+
+    @Transactional
+    public Member createOauthMember2(HttpServletResponse response, MemberDto memberDto) {
+        Member exist = memberService.findByEmail(memberDto.getEmail());
+        if (exist != null) {
+            throw new BadRequestException("Email already exists");
+        }
+
+        if (memberDto.getToken() == null) {
+            throw new BadRequestException("Invalid OAuth Information: not exist");
+        }
+
+        Member saved = memberService.saveMember(memberDto.toEntity());
+        memberService.updateAuthority(saved, AuthorityName.ROLE_USER);
+
+        oauthFacade.connect2(memberDto.getToken(), saved);
 
         // send welcome email
         emailVerificationService.sendSignUpWelcomeEmail(saved);

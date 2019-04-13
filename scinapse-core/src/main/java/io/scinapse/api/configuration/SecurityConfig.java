@@ -31,6 +31,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String AUTH_LOGOUT_URI = "/auth/logout";
     private static final String AUTH_OAUTH_AUTHORIZE_URI = "/auth/oauth/authorize-uri";
     private static final String AUTH_OAUTH_EXCHANGE_URI = "/auth/oauth/exchange";
+    private static final String AUTH_OAUTH_CHECK_URI = "/auth/oauth/check";
     private static final String AUTH_OAUTH_LOGIN_URI = "/auth/oauth/login";
     private static final String COLLECTION_URI = "/collections/*/papers";
 
@@ -89,6 +90,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         AUTH_LOGOUT_URI,
                         AUTH_OAUTH_AUTHORIZE_URI,
                         AUTH_OAUTH_EXCHANGE_URI,
+                        AUTH_OAUTH_CHECK_URI,
                         AUTH_OAUTH_LOGIN_URI,
                         COLLECTION_URI
                 ).permitAll()
