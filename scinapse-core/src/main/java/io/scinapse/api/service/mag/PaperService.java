@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
@@ -146,6 +147,7 @@ public class PaperService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void requestPaper(long paperId, PaperController.PaperRequestWrapper request, Long memberId) {
         PaperRequest paperRequest = new PaperRequest();
         paperRequest.setPaperId(paperId);

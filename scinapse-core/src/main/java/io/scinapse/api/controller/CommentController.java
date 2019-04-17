@@ -12,6 +12,7 @@ import io.scinapse.api.service.mag.PaperService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.AuthorizationServiceException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -25,6 +26,7 @@ public class CommentController {
     private final MemberService memberService;
     private final PaperService paperService;
 
+    @Transactional
     @RequestMapping(value = "/comments", method = RequestMethod.POST)
     public CommentDto createComment(@ApiIgnore JwtUser user,
                                     @RequestBody @Valid CommentDto commentDto) {
@@ -53,6 +55,7 @@ public class CommentController {
         return commentService.findByPaperId(paperId, pageRequest).map(CommentDto::new);
     }
 
+    @Transactional
     @RequestMapping(value = "/comments/{commentId}", method = RequestMethod.PUT)
     public CommentDto updateComment(@ApiIgnore JwtUser user,
                                     @PathVariable long commentId,
@@ -70,6 +73,7 @@ public class CommentController {
         return new CommentDto(updated);
     }
 
+    @Transactional
     @RequestMapping(value = "/comments/{commentId}", method = RequestMethod.DELETE)
     public Result deleteComment(@ApiIgnore JwtUser user,
                                 @PathVariable long commentId) {

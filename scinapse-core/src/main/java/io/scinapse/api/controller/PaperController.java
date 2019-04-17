@@ -20,6 +20,7 @@ import org.hibernate.validator.constraints.Email;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.UnsatisfiedServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -109,6 +110,7 @@ public class PaperController {
         return Response.success(paperFacade.getPaperAuthors(paperId, pageRequest));
     }
 
+    @Transactional
     @RequestMapping(value = "/papers/{paperId}/request", method = RequestMethod.POST)
     public Response requestPaper(@PathVariable long paperId, @ApiIgnore JwtUser user, @RequestBody PaperRequestWrapper request) {
         Long memberId = Optional.ofNullable(user)

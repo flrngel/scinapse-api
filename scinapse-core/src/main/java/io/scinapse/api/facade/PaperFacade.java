@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -140,6 +141,7 @@ public class PaperFacade {
         return convert(relatedPapers, PaperConverter.simple());
     }
 
+    @Transactional
     public void requestPaper(long paperId, PaperController.PaperRequestWrapper request, Long memberId) {
         paperService.requestPaper(paperId, request, memberId);
     }

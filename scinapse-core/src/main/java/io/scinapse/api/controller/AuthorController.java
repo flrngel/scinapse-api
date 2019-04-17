@@ -23,6 +23,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -82,6 +83,7 @@ public class AuthorController {
         return result;
     }
 
+    @Transactional
     @RequestMapping(value = "/authors/{authorId}/connect", method = RequestMethod.POST)
     public Response<AuthorDto> connect(JwtUser user, @PathVariable long authorId, @RequestBody @Valid AuthorLayerUpdateDto dto) {
         Member member = memberFacade.loadMember(user);
@@ -112,6 +114,7 @@ public class AuthorController {
                 .anyMatch(auth -> StringUtils.equalsIgnoreCase(auth, AuthorityName.ROLE_ADMIN.name()));
     }
 
+    @Transactional
     @RequestMapping(value = "/authors/{authorId}/papers/remove", method = RequestMethod.POST)
     public Response removePapers(JwtUser user,
                                  @PathVariable long authorId,
@@ -125,6 +128,7 @@ public class AuthorController {
         return Response.success();
     }
 
+    @Transactional
     @RequestMapping(value = "/authors/{authorId}/papers/add", method = RequestMethod.POST)
     public Response addPapers(JwtUser user,
                               @PathVariable long authorId,
@@ -138,6 +142,7 @@ public class AuthorController {
         return Response.success();
     }
 
+    @Transactional
     @RequestMapping(value = { "/authors/{authorId}/papers/selected", "/authors/{authorId}/papers/representative" }, method = RequestMethod.PUT)
     public Response<List<PaperDto>> updateRepresentative(JwtUser user,
                                                          @PathVariable long authorId,
@@ -146,6 +151,7 @@ public class AuthorController {
         return Response.success(authorLayerFacade.updateRepresentative(member, authorId, wrapper.getPaperIds()));
     }
 
+    @Transactional
     @RequestMapping(value = "/authors/{authorId}", method = RequestMethod.PUT)
     public Response<AuthorDto> updateAuthorInformation(JwtUser user,
                                                        @PathVariable long authorId,
@@ -154,6 +160,7 @@ public class AuthorController {
         return Response.success(authorLayerFacade.update(member, authorId, updateDto));
     }
 
+    @Transactional
     @RequestMapping(value = "/authors/{authorId}/profile-image", method = RequestMethod.PUT)
     public Response<Map<String, String>> updateProfileImage(JwtUser user,
                                                             @PathVariable long authorId,
@@ -165,6 +172,7 @@ public class AuthorController {
         return Response.success(result);
     }
 
+    @Transactional
     @RequestMapping(value = "/authors/{authorId}/profile-image", method = RequestMethod.DELETE)
     public Response deleteProfileImage(JwtUser user, @PathVariable long authorId) {
         Member member = memberFacade.loadMember(user);

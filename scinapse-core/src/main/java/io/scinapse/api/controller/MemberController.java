@@ -16,6 +16,7 @@ import io.scinapse.domain.data.scinapse.model.MemberSavedFilter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -57,6 +58,7 @@ public class MemberController {
         return memberFacade.getDetail(memberId);
     }
 
+    @Transactional
     @RequestMapping(value = "/members/me", method = RequestMethod.PUT)
     public MemberDto updateMember(@ApiIgnore JwtUser user,
                                   @RequestBody @Validated(Update.class) MemberDto memberDto) {
@@ -71,6 +73,7 @@ public class MemberController {
         return new MemberDto(saved);
     }
 
+    @Transactional
     @RequestMapping(value = "/members/me/password", method = RequestMethod.PUT)
     public Result updatePassword(@ApiIgnore JwtUser user,
                                  @RequestBody @Valid MemberDto.PasswordWrapper password) {
@@ -90,6 +93,8 @@ public class MemberController {
         return Response.success(memberService.getSavedFilters(member));
     }
 
+    // TODO fix transaction layer
+    @Transactional
     @RequestMapping(value = "/members/me/saved-filters", method = RequestMethod.PUT)
     public Response<List<MemberSavedFilter.SavedFilter>> updateSavedFilters(JwtUser user, @RequestBody @Valid SavedFilterWrapper wrapper) {
         Member member = memberFacade.loadMember(user);
