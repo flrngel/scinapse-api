@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.sendgrid.*;
+import io.scinapse.api.error.BadRequestException;
+import io.scinapse.api.error.ExternalApiCallException;
 import io.scinapse.domain.data.scinapse.model.Member;
 import io.scinapse.domain.data.scinapse.model.PasswordResetToken;
 import io.scinapse.domain.data.scinapse.repository.PasswordResetTokenRepository;
-import io.scinapse.api.error.BadRequestException;
-import io.scinapse.api.error.ExternalApiCallException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -91,7 +91,7 @@ public class PasswordResetService {
 
     private Email getNoReplyFrom() {
         Email from = new Email();
-        from.setEmail("no-reply@scinapse.io");
+        from.setEmail("team@pluto.network");
         from.setName("Scinapse");
         return from;
     }

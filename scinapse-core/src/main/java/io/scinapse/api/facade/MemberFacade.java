@@ -126,13 +126,31 @@ public class MemberFacade {
     }
 
     @Transactional
-    public void generateToken(Member member) {
+    public void generateToken(String email) {
+        Member member = memberService.findByEmail(email);
+        if (member == null) {
+            throw new ResourceNotFoundException("Member not found: " + email);
+        }
         passwordResetService.generateToken(member);
     }
 
     @Transactional
     public void resetPassword(String token, String password) {
         passwordResetService.resetPassword(token, password);
+    }
+
+    @Transactional
+    public void resendVerificationMail(String email) {
+        Member member = memberService.findByEmail(email);
+        if (member == null) {
+            throw new ResourceNotFoundException("Member not found: " + email);
+        }
+
+        if (member.isEmailVerified()) {
+            throw new BadRequestException("Member already verified email");
+        }
+
+        emailVerificationService.sendVerification(member);
     }
 
     public Member loadMember(JwtUser user) {

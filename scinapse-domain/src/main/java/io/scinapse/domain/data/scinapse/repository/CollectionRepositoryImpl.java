@@ -6,17 +6,13 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.jpa.repository.support.QueryDslRepositorySupport;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TemporalType;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CollectionRepositoryImpl extends QueryDslRepositorySupport implements CollectionRepositoryCustom {
@@ -60,8 +56,8 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
     }
 
     @Override
-    public List<CollectionEmailDataWrapper> getCollectionEmailData() {
-        String sql = "select t.member_id, m.email, m.first_name, m.last_name, t.collection_id, t.collection_title, t.paper_id, t.title, t.year, t.count\n" +
+    public List<CollectionEmailDataWrapper> getCollectionEmailData(Date targetDate) {
+        String sql = "select t.member_id, m.email, m.first_name, m.last_name, t.collection_id, t.collection_title, t.paper_id, t.title, t.year, t.count, t.start\n" +
                 "from (\n" +
                 "       select\n" +
                 "         rp.collection_id,\n" +
@@ -71,21 +67,19 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
                 "         rp.year,\n" +
                 "         c.member_id,\n" +
                 "         row_number()\n" +
-                "         over (\n" +
-                "           partition by member_id, collection_id\n" +
-                "           order by rp.created_at desc ) as row,\n" +
-                "         count(1)\n" +
-                "         over (\n" +
-                "           partition by member_id )      as count\n" +
+                "         over ( partition by member_id, collection_id order by rp.created_at desc ) as row,\n" +
+                "         count(1) over ( partition by member_id )      as count,\n" +
+                "         min(rp.created_at) over (partition by member_id) as start\n" +
                 "       from scinapse.rel_collection_paper rp\n" +
                 "         join scinapse.collection c on rp.collection_id = c.id\n" +
-                "       where cast(rp.created_at as date) = cast(getdate() -1 as date)\n" +
+                "       where cast(rp.created_at as date) = cast(:targetDate as date)\n" +
                 "     ) t\n" +
                 "  join scinapse.member m on t.member_id = m.id\n" +
                 "where t.row < 4 and (m.email_verified = 1 or m.password is null)";
 
         Query query = getEntityManager()
-                .createNativeQuery(sql);
+                .createNativeQuery(sql)
+                .setParameter("targetDate", targetDate, TemporalType.DATE);
 
         List<Object[]> list = query.getResultList();
         return list.stream()
@@ -105,6 +99,7 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
                     wrapper.setPaperYear((Integer) obj[8]);
 
                     wrapper.setCount((int) obj[9]);
+                    wrapper.setStart(OffsetDateTime.ofInstant(((Timestamp) obj[10]).toInstant(), ZoneOffset.systemDefault()));
                     return wrapper;
                 })
                 .collect(Collectors.toList());
@@ -123,6 +118,7 @@ public class CollectionRepositoryImpl extends QueryDslRepositorySupport implemen
         private String paperTitle;
         private Integer paperYear;
         private int count;
+        private OffsetDateTime start;
     }
 
 }

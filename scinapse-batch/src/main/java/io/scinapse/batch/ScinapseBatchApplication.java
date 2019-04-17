@@ -11,11 +11,19 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.time.ZoneOffset;
+import java.util.TimeZone;
 
 @EnableBatchProcessing
 @SpringBootApplication(scanBasePackageClasses = { ScinapseDomain.class, ScinapseBatch.class })
 public class ScinapseBatchApplication {
+
+    @PostConstruct
+    void started() {
+        TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
+    }
 
     public static void main(String[] args) {
         setup();

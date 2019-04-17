@@ -3,9 +3,9 @@ package io.scinapse.batch.job;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.google.common.base.Joiner;
-import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import com.sendgrid.*;
+import io.scinapse.batch.SendAtUtil;
+import io.scinapse.batch.SlackAlarmHelper;
 import io.scinapse.domain.data.academic.model.Author;
 import io.scinapse.domain.data.academic.model.Paper;
 import io.scinapse.domain.data.academic.model.PaperTopAuthor;
@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
@@ -26,21 +27,28 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
+@JobScope
 @Component
 @RequiredArgsConstructor
 public class CollectionEmailTasklet implements Tasklet {
+
+    @Value("#{jobParameters[target_date]}")
+    private String targetDate;
 
     private final CollectionRepository collectionRepository;
     private final PaperRepository paperRepository;
 
     private final Environment environment;
-
     private final SendGrid sendGrid;
+    private final SlackAlarmHelper helper;
 
     @Value("${pluto.server.email.sg.template.retention-collection}")
     private String collectionEmailTemplate;
@@ -48,40 +56,33 @@ public class CollectionEmailTasklet implements Tasklet {
     @Value("${pluto.server.web.url}")
     private String webUrl;
 
-    @Value("${pluto.server.slack.batch.email.url}")
-    private String slackUrl;
-
     @Override
-    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
+    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws ParseException {
+        SendAtUtil.init();
         String[] profiles = environment.getActiveProfiles();
 
-        List<CollectionRepositoryImpl.CollectionEmailDataWrapper> data = collectionRepository.getCollectionEmailData();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        Date parse = format.parse(targetDate);
+
+        List<CollectionRepositoryImpl.CollectionEmailDataWrapper> data = collectionRepository.getCollectionEmailData(parse);
         List<CollectionEmailData> emailDataList = convertData(data);
 
-        sendSlackAlarm("`" + Arrays.toString(profiles) + "` Sending mails to " + emailDataList.size() + " users...");
+        helper.sendSlackAlarm("`" + Arrays.toString(profiles) + "` *Collection D1* Sending mails to " + emailDataList.size() + " users...");
 
         // send email
-        emailDataList.forEach(this::sendEmail);
+        int counter = 0;
+        for (CollectionEmailData emailData : emailDataList) {
+            try {
+                sendEmail(emailData);
+                counter++;
+            } catch (Exception e) {
+                log.error("Cannot send email.", e);
+            }
+        }
 
-        sendSlackAlarm("`" + Arrays.toString(profiles) + "` Sent " + emailDataList.size() + " mails successfully!!!");
+        helper.sendSlackAlarm("`" + Arrays.toString(profiles) + "` *Collection D1* Sent " + counter + " mails successfully!!!");
 
         return RepeatStatus.FINISHED;
-    }
-
-    private void sendSlackAlarm(String message) {
-        log.info("------------------------------------------------");
-        log.info(message);
-        log.info("------------------------------------------------");
-
-        Map<String, Object> slackMessage = new HashMap<>();
-        slackMessage.put("text", message);
-        try {
-            Unirest.post(slackUrl)
-                    .body(slackMessage)
-                    .asString();
-        } catch (UnirestException e) {
-            log.error("Cannot send slack alarm.", e);
-        }
     }
 
     private List<CollectionEmailData> convertData(List<CollectionRepositoryImpl.CollectionEmailDataWrapper> data) {
@@ -92,14 +93,15 @@ public class CollectionEmailTasklet implements Tasklet {
                 .stream()
                 .filter(c -> !CollectionUtils.isEmpty(c))
                 .map(dataList -> {
-                    CollectionRepositoryImpl.CollectionEmailDataWrapper wrapper = dataList.get(0);
+                    CollectionRepositoryImpl.CollectionEmailDataWrapper representor = dataList.get(0);
 
                     CollectionEmailData emailData = new CollectionEmailData();
 
-                    String username = Joiner.on(" ").skipNulls().join(wrapper.getFirstName(), wrapper.getLastName());
-                    emailData.setEmail(wrapper.getEmail());
+                    String username = Joiner.on(" ").skipNulls().join(representor.getFirstName(), representor.getLastName());
+                    emailData.setEmail(representor.getEmail());
                     emailData.setUsername(username);
-                    emailData.setCount(wrapper.getCount());
+                    emailData.setCount(representor.getCount());
+                    emailData.setStart(representor.getStart());
 
                     Map<Long, List<CollectionRepositoryImpl.CollectionEmailDataWrapper>> collect = dataList.stream()
                             .collect(Collectors.groupingBy(CollectionRepositoryImpl.CollectionEmailDataWrapper::getCollectionId));
@@ -142,6 +144,10 @@ public class CollectionEmailTasklet implements Tasklet {
 
         mail.addPersonalization(personalization);
 
+        OffsetDateTime sendAt = SendAtUtil.getSendAt(data.getStart());
+        log.info("Sending mail to {} at {} ...", data.email, sendAt);
+        mail.setSendAt(sendAt.toEpochSecond());
+
         try {
             Request request = new Request();
             request.setMethod(Method.POST);
@@ -155,7 +161,7 @@ public class CollectionEmailTasklet implements Tasklet {
 
     private Email getNoReplyFrom() {
         Email from = new Email();
-        from.setEmail("no-reply@scinapse.io");
+        from.setEmail("team@pluto.network");
         from.setName("Scinapse");
         return from;
     }
@@ -211,6 +217,7 @@ public class CollectionEmailTasklet implements Tasklet {
         String username;
         String email;
         int count;
+        OffsetDateTime start;
         List<CollectionData> collections = new ArrayList<>();
     }
 

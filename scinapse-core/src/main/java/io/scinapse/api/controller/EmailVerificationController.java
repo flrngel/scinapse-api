@@ -1,6 +1,7 @@
 package io.scinapse.api.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.scinapse.api.facade.MemberFacade;
 import io.scinapse.domain.data.scinapse.model.Member;
 import io.scinapse.api.error.BadRequestException;
 import io.scinapse.api.error.ResourceNotFoundException;
@@ -24,6 +25,7 @@ public class EmailVerificationController {
 
     private final EmailVerificationService emailVerificationService;
     private final MemberService memberService;
+    private final MemberFacade memberFacade;
     private final TokenHelper tokenHelper;
 
     @RequestMapping(value = "/email-verification", method = RequestMethod.POST)
@@ -50,17 +52,7 @@ public class EmailVerificationController {
 
     @RequestMapping(value = "/email-verification/resend", method = RequestMethod.POST)
     public Result resend(@RequestBody EmailWrapper email) {
-        Member member = memberService.findByEmail(email.email);
-        if (member == null) {
-            throw new ResourceNotFoundException("Member not found: " + email.email);
-        }
-
-        if (member.isEmailVerified()) {
-            throw new BadRequestException("Member already verified email");
-        }
-
-        emailVerificationService.sendVerification(member);
-
+        memberFacade.resendVerificationMail(email.email);
         return Result.success();
     }
 

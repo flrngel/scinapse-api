@@ -114,12 +114,7 @@ public class MemberController {
 
     @RequestMapping(value = "/members/password-token", method = RequestMethod.POST)
     public Result generateToken(@RequestBody EmailWrapper email) {
-        Member member = memberService.findByEmail(email.email);
-        if (member == null) {
-            throw new ResourceNotFoundException("Member not found: " + email.email);
-        }
-
-        memberFacade.generateToken(member);
+        memberFacade.generateToken(email.email);
         return Result.success();
     }
 
