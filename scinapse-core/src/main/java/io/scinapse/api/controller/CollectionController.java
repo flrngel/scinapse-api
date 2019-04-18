@@ -11,6 +11,7 @@ import io.scinapse.api.security.jwt.JwtUser;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -63,6 +64,7 @@ public class CollectionController {
         return Result.success();
     }
 
+    @Transactional
     @RequestMapping(value = "/members/{memberId}/collections", method = RequestMethod.GET)
     public Map<String, Object> findByCreators(@PathVariable long memberId) {
         PageRequest pageRequest = new PageRequest(0, 50, null);
@@ -74,6 +76,7 @@ public class CollectionController {
         return result;
     }
 
+    @Transactional
     @RequestMapping(value = "/members/me/collections", method = RequestMethod.GET)
     public Map<String, Object> myCollection(@ApiIgnore JwtUser user,
                                             @RequestParam(value = "paper_id", required = false) Long paperId) {
